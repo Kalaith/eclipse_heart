@@ -15,8 +15,23 @@
         "panic_spiral",
         "panic_in_the_parade_route",
         "forbidden_bloom_of_calamity"
+      ],
+      "magical_girl_roster": [
+        "momo",
+        "yuki",
+        "hana",
+        "riri",
+        "kiko"
+      ],
+      "baddie_roster": [
+        "noctra",
+        "velvet_hex",
+        "glass_crow",
+        "thorn_waltz",
+        "hollow_marionette"
       ]
     }
   ],
+  "active_support_deck_index": 0,
   "roster_presets": []
 }

@@ -13,12 +13,18 @@ use crate::ui::layout::UiLayout;
 
 pub struct DeckBuilderScreen {
     selected_starter_index: Option<usize>,
+    active_layer: DeckBuilderLayer,
+    selected_magical_girl_slot: Option<usize>,
+    selected_baddie_slot: Option<usize>,
 }
 
 impl DeckBuilderScreen {
     pub fn new() -> Self {
         Self {
             selected_starter_index: None,
+            active_layer: DeckBuilderLayer::SupportCards,
+            selected_magical_girl_slot: None,
+            selected_baddie_slot: None,
         }
     }
 
@@ -40,6 +46,17 @@ impl DeckBuilderScreen {
             return ScreenAction::DeckBuilderOpenBooster;
         }
 
+        if point_in_rect(deck_builder_tab_rect(DeckBuilderLayer::SupportCards), mouse)
+            && is_mouse_button_pressed(MouseButton::Left)
+        {
+            self.active_layer = DeckBuilderLayer::SupportCards;
+        }
+        if point_in_rect(deck_builder_tab_rect(DeckBuilderLayer::Roster), mouse)
+            && is_mouse_button_pressed(MouseButton::Left)
+        {
+            self.active_layer = DeckBuilderLayer::Roster;
+        }
+
         for (loadout_index, _starter) in state.content.starter_loadouts.iter().enumerate() {
             let row_rect = starter_row_rect(loadout_index);
             let load_rect = starter_edit_rect(loadout_index);
@@ -49,6 +66,10 @@ impl DeckBuilderScreen {
             if point_in_rect(load_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
                 return ScreenAction::DeckBuilderLoadStarter { loadout_index };
             }
+        }
+
+        if self.active_layer == DeckBuilderLayer::Roster {
+            return self.update_roster_layer(state, mouse);
         }
 
         for (index, card) in state.content.story_cards.iter().enumerate() {
@@ -140,6 +161,7 @@ impl DeckBuilderScreen {
             state.ui_text.get("deck_builder_preview_label"),
             PINK,
         );
+        self.draw_layer_tabs(state);
 
         draw_text(deck_name, ui.x(570.0), ui.y(154.0), ui.font(34.0), WHITE);
         draw_text(
@@ -247,84 +269,89 @@ impl DeckBuilderScreen {
         }
 
         let mut hovered_card = None;
-        for (index, card) in state.content.story_cards.iter().enumerate() {
-            let row = index / 4;
-            let column = index % 4;
-            let base_x = ui.x(560.0 + column as f32 * 350.0);
-            let base_y = ui.y(232.0 + row as f32 * 134.0);
-            let copies = state.saves.decks.card_count(&card.id);
-            let owned = state
-                .saves
-                .collection
-                .owned_count(CollectionCardKind::StoryCard, &card.id);
-            let available = state
-                .saves
-                .collection
-                .story_cards_available_for_deck(&card.id, copies);
-            let rect = Rect::new(base_x, base_y, ui.w(328.0), ui.h(116.0));
-            let hovered = point_in_rect(rect, mouse);
-            if hovered {
-                hovered_card = Some((card, copies, owned, available));
+        if self.active_layer == DeckBuilderLayer::SupportCards {
+            for (index, card) in state.content.story_cards.iter().enumerate() {
+                let row = index / 4;
+                let column = index % 4;
+                let base_x = ui.x(560.0 + column as f32 * 350.0);
+                let base_y = ui.y(232.0 + row as f32 * 134.0);
+                let copies = state.saves.decks.card_count(&card.id);
+                let owned = state
+                    .saves
+                    .collection
+                    .owned_count(CollectionCardKind::StoryCard, &card.id);
+                let available = state
+                    .saves
+                    .collection
+                    .story_cards_available_for_deck(&card.id, copies);
+                let rect = Rect::new(base_x, base_y, ui.w(328.0), ui.h(116.0));
+                let hovered = point_in_rect(rect, mouse);
+                if hovered {
+                    hovered_card = Some((card, copies, owned, available));
+                }
+
+                draw_story_card_tile(
+                    rect,
+                    card,
+                    &format!(
+                        "{} {} | {} {}",
+                        state.ui_text.get("deck_builder_owned_label"),
+                        owned,
+                        state.ui_text.get("deck_builder_copies_label"),
+                        copies
+                    ),
+                    state.saves.decks.can_add_card(
+                        &card.id,
+                        &state.content.deck_rules,
+                        &state.saves.collection,
+                    ),
+                    hovered,
+                );
+
+                draw_soft_panel(
+                    rect.x + rect.w - ui.w(112.0),
+                    rect.y + ui.h(12.0),
+                    ui.w(92.0),
+                    ui.h(36.0),
+                    if available > 0 { SKYBLUE } else { DARKGRAY },
+                );
+                draw_text(
+                    if available > 0 {
+                        state.ui_text.get("deck_builder_add_card")
+                    } else {
+                        state.ui_text.get("deck_builder_add_locked")
+                    },
+                    rect.x + rect.w - ui.w(96.0),
+                    rect.y + ui.h(36.0),
+                    ui.font(16.0),
+                    WHITE,
+                );
+
+                draw_soft_panel(
+                    rect.x + rect.w - ui.w(112.0),
+                    rect.y + ui.h(60.0),
+                    ui.w(92.0),
+                    ui.h(36.0),
+                    if copies > 0 { PINK } else { DARKGRAY },
+                );
+                draw_text(
+                    if copies > 0 {
+                        state.ui_text.get("deck_builder_remove_card")
+                    } else {
+                        state.ui_text.get("deck_builder_remove_locked")
+                    },
+                    rect.x + rect.w - ui.w(94.0),
+                    rect.y + ui.h(84.0),
+                    ui.font(16.0),
+                    WHITE,
+                );
             }
-
-            draw_story_card_tile(
-                rect,
-                card,
-                &format!(
-                    "{} {} | {} {}",
-                    state.ui_text.get("deck_builder_owned_label"),
-                    owned,
-                    state.ui_text.get("deck_builder_copies_label"),
-                    copies
-                ),
-                state.saves.decks.can_add_card(
-                    &card.id,
-                    &state.content.deck_rules,
-                    &state.saves.collection,
-                ),
-                hovered,
-            );
-
-            draw_soft_panel(
-                rect.x + rect.w - ui.w(112.0),
-                rect.y + ui.h(12.0),
-                ui.w(92.0),
-                ui.h(36.0),
-                if available > 0 { SKYBLUE } else { DARKGRAY },
-            );
-            draw_text(
-                if available > 0 {
-                    state.ui_text.get("deck_builder_add_card")
-                } else {
-                    state.ui_text.get("deck_builder_add_locked")
-                },
-                rect.x + rect.w - ui.w(96.0),
-                rect.y + ui.h(36.0),
-                ui.font(16.0),
-                WHITE,
-            );
-
-            draw_soft_panel(
-                rect.x + rect.w - ui.w(112.0),
-                rect.y + ui.h(60.0),
-                ui.w(92.0),
-                ui.h(36.0),
-                if copies > 0 { PINK } else { DARKGRAY },
-            );
-            draw_text(
-                if copies > 0 {
-                    state.ui_text.get("deck_builder_remove_card")
-                } else {
-                    state.ui_text.get("deck_builder_remove_locked")
-                },
-                rect.x + rect.w - ui.w(94.0),
-                rect.y + ui.h(84.0),
-                ui.font(16.0),
-                WHITE,
-            );
         }
 
-        if let Some((card, copies, owned, available)) = hovered_card {
+        if self.active_layer == DeckBuilderLayer::Roster {
+            self.draw_roster_layer(state);
+            self.draw_roster_preview(state);
+        } else if let Some((card, copies, owned, available)) = hovered_card {
             let preview_rect = ui.rect(2120.0, 136.0, 330.0, 1120.0);
             let footer = vec![
                 format!(
@@ -516,6 +543,259 @@ impl DeckBuilderScreen {
             }
         }
     }
+
+    fn update_roster_layer(&mut self, state: &AppState, mouse: (f32, f32)) -> ScreenAction {
+        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+            return ScreenAction::None;
+        };
+
+        for (slot_index, rect) in roster_slot_rects(true).into_iter().enumerate() {
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                self.selected_magical_girl_slot = Some(slot_index);
+            }
+        }
+
+        for (slot_index, rect) in roster_slot_rects(false).into_iter().enumerate() {
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                self.selected_baddie_slot = Some(slot_index);
+            }
+        }
+
+        for (index, character) in state.content.magical_girls.iter().enumerate() {
+            let rect = roster_pool_rect(true, index);
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                if let Some(slot_index) = self.selected_magical_girl_slot {
+                    return ScreenAction::DeckBuilderSetRosterSlot {
+                        is_magical_girl_side: true,
+                        slot_index,
+                        character_id: character.id.clone(),
+                    };
+                }
+            }
+        }
+
+        for (index, character) in state.content.baddies.iter().enumerate() {
+            let rect = roster_pool_rect(false, index);
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                if let Some(slot_index) = self.selected_baddie_slot {
+                    return ScreenAction::DeckBuilderSetRosterSlot {
+                        is_magical_girl_side: false,
+                        slot_index,
+                        character_id: character.id.clone(),
+                    };
+                }
+            }
+        }
+
+        if active_deck.magical_girl_roster.is_empty() || active_deck.baddie_roster.is_empty() {
+            self.selected_magical_girl_slot = None;
+            self.selected_baddie_slot = None;
+        }
+
+        ScreenAction::None
+    }
+
+    fn draw_layer_tabs(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        for layer in [DeckBuilderLayer::SupportCards, DeckBuilderLayer::Roster] {
+            let rect = deck_builder_tab_rect(layer);
+            draw_soft_panel(
+                rect.x,
+                rect.y,
+                rect.w,
+                rect.h,
+                if self.active_layer == layer {
+                    GOLD
+                } else {
+                    DARKGRAY
+                },
+            );
+            draw_text(
+                match layer {
+                    DeckBuilderLayer::SupportCards => {
+                        state.ui_text.get("deck_builder_tab_support_cards")
+                    }
+                    DeckBuilderLayer::Roster => state.ui_text.get("deck_builder_tab_roster"),
+                },
+                rect.x + ui.w(18.0),
+                rect.y + ui.h(34.0),
+                ui.font(22.0),
+                WHITE,
+            );
+        }
+    }
+
+    fn draw_roster_layer(&self, state: &AppState) {
+        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+            return;
+        };
+        let ui = UiLayout::current();
+        draw_text(
+            state.ui_text.get("deck_builder_roster_help"),
+            ui.x(570.0),
+            ui.y(226.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+
+        self.draw_roster_column(
+            state,
+            true,
+            &active_deck.magical_girl_roster,
+            self.selected_magical_girl_slot,
+        );
+        self.draw_roster_column(
+            state,
+            false,
+            &active_deck.baddie_roster,
+            self.selected_baddie_slot,
+        );
+    }
+
+    fn draw_roster_column(
+        &self,
+        state: &AppState,
+        is_magical_girl_side: bool,
+        roster: &[String],
+        selected_slot: Option<usize>,
+    ) {
+        let ui = UiLayout::current();
+        let title_x = if is_magical_girl_side {
+            ui.x(570.0)
+        } else {
+            ui.x(1320.0)
+        };
+        draw_text(
+            if is_magical_girl_side {
+                state.ui_text.get("deck_builder_roster_magical_girls")
+            } else {
+                state.ui_text.get("deck_builder_roster_baddies")
+            },
+            title_x,
+            ui.y(278.0),
+            ui.font(28.0),
+            WHITE,
+        );
+
+        let definitions = if is_magical_girl_side {
+            &state.content.magical_girls
+        } else {
+            &state.content.baddies
+        };
+
+        for (slot_index, character_id) in roster.iter().enumerate() {
+            let rect = roster_slot_rects(is_magical_girl_side)[slot_index];
+            let name = definitions
+                .iter()
+                .find(|entry| entry.id == *character_id)
+                .map(|entry| entry.name.as_str())
+                .unwrap_or(character_id.as_str());
+            draw_soft_panel(
+                rect.x,
+                rect.y,
+                rect.w,
+                rect.h,
+                if selected_slot == Some(slot_index) {
+                    GOLD
+                } else {
+                    DARKGRAY
+                },
+            );
+            draw_text(
+                &format!("{} {}", slot_index + 1, name),
+                rect.x + ui.w(16.0),
+                rect.y + ui.h(30.0),
+                ui.font(22.0),
+                WHITE,
+            );
+        }
+
+        for (index, character) in definitions.iter().enumerate() {
+            let rect = roster_pool_rect(is_magical_girl_side, index);
+            let is_in_roster = roster.iter().any(|entry| entry == &character.id);
+            draw_soft_panel(
+                rect.x,
+                rect.y,
+                rect.w,
+                rect.h,
+                if is_in_roster { SKYBLUE } else { GRAY },
+            );
+            draw_text(
+                &character.name,
+                rect.x + ui.w(14.0),
+                rect.y + ui.h(32.0),
+                ui.font(20.0),
+                WHITE,
+            );
+            draw_text(
+                &format!(
+                    "{} / {} / {}",
+                    character.base_power, character.transformed_power, character.final_power
+                ),
+                rect.x + ui.w(14.0),
+                rect.y + ui.h(58.0),
+                ui.font(16.0),
+                TEXT_MUTED,
+            );
+        }
+    }
+
+    fn draw_roster_preview(&self, state: &AppState) {
+        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+            return;
+        };
+        let ui = UiLayout::current();
+        let preview_rect = ui.rect(2120.0, 136.0, 330.0, 1120.0);
+
+        if let Some(slot_index) = self.selected_magical_girl_slot {
+            if let Some(character_id) = active_deck.magical_girl_roster.get(slot_index) {
+                if let Some(character) = state
+                    .content
+                    .magical_girls
+                    .iter()
+                    .find(|entry| &entry.id == character_id)
+                {
+                    self.draw_character_preview(
+                        preview_rect,
+                        state.ui_text.get("deck_builder_kind_magical_girl"),
+                        character,
+                        state
+                            .saves
+                            .collection
+                            .owned_count(CollectionCardKind::MagicalGirl, character_id),
+                    );
+                    return;
+                }
+            }
+        }
+
+        if let Some(slot_index) = self.selected_baddie_slot {
+            if let Some(character_id) = active_deck.baddie_roster.get(slot_index) {
+                if let Some(character) = state
+                    .content
+                    .baddies
+                    .iter()
+                    .find(|entry| &entry.id == character_id)
+                {
+                    self.draw_character_preview(
+                        preview_rect,
+                        state.ui_text.get("deck_builder_kind_baddie"),
+                        character,
+                        state
+                            .saves
+                            .collection
+                            .owned_count(CollectionCardKind::Baddie, character_id),
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum DeckBuilderLayer {
+    SupportCards,
+    Roster,
 }
 
 fn collection_kind_label<'a>(state: &'a AppState, kind: CollectionCardKind) -> &'a str {
@@ -543,5 +823,49 @@ fn starter_edit_rect(index: usize) -> Rect {
         ui.y(216.0 + index as f32 * 72.0),
         ui.w(72.0),
         ui.h(56.0),
+    )
+}
+
+fn deck_builder_tab_rect(layer: DeckBuilderLayer) -> Rect {
+    let ui = UiLayout::current();
+    match layer {
+        DeckBuilderLayer::SupportCards => {
+            Rect::new(ui.x(560.0), ui.y(194.0), ui.w(250.0), ui.h(44.0))
+        }
+        DeckBuilderLayer::Roster => Rect::new(ui.x(826.0), ui.y(194.0), ui.w(210.0), ui.h(44.0)),
+    }
+}
+
+fn roster_slot_rects(is_magical_girl_side: bool) -> Vec<Rect> {
+    let ui = UiLayout::current();
+    let start_x = if is_magical_girl_side {
+        ui.x(570.0)
+    } else {
+        ui.x(1320.0)
+    };
+    (0..5)
+        .map(|index| {
+            Rect::new(
+                start_x,
+                ui.y(306.0 + index as f32 * 72.0),
+                ui.w(300.0),
+                ui.h(56.0),
+            )
+        })
+        .collect()
+}
+
+fn roster_pool_rect(is_magical_girl_side: bool, index: usize) -> Rect {
+    let ui = UiLayout::current();
+    let start_x = if is_magical_girl_side {
+        ui.x(900.0)
+    } else {
+        ui.x(1650.0)
+    };
+    Rect::new(
+        start_x,
+        ui.y(306.0 + index as f32 * 92.0),
+        ui.w(300.0),
+        ui.h(74.0),
     )
 }

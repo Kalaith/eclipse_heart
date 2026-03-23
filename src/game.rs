@@ -70,6 +70,7 @@ impl Game {
                 self.handle_navigation_action(action);
             }
             ScreenAction::DeckBuilderOpenBooster
+            | ScreenAction::DeckBuilderSetRosterSlot { .. }
             | ScreenAction::DeckBuilderLoadStarter { .. }
             | ScreenAction::DeckBuilderAddCard { .. }
             | ScreenAction::DeckBuilderRemoveCard { .. } => {
@@ -98,10 +99,25 @@ impl Game {
                 self.state.screen = AppScreen::Setup;
             }
             ScreenAction::OpenDeckBuilder => {
-                self.state
-                    .saves
-                    .decks
-                    .ensure_active_support_deck(&self.state.content.starter_loadouts);
+                let magical_girl_ids = self
+                    .state
+                    .content
+                    .magical_girls
+                    .iter()
+                    .map(|entry| entry.id.clone())
+                    .collect::<Vec<_>>();
+                let baddie_ids = self
+                    .state
+                    .content
+                    .baddies
+                    .iter()
+                    .map(|entry| entry.id.clone())
+                    .collect::<Vec<_>>();
+                self.state.saves.decks.ensure_active_support_deck(
+                    &self.state.content.starter_loadouts,
+                    &magical_girl_ids,
+                    &baddie_ids,
+                );
                 self.state.screen = AppScreen::DeckBuilder;
             }
             ScreenAction::BackToMenu => {
@@ -201,9 +217,38 @@ impl Game {
             }
             ScreenAction::DeckBuilderLoadStarter { loadout_index } => {
                 if let Some(starter) = self.state.content.starter_loadouts.get(loadout_index) {
-                    self.state.saves.decks.edit_starter_deck(starter);
+                    let magical_girl_ids = self
+                        .state
+                        .content
+                        .magical_girls
+                        .iter()
+                        .map(|entry| entry.id.clone())
+                        .collect::<Vec<_>>();
+                    let baddie_ids = self
+                        .state
+                        .content
+                        .baddies
+                        .iter()
+                        .map(|entry| entry.id.clone())
+                        .collect::<Vec<_>>();
+                    self.state.saves.decks.edit_starter_deck(
+                        starter,
+                        &magical_girl_ids,
+                        &baddie_ids,
+                    );
                     should_save = true;
                 }
+            }
+            ScreenAction::DeckBuilderSetRosterSlot {
+                is_magical_girl_side,
+                slot_index,
+                character_id,
+            } => {
+                should_save = self.state.saves.decks.set_roster_slot(
+                    is_magical_girl_side,
+                    slot_index,
+                    &character_id,
+                );
             }
             ScreenAction::DeckBuilderAddCard { card_id } => {
                 should_save = self.state.saves.decks.add_card(

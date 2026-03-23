@@ -189,8 +189,13 @@ impl DecksSave {
             &mut deck.baddie_roster
         };
 
-        if slot_index >= roster.len() || roster.iter().any(|entry| entry == character_id) {
+        if slot_index >= roster.len() {
             return false;
+        }
+
+        if let Some(existing_index) = roster.iter().position(|entry| entry == character_id) {
+            roster.swap(slot_index, existing_index);
+            return true;
         }
 
         roster[slot_index] = character_id.to_owned();
@@ -235,7 +240,6 @@ mod tests {
             universal_copy_limit: true,
         };
 
-        decks.ensure_active_support_deck(std::slice::from_ref(&starter));
         decks.ensure_active_support_deck(
             std::slice::from_ref(&starter),
             &["yuki".to_owned(), "hana".to_owned()],
@@ -289,14 +293,18 @@ mod tests {
     }
 
     #[test]
-    fn set_roster_slot_rejects_duplicates_and_updates_slot() {
+    fn set_roster_slot_swaps_existing_character_into_selected_slot() {
         let starter = sample_starter();
         let mut decks = DecksSave::default();
         let magical_girls = ["yuki".to_owned(), "hana".to_owned(), "riri".to_owned()];
-        let baddies = ["noctra".to_owned(), "glass_crow".to_owned(), "thorn_waltz".to_owned()];
+        let baddies = [
+            "noctra".to_owned(),
+            "glass_crow".to_owned(),
+            "thorn_waltz".to_owned(),
+        ];
         decks.ensure_active_support_deck(std::slice::from_ref(&starter), &magical_girls, &baddies);
 
-        assert!(!decks.set_roster_slot(true, 0, "hana"));
+        assert!(decks.set_roster_slot(true, 0, "hana"));
         assert!(decks.set_roster_slot(true, 0, "riri"));
         assert_eq!(
             decks
@@ -304,6 +312,13 @@ mod tests {
                 .expect("active deck")
                 .magical_girl_roster[0],
             "riri"
+        );
+        assert_eq!(
+            decks
+                .active_support_deck()
+                .expect("active deck")
+                .magical_girl_roster[2],
+            "hana"
         );
     }
 }
