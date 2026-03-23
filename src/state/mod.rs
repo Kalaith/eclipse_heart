@@ -8,8 +8,8 @@ mod persistence;
 mod profile;
 mod settings;
 
-pub use app_state::{AppScreen, AppState};
-pub use collection::CollectionSave;
+pub use app_state::{AppScreen, AppState, BoosterCardGrant};
+pub use collection::{CollectionCardKind, CollectionSave};
 pub use decks::DecksSave;
 pub use match_state::{
     opposing, CharacterStage, MatchPhase, MatchSetup, MatchState, PlayerId, ReactionState,

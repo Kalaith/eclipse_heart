@@ -21,6 +21,7 @@
 - The prototype shows `You` and `Enemy` columns with each player's Magical Girl side and Baddie side.
 - The active lane is called out explicitly so it is clear whose Magical Girls are attacking whose Baddies.
 - `Player A` now sees the actual cards in hand as individual playable buttons instead of a single `play first` shortcut.
+- Hand cards and deck-builder cards now render as compact rectangular card tiles with hover previews that draw above the rest of the interface so card text stays readable.
 - The battle screen shows visible draw-pile counts for both players.
 - The defending player's Prime Baddie is marked when defeated and the finished state shows the winner.
 
@@ -29,13 +30,17 @@
 - Local save files are now versioned and stored under `save/`.
 - The prototype loads `profile.json`, `collection.json`, `decks.json`, and `settings.json` with default fallback when files are missing.
 - Finishing a match updates the local profile match and win counters and writes the save bundle back to disk.
+- Collection ownership now stores counted inventory and still accepts the older array-shaped save format on load.
 - The deck builder edits the active local support deck preset and saves changes immediately.
 
 ## Deck builder shell
 
 - A dedicated deck builder screen now exists for the active support deck prototype.
 - The screen can load a starter support deck into the active preset.
-- The screen can add or remove story cards while respecting configured deck size and per-card copy limits.
+- The screen can open a `10`-card booster that rolls from the full Magical Girl, Baddie, and story-card pool and records those results in local collection counts.
+- The screen can add or remove story cards while respecting configured deck size, per-card copy limits, and owned story-card copies in collection.
+- The deck builder now uses a fixed grid plus a dedicated preview panel so the full card list fits the 1440p layout without overlapping columns.
+- Hovering a booster-result row now previews the opened card in the same right-side panel, and clicking a starter row shows that starter deck's card list without loading it.
 - The active support deck is created automatically from the first starter loadout if no local deck preset exists yet.
 
 ## AI simulation

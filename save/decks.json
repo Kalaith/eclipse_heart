@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "support_decks": [
+    {
+      "id": "velvet_ambush",
+      "name": "Velvet Ambush",
+      "story_cards": [
+        "ominous_graffiti",
+        "quiet_lunch_on_the_rooftop",
+        "crescent_counterpose",
+        "synchronized_finish",
+        "whisper_campaign",
+        "last_minute_cover_story",
+        "panic_spiral",
+        "panic_in_the_parade_route",
+        "forbidden_bloom_of_calamity"
+      ]
+    }
+  ],
+  "roster_presets": []
+}

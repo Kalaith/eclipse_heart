@@ -1,9 +1,13 @@
 //! Top-level game coordinator.
 
+use macroquad::rand::gen_range;
+
 use crate::data::{GameContent, UiText};
 use crate::engine::{AiController, MatchEngine};
 use crate::screens::{BattleScreen, DeckBuilderScreen, MenuScreen, ScreenAction, SetupScreen};
-use crate::state::{AppScreen, AppState, MatchState};
+use crate::state::{
+    AppScreen, AppState, BoosterCardGrant, CollectionCardKind, MatchState,
+};
 
 pub struct Game {
     state: AppState,
@@ -46,6 +50,16 @@ impl Game {
                     .decks
                     .ensure_active_support_deck(&self.state.content.starter_loadouts);
                 self.state.screen = AppScreen::DeckBuilder;
+            }
+            ScreenAction::DeckBuilderOpenBooster => {
+                self.state.last_opened_booster = open_booster(&self.state.content);
+                for grant in &self.state.last_opened_booster {
+                    self.state
+                        .saves
+                        .collection
+                        .add_owned(grant.kind, &grant.id, 1);
+                }
+                let _ = self.state.persistence.save_all(&self.state.saves);
             }
             ScreenAction::SetupCyclePlayerAMgMain => {
                 self.state.setup.cycle_player_a_mg_main(&self.state.content);
@@ -94,7 +108,11 @@ impl Game {
                     .state
                     .saves
                     .decks
-                    .add_card(&card_id, &self.state.content.deck_rules)
+                    .add_card(
+                        &card_id,
+                        &self.state.content.deck_rules,
+                        &self.state.saves.collection,
+                    )
                 {
                     let _ = self.state.persistence.save_all(&self.state.saves);
                 }
@@ -146,4 +164,39 @@ impl Game {
             AppScreen::Battle => self.battle_screen.draw(&self.state),
         }
     }
+}
+
+fn open_booster(content: &GameContent) -> Vec<BoosterCardGrant> {
+    let mut pool = Vec::new();
+
+    for entry in &content.magical_girls {
+        pool.push(BoosterCardGrant {
+            kind: CollectionCardKind::MagicalGirl,
+            id: entry.id.clone(),
+            name: entry.name.clone(),
+        });
+    }
+
+    for entry in &content.baddies {
+        pool.push(BoosterCardGrant {
+            kind: CollectionCardKind::Baddie,
+            id: entry.id.clone(),
+            name: entry.name.clone(),
+        });
+    }
+
+    for entry in &content.story_cards {
+        pool.push(BoosterCardGrant {
+            kind: CollectionCardKind::StoryCard,
+            id: entry.id.clone(),
+            name: entry.name.clone(),
+        });
+    }
+
+    let mut results = Vec::new();
+    for _ in 0..10 {
+        let index = gen_range(0, pool.len() as i32) as usize;
+        results.push(pool[index].clone());
+    }
+    results
 }

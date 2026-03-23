@@ -17,6 +17,7 @@ pub enum ScreenAction {
     None,
     OpenSetup,
     OpenDeckBuilder,
+    DeckBuilderOpenBooster,
     SetupCyclePlayerAMgMain,
     SetupCyclePlayerAMgSupports,
     SetupCyclePlayerABaddieMain,

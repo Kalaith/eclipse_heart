@@ -2,13 +2,14 @@
 
 use macroquad::prelude::*;
 
-use crate::data::CardSpeed;
 use crate::engine::MatchAction;
 use crate::screens::ScreenAction;
 use crate::state::{
     opposing, AppState, CharacterStage, MatchPhase, MatchState, PlayerId, SideState, SupportState,
 };
-use crate::ui::card_widgets::{action_button, card_button, section_panel};
+use crate::ui::card_widgets::{
+    action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
+};
 use crate::ui::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
@@ -28,28 +29,24 @@ impl BattleScreen {
         let player = PlayerId::PlayerA;
 
         let hand_start_x = ui.x(540.0);
-        let hand_start_y = ui.y(946.0);
-        let card_width = ui.w(420.0);
-        let card_height = ui.h(86.0);
-        let card_gap = ui.w(28.0);
+        let hand_start_y = ui.y(968.0);
+        let card_width = ui.w(228.0);
+        let card_height = ui.h(314.0);
+        let card_gap = ui.w(22.0);
+        let mouse = mouse_position();
 
         for (hand_index, card_id) in match_state.hand_for(player).iter().enumerate() {
-            let Some(card) = match_state.story_cards.get(card_id) else {
+            let Some(_card) = match_state.story_cards.get(card_id) else {
                 continue;
             };
             let enabled = match_state.can_play_hand_card(player, hand_index);
             let column = hand_index % 4;
             let row = hand_index / 4;
             let x = hand_start_x + column as f32 * (card_width + card_gap);
-            let y = hand_start_y + row as f32 * ui.h(100.0);
+            let y = hand_start_y + row as f32 * ui.h(330.0);
+            let rect = Rect::new(x, y, card_width, card_height);
 
-            if card_button(
-                Rect::new(x, y, card_width, card_height),
-                card_speed_label(state, card.speed),
-                hand_card_status_label(state, enabled),
-                &card.name,
-                enabled,
-            ) {
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) && enabled {
                 return ScreenAction::ApplyMatchAction(MatchAction::PlayCardFromHand {
                     player,
                     hand_index,
@@ -305,6 +302,8 @@ impl BattleScreen {
                 TEXT_MUTED,
             );
         }
+
+        self.draw_hand_cards(state, match_state, PlayerId::PlayerA);
     }
 
     fn draw_player_column(
@@ -451,6 +450,54 @@ impl BattleScreen {
     }
 }
 
+impl BattleScreen {
+    fn draw_hand_cards(&self, state: &AppState, match_state: &MatchState, player: PlayerId) {
+        let ui = UiLayout::current();
+        let hand_start_x = ui.x(540.0);
+        let hand_start_y = ui.y(968.0);
+        let card_width = ui.w(228.0);
+        let card_height = ui.h(314.0);
+        let card_gap = ui.w(22.0);
+        let mouse = mouse_position();
+        let mut hovered_card = None;
+
+        for (hand_index, card_id) in match_state.hand_for(player).iter().enumerate() {
+            let Some(card) = match_state.story_cards.get(card_id) else {
+                continue;
+            };
+            let enabled = match_state.can_play_hand_card(player, hand_index);
+            let column = hand_index % 4;
+            let row = hand_index / 4;
+            let rect = Rect::new(
+                hand_start_x + column as f32 * (card_width + card_gap),
+                hand_start_y + row as f32 * ui.h(330.0),
+                card_width,
+                card_height,
+            );
+            let hovered = point_in_rect(rect, mouse);
+            if hovered {
+                hovered_card = Some((card, enabled));
+            }
+            draw_story_card_tile(
+                rect,
+                card,
+                hand_card_status_label(state, enabled),
+                enabled,
+                hovered,
+            );
+        }
+
+        if let Some((card, enabled)) = hovered_card {
+            let preview_rect = Rect::new(ui.x(1760.0), ui.y(312.0), ui.w(420.0), ui.h(590.0));
+            let footer = vec![
+                format!("{}: {}", state.ui_text.get("phase_label"), card.card_type),
+                hand_card_status_label(state, enabled).to_owned(),
+            ];
+            draw_story_card_preview(preview_rect, card, &footer);
+        }
+    }
+}
+
 fn can_reveal_side(match_state: &MatchState, player: PlayerId, is_magical_girl_side: bool) -> bool {
     ((match_state.reaction_priority_player() == Some(player))
         || (match_state.reaction_state.is_none()
@@ -503,14 +550,6 @@ fn winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
         Some(PlayerId::PlayerA) => state.ui_text.get("battle_result_player_a"),
         Some(PlayerId::PlayerB) => state.ui_text.get("battle_result_player_b"),
         None => state.ui_text.get("battle_result_unknown"),
-    }
-}
-
-fn card_speed_label<'a>(state: &'a AppState, speed: CardSpeed) -> &'a str {
-    match speed {
-        CardSpeed::DailyLife => state.ui_text.get("battle_speed_daily"),
-        CardSpeed::Reaction => state.ui_text.get("battle_speed_reaction"),
-        CardSpeed::Encounter => state.ui_text.get("battle_speed_encounter"),
     }
 }
 

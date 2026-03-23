@@ -215,6 +215,136 @@
     ]
   },
   {
+    "id": "sunrise_promise",
+    "name": "Sunrise Promise",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_main_power_next_encounter", "amount": 1 },
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "ribbon_signal",
+    "name": "Ribbon Signal",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 1 },
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "spotlight_exchange",
+    "name": "Spotlight Exchange",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 2 },
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "stage_whisper",
+    "name": "Stage Whisper",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "reveal_first_hidden_own_support" },
+      { "kind": "gain_main_power_next_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "false_applause",
+    "name": "False Applause",
+    "card_type": "scheme",
+    "speed": "daily_life",
+    "alignment": "baddie",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 },
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "snare_the_lead",
+    "name": "Snare the Lead",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 2 }
+    ]
+  },
+  {
+    "id": "curtain_of_fear",
+    "name": "Curtain of Fear",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 2 },
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "shadow_prompt",
+    "name": "Shadow Prompt",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 },
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "dramatic_entrance",
+    "name": "Dramatic Entrance",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "neutral",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 1 },
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "changing_rooms",
+    "name": "Changing Rooms",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "neutral",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "crossfire_block",
+    "name": "Crossfire Block",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "neutral",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "exhaust_first_revealed_opponent_support" },
+      { "kind": "gain_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
     "id": "nightmare_spotlight",
     "name": "Nightmare Spotlight",
     "card_type": "scheme",

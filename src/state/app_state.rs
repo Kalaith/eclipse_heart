@@ -2,7 +2,9 @@
 
 use crate::data::{GameContent, UiText};
 
-use super::{MatchSetup, MatchState, PersistenceBundle, PersistenceManager};
+use super::{
+    CollectionCardKind, MatchSetup, MatchState, PersistenceBundle, PersistenceManager,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AppScreen {
@@ -10,6 +12,13 @@ pub enum AppScreen {
     Setup,
     DeckBuilder,
     Battle,
+}
+
+#[derive(Clone, Debug)]
+pub struct BoosterCardGrant {
+    pub kind: CollectionCardKind,
+    pub id: String,
+    pub name: String,
 }
 
 pub struct AppState {
@@ -20,6 +29,7 @@ pub struct AppState {
     pub match_state: Option<MatchState>,
     pub saves: PersistenceBundle,
     pub persistence: PersistenceManager,
+    pub last_opened_booster: Vec<BoosterCardGrant>,
 }
 
 impl AppState {
@@ -27,6 +37,10 @@ impl AppState {
         let setup = MatchSetup::default_for_content(&content);
         let persistence = PersistenceManager::default_local();
         let mut saves = persistence.load_all().unwrap_or_default();
+        saves.collection.ensure_full_roster_owned(
+            content.magical_girls.iter().map(|entry| entry.id.clone()),
+            content.baddies.iter().map(|entry| entry.id.clone()),
+        );
         saves
             .decks
             .ensure_active_support_deck(&content.starter_loadouts);
@@ -38,6 +52,7 @@ impl AppState {
             match_state: None,
             saves,
             persistence,
+            last_opened_booster: Vec::new(),
         }
     }
 }

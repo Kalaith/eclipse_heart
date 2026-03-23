@@ -91,6 +91,8 @@ where
 mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
+    use crate::state::CollectionCardKind;
+
     use super::{PersistenceBundle, PersistenceManager};
 
     fn temp_save_dir() -> std::path::PathBuf {
@@ -124,8 +126,12 @@ mod tests {
         bundle.profile.player_name = "Yuki".to_owned();
         bundle.profile.total_matches_played = 7;
         bundle.profile.total_wins = 5;
-        bundle.collection.owned_magical_girls = vec!["yuki".to_owned()];
-        bundle.collection.owned_story_cards = vec!["quiet_lunch_on_the_rooftop".to_owned()];
+        bundle
+            .collection
+            .add_owned(CollectionCardKind::MagicalGirl, "yuki", 1);
+        bundle
+            .collection
+            .add_owned(CollectionCardKind::StoryCard, "quiet_lunch_on_the_rooftop", 2);
         bundle.decks.roster_presets = vec!["starter_a".to_owned()];
         bundle.settings.fullscreen = true;
 
@@ -134,7 +140,18 @@ mod tests {
 
         assert_eq!(loaded.profile.player_name, "Yuki");
         assert_eq!(loaded.profile.total_wins, 5);
-        assert_eq!(loaded.collection.owned_magical_girls, vec!["yuki"]);
+        assert_eq!(
+            loaded
+                .collection
+                .owned_count(CollectionCardKind::MagicalGirl, "yuki"),
+            1
+        );
+        assert_eq!(
+            loaded
+                .collection
+                .owned_count(CollectionCardKind::StoryCard, "quiet_lunch_on_the_rooftop"),
+            2
+        );
         assert_eq!(loaded.decks.roster_presets, vec!["starter_a"]);
         assert!(loaded.settings.fullscreen);
 

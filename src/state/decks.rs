@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::data::{DeckRules, StarterLoadout};
 
+use super::CollectionSave;
+
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct DeckPreset {
     pub id: String,
@@ -68,17 +70,28 @@ impl DecksSave {
             .unwrap_or(0)
     }
 
-    pub fn can_add_card(&self, card_id: &str, deck_rules: &DeckRules) -> bool {
+    pub fn can_add_card(
+        &self,
+        card_id: &str,
+        deck_rules: &DeckRules,
+        collection: &CollectionSave,
+    ) -> bool {
         let Some(deck) = self.active_support_deck() else {
             return false;
         };
 
         deck.story_cards.len() < deck_rules.support_deck_size
             && self.card_count(card_id) < deck_rules.max_copies_per_story_card
+            && collection.story_cards_available_for_deck(card_id, self.card_count(card_id)) > 0
     }
 
-    pub fn add_card(&mut self, card_id: &str, deck_rules: &DeckRules) -> bool {
-        if !self.can_add_card(card_id, deck_rules) {
+    pub fn add_card(
+        &mut self,
+        card_id: &str,
+        deck_rules: &DeckRules,
+        collection: &CollectionSave,
+    ) -> bool {
+        if !self.can_add_card(card_id, deck_rules, collection) {
             return false;
         }
 
@@ -117,7 +130,8 @@ impl DecksSave {
 mod tests {
     use crate::data::{DeckRules, StarterLoadout};
 
-    use super::DecksSave;
+    use super::{CollectionSave, DecksSave};
+    use crate::state::CollectionCardKind;
 
     fn sample_starter() -> StarterLoadout {
         StarterLoadout {
@@ -147,9 +161,12 @@ mod tests {
             Some("Starter Alpha")
         );
 
-        assert!(decks.add_card("not_on_my_watch", &rules));
-        assert!(decks.add_card("not_on_my_watch", &rules));
-        assert!(!decks.add_card("not_on_my_watch", &rules));
+        let mut collection = CollectionSave::default();
+        collection.add_owned(CollectionCardKind::StoryCard, "not_on_my_watch", 2);
+
+        assert!(decks.add_card("not_on_my_watch", &rules, &collection));
+        assert!(decks.add_card("not_on_my_watch", &rules, &collection));
+        assert!(!decks.add_card("not_on_my_watch", &rules, &collection));
 
         assert!(decks.remove_card("not_on_my_watch"));
         assert_eq!(decks.card_count("not_on_my_watch"), 1);

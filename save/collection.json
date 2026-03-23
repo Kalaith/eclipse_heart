@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "owned_magical_girls": {
+    "hana": 8,
+    "yuki": 9,
+    "momo": 8,
+    "riri": 8,
+    "kiko": 8
+  },
+  "owned_baddies": {
+    "noctra": 6,
+    "thorn_waltz": 7,
+    "glass_crow": 6,
+    "hollow_marionette": 5,
+    "velvet_hex": 6
+  },
+  "owned_story_cards": {
+    "quiet_lunch_on_the_rooftop": 10,
+    "false_applause": 4,
+    "shadow_prompt": 5,
+    "snare_the_lead": 7,
+    "whisper_campaign": 6,
+    "curtain_of_fear": 3,
+    "shared_umbrella": 2,
+    "curtain_call_denied": 4,
+    "not_on_my_watch": 3,
+    "panic_in_the_parade_route": 3,
+    "expose_the_accomplice": 6,
+    "break_the_formation": 7,
+    "dramatic_entrance": 5,
+    "ominous_graffiti": 4,
+    "synchronized_finish": 3,
+    "forbidden_bloom_of_calamity": 4,
+    "spotlight_exchange": 2,
+    "panic_spiral": 6,
+    "crossfire_block": 5,
+    "crescent_counterpose": 5,
+    "identity_reveal": 5,
+    "moonlit_rescue_chain": 7,
+    "twisted_headline": 7,
+    "sunrise_promise": 3,
+    "false_sense_of_calm": 5,
+    "nightmare_spotlight": 2,
+    "secret_rehearsal": 8,
+    "emergency_costume_repair": 3,
+    "last_minute_cover_story": 5,
+    "changing_rooms": 10,
+    "stage_whisper": 6,
+    "ribbon_signal": 4
+  }
+}
