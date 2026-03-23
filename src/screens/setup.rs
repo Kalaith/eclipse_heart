@@ -2,9 +2,10 @@
 
 use macroquad::prelude::*;
 
+use crate::data::CharacterDefinition;
 use crate::screens::ScreenAction;
-use crate::state::AppState;
-use crate::ui::card_widgets::{action_button, section_panel};
+use crate::state::{AppState, PlayerId};
+use crate::ui::card_widgets::{action_button, point_in_rect, section_panel};
 use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
@@ -17,67 +18,32 @@ impl SetupScreen {
 
     pub fn update(&mut self, state: &AppState) -> ScreenAction {
         let ui = UiLayout::current();
-        let width = ui.w(420.0);
-        let height = ui.h(58.0);
-        let left = ui.x(80.0);
-        let right = ui.x(1360.0);
-        let mut left_y = ui.y(760.0);
-        let mut right_y = ui.y(760.0);
+        let mouse = mouse_position();
 
-        if action_button(
-            Rect::new(left, left_y, width, height),
-            state.ui_text.get("setup_cycle_player_a_mg_main"),
-        ) {
-            return ScreenAction::SetupCyclePlayerAMgMain;
-        }
-        left_y += ui.h(72.0);
-        if action_button(
-            Rect::new(left, left_y, width, height),
-            state.ui_text.get("setup_cycle_player_a_mg_supports"),
-        ) {
-            return ScreenAction::SetupCyclePlayerAMgSupports;
-        }
-        left_y += ui.h(72.0);
-        if action_button(
-            Rect::new(left, left_y, width, height),
-            state.ui_text.get("setup_cycle_player_a_baddie_main"),
-        ) {
-            return ScreenAction::SetupCyclePlayerABaddieMain;
-        }
-        left_y += ui.h(72.0);
-        if action_button(
-            Rect::new(left, left_y, width, height),
-            state.ui_text.get("setup_cycle_player_a_baddie_supports"),
-        ) {
-            return ScreenAction::SetupCyclePlayerABaddieSupports;
-        }
+        for target in setup_panel_targets(state) {
+            for main_target in target.main_targets {
+                if point_in_rect(main_target.rect, mouse)
+                    && is_mouse_button_pressed(MouseButton::Left)
+                {
+                    return ScreenAction::SetupSelectMain {
+                        player: target.player,
+                        is_magical_girl_side: target.is_magical_girl_side,
+                        main_index: main_target.main_index,
+                    };
+                }
+            }
 
-        if action_button(
-            Rect::new(right, right_y, width, height),
-            state.ui_text.get("setup_cycle_player_b_mg_main"),
-        ) {
-            return ScreenAction::SetupCyclePlayerBMgMain;
-        }
-        right_y += ui.h(72.0);
-        if action_button(
-            Rect::new(right, right_y, width, height),
-            state.ui_text.get("setup_cycle_player_b_mg_supports"),
-        ) {
-            return ScreenAction::SetupCyclePlayerBMgSupports;
-        }
-        right_y += ui.h(72.0);
-        if action_button(
-            Rect::new(right, right_y, width, height),
-            state.ui_text.get("setup_cycle_player_b_baddie_main"),
-        ) {
-            return ScreenAction::SetupCyclePlayerBBaddieMain;
-        }
-        right_y += ui.h(72.0);
-        if action_button(
-            Rect::new(right, right_y, width, height),
-            state.ui_text.get("setup_cycle_player_b_baddie_supports"),
-        ) {
-            return ScreenAction::SetupCyclePlayerBBaddieSupports;
+            for pair_target in target.support_pair_targets {
+                if point_in_rect(pair_target.rect, mouse)
+                    && is_mouse_button_pressed(MouseButton::Left)
+                {
+                    return ScreenAction::SetupSelectSupportPair {
+                        player: target.player,
+                        is_magical_girl_side: target.is_magical_girl_side,
+                        pair_index: pair_target.pair_index,
+                    };
+                }
+            }
         }
 
         if action_button(
@@ -99,7 +65,6 @@ impl SetupScreen {
 
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
-        let setup = &state.setup;
 
         draw_text(
             state.ui_text.get("setup_title"),
@@ -116,89 +81,293 @@ impl SetupScreen {
             TEXT_MUTED,
         );
 
-        self.draw_side_box(
-            state,
-            ui.x(80.0),
-            ui.y(220.0),
-            ui.w(1120.0),
-            ui.h(200.0),
-            state.ui_text.get("setup_player_a_mg_side"),
-            setup.player_a_mg_main_name(&state.content),
-            &setup.player_a_mg_support_names(&state.content).join(", "),
-        );
-        self.draw_side_box(
-            state,
-            ui.x(80.0),
-            ui.y(460.0),
-            ui.w(1120.0),
-            ui.h(200.0),
-            state.ui_text.get("setup_player_a_baddie_side"),
-            setup.player_a_baddie_main_name(&state.content),
-            &setup
-                .player_a_baddie_support_names(&state.content)
-                .join(", "),
-        );
-        self.draw_side_box(
-            state,
-            ui.x(1360.0),
-            ui.y(220.0),
-            ui.w(1120.0),
-            ui.h(200.0),
-            state.ui_text.get("setup_player_b_mg_side"),
-            setup.player_b_mg_main_name(&state.content),
-            &setup.player_b_mg_support_names(&state.content).join(", "),
-        );
-        self.draw_side_box(
-            state,
-            ui.x(1360.0),
-            ui.y(460.0),
-            ui.w(1120.0),
-            ui.h(200.0),
-            state.ui_text.get("setup_player_b_baddie_side"),
-            setup.player_b_baddie_main_name(&state.content),
-            &setup
-                .player_b_baddie_support_names(&state.content)
-                .join(", "),
-        );
+        for target in setup_panel_targets(state) {
+            self.draw_panel(state, &target);
+        }
 
         draw_text(
             state.ui_text.get("setup_hidden_support_note"),
             ui.x(80.0),
-            ui.y(708.0),
-            ui.font(24.0),
+            ui.y(1288.0),
+            ui.font(22.0),
             GOLD,
         );
     }
 
-    fn draw_side_box(
+    fn draw_panel(&self, state: &AppState, target: &SetupPanelTarget<'_>) {
+        let ui = UiLayout::current();
+        section_panel(target.panel_rect, target.label, GRAY);
+
+        draw_text(
+            state.ui_text.get("setup_main_options_label"),
+            target.panel_rect.x + ui.w(20.0),
+            target.panel_rect.y + ui.h(74.0),
+            ui.font(22.0),
+            GOLD,
+        );
+
+        let mouse = mouse_position();
+        for main_target in &target.main_targets {
+            let hovered = point_in_rect(main_target.rect, mouse);
+            self.draw_character_tile(
+                state,
+                main_target.rect,
+                main_target.character,
+                main_target.selected,
+                hovered,
+                target.is_magical_girl_side,
+            );
+        }
+
+        draw_text(
+            state.ui_text.get("setup_support_pair_options_label"),
+            target.panel_rect.x + ui.w(20.0),
+            target.panel_rect.y + ui.h(246.0),
+            ui.font(22.0),
+            GOLD,
+        );
+
+        for pair_target in &target.support_pair_targets {
+            let hovered = point_in_rect(pair_target.rect, mouse);
+            self.draw_support_pair_tile(state, pair_target.rect, pair_target, hovered);
+        }
+    }
+
+    fn draw_character_tile(
         &self,
         state: &AppState,
-        x: f32,
-        y: f32,
-        width: f32,
-        height: f32,
-        label: &str,
-        main: &str,
-        supports: &str,
+        rect: Rect,
+        character: &CharacterDefinition,
+        selected: bool,
+        hovered: bool,
+        is_magical_girl_side: bool,
     ) {
-        section_panel(Rect::new(x, y, width, height), label, GRAY);
+        let ui = UiLayout::current();
+        let outline = if selected {
+            GOLD
+        } else if hovered {
+            WHITE
+        } else if is_magical_girl_side {
+            SKYBLUE
+        } else {
+            PINK
+        };
+
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
         draw_text(
-            &format!("{}: {main}", state.ui_text.get("setup_main_label")),
-            x + 20.0,
-            y + 84.0,
-            32.0,
-            SKYBLUE,
+            &character.name,
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(32.0),
+            ui.font(22.0),
+            WHITE,
         );
-        draw_soft_panel(x + 18.0, y + 108.0, width - 36.0, height - 126.0, DARKGRAY);
         draw_text(
             &format!(
-                "{}: {supports}",
-                state.ui_text.get("setup_hidden_supports_label")
+                "{} / {} / {}",
+                character.base_power, character.transformed_power, character.final_power
             ),
-            x + 34.0,
-            y + height - 36.0,
-            24.0,
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(66.0),
+            ui.font(18.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &format!(
+                "{} {} / {}",
+                state.ui_text.get("battle_growth_label"),
+                character.first_threshold,
+                character.second_threshold
+            ),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(96.0),
+            ui.font(18.0),
             TEXT_MUTED,
         );
     }
+
+    fn draw_support_pair_tile(
+        &self,
+        state: &AppState,
+        rect: Rect,
+        target: &SupportPairTarget,
+        hovered: bool,
+    ) {
+        let ui = UiLayout::current();
+        let outline = if target.selected {
+            GOLD
+        } else if hovered {
+            WHITE
+        } else {
+            GRAY
+        };
+
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, outline);
+        draw_text(
+            &target.names.join(" + "),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(30.0),
+            ui.font(20.0),
+            WHITE,
+        );
+        draw_text(
+            state.ui_text.get("setup_hidden_supports_label"),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(56.0),
+            ui.font(16.0),
+            TEXT_MUTED,
+        );
+    }
+}
+
+struct SetupPanelTarget<'a> {
+    player: PlayerId,
+    is_magical_girl_side: bool,
+    label: &'a str,
+    panel_rect: Rect,
+    main_targets: Vec<MainTarget<'a>>,
+    support_pair_targets: Vec<SupportPairTarget>,
+}
+
+struct MainTarget<'a> {
+    rect: Rect,
+    main_index: usize,
+    character: &'a CharacterDefinition,
+    selected: bool,
+}
+
+struct SupportPairTarget {
+    rect: Rect,
+    pair_index: usize,
+    names: Vec<String>,
+    selected: bool,
+}
+
+fn setup_panel_targets<'a>(state: &'a AppState) -> Vec<SetupPanelTarget<'a>> {
+    let ui = UiLayout::current();
+    let setup = &state.setup;
+
+    vec![
+        build_panel_target(
+            state,
+            PlayerId::PlayerA,
+            true,
+            state.ui_text.get("setup_player_a_mg_side"),
+            ui.rect(80.0, 220.0, 1120.0, 500.0),
+            &state.content.magical_girls,
+            setup.player_a_mg_main_index,
+            setup.player_a_mg_support_pair_index,
+        ),
+        build_panel_target(
+            state,
+            PlayerId::PlayerB,
+            true,
+            state.ui_text.get("setup_player_b_mg_side"),
+            ui.rect(1360.0, 220.0, 1120.0, 500.0),
+            &state.content.magical_girls,
+            setup.player_b_mg_main_index,
+            setup.player_b_mg_support_pair_index,
+        ),
+        build_panel_target(
+            state,
+            PlayerId::PlayerA,
+            false,
+            state.ui_text.get("setup_player_a_baddie_side"),
+            ui.rect(80.0, 748.0, 1120.0, 500.0),
+            &state.content.baddies,
+            setup.player_a_baddie_main_index,
+            setup.player_a_baddie_support_pair_index,
+        ),
+        build_panel_target(
+            state,
+            PlayerId::PlayerB,
+            false,
+            state.ui_text.get("setup_player_b_baddie_side"),
+            ui.rect(1360.0, 748.0, 1120.0, 500.0),
+            &state.content.baddies,
+            setup.player_b_baddie_main_index,
+            setup.player_b_baddie_support_pair_index,
+        ),
+    ]
+}
+
+fn build_panel_target<'a>(
+    _state: &'a AppState,
+    player: PlayerId,
+    is_magical_girl_side: bool,
+    label: &'a str,
+    panel_rect: Rect,
+    definitions: &'a [CharacterDefinition],
+    selected_main_index: usize,
+    selected_pair_index: usize,
+) -> SetupPanelTarget<'a> {
+    let ui = UiLayout::current();
+    let main_targets = definitions
+        .iter()
+        .enumerate()
+        .map(|(main_index, character)| MainTarget {
+            rect: Rect::new(
+                panel_rect.x + ui.w(18.0) + main_index as f32 * ui.w(214.0),
+                panel_rect.y + ui.h(92.0),
+                ui.w(196.0),
+                ui.h(118.0),
+            ),
+            main_index,
+            character,
+            selected: selected_main_index == main_index,
+        })
+        .collect::<Vec<_>>();
+
+    let support_pair_targets = support_pair_name_options(definitions, selected_main_index)
+        .into_iter()
+        .enumerate()
+        .map(|(pair_index, names)| {
+            let row = pair_index / 3;
+            let column = pair_index % 3;
+            SupportPairTarget {
+                rect: Rect::new(
+                    panel_rect.x + ui.w(18.0) + column as f32 * ui.w(356.0),
+                    panel_rect.y + ui.h(264.0) + row as f32 * ui.h(92.0),
+                    ui.w(338.0),
+                    ui.h(74.0),
+                ),
+                pair_index,
+                names,
+                selected: selected_pair_index == pair_index,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    SetupPanelTarget {
+        player,
+        is_magical_girl_side,
+        label,
+        panel_rect,
+        main_targets,
+        support_pair_targets,
+    }
+}
+
+fn support_pair_name_options(
+    definitions: &[CharacterDefinition],
+    main_index: usize,
+) -> Vec<Vec<String>> {
+    let candidates = definitions
+        .iter()
+        .enumerate()
+        .filter(|(index, _)| *index != main_index)
+        .collect::<Vec<_>>();
+    let mut pairs = Vec::new();
+
+    for first in 0..candidates.len() {
+        for second in (first + 1)..candidates.len() {
+            pairs.push(vec![
+                candidates[first].1.name.clone(),
+                candidates[second].1.name.clone(),
+            ]);
+        }
+    }
+
+    pairs
 }

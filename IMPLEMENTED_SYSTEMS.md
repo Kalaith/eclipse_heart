@@ -3,7 +3,10 @@
 ## Current prototype loop
 
 - Main menu opens a dedicated match setup screen instead of jumping straight into a hardcoded battle.
+- The game now boots fullscreen by default and the main menu includes a saved `Windowed Mode` checkbox that persists through local settings.
+- The main menu also includes a direct `Exit Game` action.
 - Match setup lets the prototype configure both `Player A` and `Player B`.
+- Match setup now shows direct clickable main-character cards and support-pair choices for each roster instead of only cycling through hidden selections.
 - Each player currently chooses:
   - a Magical Girl main unit
   - a Magical Girl hidden support pair
@@ -37,6 +40,7 @@
 
 - A dedicated deck builder screen now exists for the active support deck prototype.
 - The screen can load a starter support deck into the active preset.
+- Starter rows now use matched visual and clickable rectangles, and each row has an explicit `Edit` button that opens a persistent editable preset for that starter instead of resetting it each time.
 - The screen can open a `10`-card booster that rolls from the full Magical Girl, Baddie, and story-card pool and records those results in local collection counts.
 - The screen can add or remove story cards while respecting configured deck size, per-card copy limits, and owned story-card copies in collection.
 - The deck builder now uses a fixed grid plus a dedicated preview panel so the full card list fits the 1440p layout without overlapping columns.

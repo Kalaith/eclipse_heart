@@ -113,7 +113,8 @@ mod tests {
         assert_eq!(bundle.profile.version, 1);
         assert!(bundle.collection.owned_magical_girls.is_empty());
         assert!(bundle.decks.support_decks.is_empty());
-        assert_eq!(bundle.settings.window_width, 1280);
+        assert_eq!(bundle.settings.window_width, 2560);
+        assert!(bundle.settings.fullscreen);
 
         std::fs::remove_dir_all(root).expect("cleanup temp dir");
     }
@@ -129,9 +130,11 @@ mod tests {
         bundle
             .collection
             .add_owned(CollectionCardKind::MagicalGirl, "yuki", 1);
-        bundle
-            .collection
-            .add_owned(CollectionCardKind::StoryCard, "quiet_lunch_on_the_rooftop", 2);
+        bundle.collection.add_owned(
+            CollectionCardKind::StoryCard,
+            "quiet_lunch_on_the_rooftop",
+            2,
+        );
         bundle.decks.roster_presets = vec!["starter_a".to_owned()];
         bundle.settings.fullscreen = true;
 

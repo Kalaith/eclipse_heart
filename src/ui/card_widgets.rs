@@ -99,16 +99,24 @@ pub fn draw_story_card_tile(
     );
 }
 
-pub fn draw_story_card_preview(
-    rect: Rect,
-    card: &StoryCardDefinition,
-    footer_lines: &[String],
-) {
+pub fn draw_story_card_preview(rect: Rect, card: &StoryCardDefinition, footer_lines: &[String]) {
     let accent = card_alignment_color(card.alignment);
-    draw_rectangle(rect.x, rect.y, rect.w, rect.h, Color::new(0.10, 0.10, 0.16, 0.99));
+    draw_rectangle(
+        rect.x,
+        rect.y,
+        rect.w,
+        rect.h,
+        Color::new(0.10, 0.10, 0.16, 0.99),
+    );
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 4.0, accent);
 
-    draw_text(speed_label(card.speed), rect.x + 20.0, rect.y + 34.0, 26.0, accent);
+    draw_text(
+        speed_label(card.speed),
+        rect.x + 20.0,
+        rect.y + 34.0,
+        26.0,
+        accent,
+    );
     draw_text(
         alignment_label(card.alignment),
         rect.x + rect.w - 130.0,

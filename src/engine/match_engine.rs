@@ -80,102 +80,18 @@ impl MatchEngine {
     pub fn resolve_encounter(state: &mut MatchState) -> EncounterOutcome {
         let attacker = state.active_player;
         let defender = opposing(attacker);
-        let win_gain = state.rules.encounter_win_gain;
-        let loss_gain = state.rules.encounter_loss_gain;
-        let tie_gain = state.rules.encounter_tie_gain;
         let magical_girl_power = state.active_magical_girls().total_power();
         let baddie_power = state.defending_baddies().total_power();
+        let outcome = Self::determine_encounter_outcome(magical_girl_power, baddie_power);
 
-        let outcome = if magical_girl_power > baddie_power {
-            EncounterOutcome::ActivePlayerWins
-        } else if baddie_power > magical_girl_power {
-            EncounterOutcome::DefendingPlayerWins
-        } else {
-            EncounterOutcome::Tie
-        };
-
-        match outcome {
-            EncounterOutcome::ActivePlayerWins => {
-                Self::grant_growth(
-                    &mut state.player_for_mut(attacker).magical_girls,
-                    ResourceKind::Radiance,
-                    win_gain,
-                );
-                Self::grant_growth(
-                    &mut state.player_for_mut(defender).baddies,
-                    ResourceKind::Dread,
-                    loss_gain,
-                );
-                state.push_event(format!(
-                    "{attacker:?} Magical Girls beat {defender:?} Baddies."
-                ));
-            }
-            EncounterOutcome::DefendingPlayerWins => {
-                Self::grant_growth(
-                    &mut state.player_for_mut(attacker).magical_girls,
-                    ResourceKind::Radiance,
-                    loss_gain,
-                );
-                Self::grant_growth(
-                    &mut state.player_for_mut(defender).baddies,
-                    ResourceKind::Dread,
-                    win_gain,
-                );
-                state.push_event(format!("{defender:?} Baddies hold against {attacker:?}."));
-            }
-            EncounterOutcome::Tie => {
-                if state.active_magical_girls().main.stage != CharacterStage::Radiant {
-                    Self::grant_growth(
-                        &mut state.player_for_mut(attacker).magical_girls,
-                        ResourceKind::Radiance,
-                        tie_gain,
-                    );
-                }
-
-                if state.defending_baddies().main.stage != CharacterStage::Catastrophe {
-                    Self::grant_growth(
-                        &mut state.player_for_mut(defender).baddies,
-                        ResourceKind::Dread,
-                        tie_gain,
-                    );
-                }
-                state.push_event("Encounter resolved as a tie.");
-            }
-        }
-
-        if state.final_climax_active && baddie_power < magical_girl_power {
-            state.phase = MatchPhase::Finished;
-            state.prime_baddie_defeated = true;
-            state.defeated_prime_owner = Some(defender);
-            state.winner = Some(attacker);
-            state.push_event(format!("{defender:?} Prime Baddie was defeated."));
-        } else if state.final_climax_active {
-            Self::grant_failed_final_climax_power(state, attacker);
-
-            if magical_girl_power < baddie_power {
-                if state.player_for(defender).magical_girls.main.stage != CharacterStage::Radiant {
-                    state
-                        .active_magical_girls_mut()
-                        .main
-                        .exhausted_until_next_encounter = true;
-                    state
-                        .active_magical_girls_mut()
-                        .main
-                        .abilities_blocked_until_next_encounter = true;
-                    state.push_event(format!(
-                        "{attacker:?} lost Final Climax and its Main Magical Girl is exhausted."
-                    ));
-                } else {
-                    state.push_event(format!(
-                        "{attacker:?} lost Final Climax, but no exhaustion is applied because both Main Magical Girls are Radiant."
-                    ));
-                }
-            } else {
-                state.push_event(format!(
-                    "{attacker:?} drew Final Climax and gains +1 power for the next attempt."
-                ));
-            }
-        }
+        Self::apply_encounter_growth(state, attacker, defender, outcome);
+        Self::apply_final_climax_result(
+            state,
+            attacker,
+            defender,
+            magical_girl_power,
+            baddie_power,
+        );
 
         outcome
     }
@@ -346,49 +262,152 @@ impl MatchEngine {
 
         state.reaction_state = None;
         while let Some(item) = state.reaction_stack.pop() {
-            match item.kind {
-                StackItemKind::PlayCard { card_id, card_name } => {
-                    let effects = state
-                        .story_cards
-                        .get(&card_id)
-                        .map(|card| card.effects.clone())
-                        .unwrap_or_default();
-
-                    for effect in &effects {
-                        Self::apply_card_effect(state, item.player, effect);
-                    }
-
-                    state.last_played_card_name = Some(card_name.clone());
-                    state.push_event(format!("{:?} resolved {}.", item.player, card_name));
-                }
-                StackItemKind::RevealSupport {
-                    is_magical_girl_side,
-                    support_index,
-                } => {
-                    let revealed_name = {
-                        let side = state.side_for_mut(item.player, is_magical_girl_side);
-                        side.supports.get_mut(support_index).and_then(|support| {
-                            if support.revealed {
-                                None
-                            } else {
-                                support.revealed = true;
-                                Some(support.runtime.name.clone())
-                            }
-                        })
-                    };
-                    if let Some(name) = revealed_name {
-                        state.push_event(format!("{:?} revealed {}.", item.player, name));
-                    }
-                }
-            }
+            Self::resolve_stack_item(state, item);
         }
 
-        if !root_item.is_reaction {
-            Self::finish_root_action(state, &root_item);
+        Self::finalize_root_stack_item(state, &root_item);
+    }
+
+    fn determine_encounter_outcome(magical_girl_power: i32, baddie_power: i32) -> EncounterOutcome {
+        if magical_girl_power > baddie_power {
+            EncounterOutcome::ActivePlayerWins
+        } else if baddie_power > magical_girl_power {
+            EncounterOutcome::DefendingPlayerWins
+        } else {
+            EncounterOutcome::Tie
         }
     }
 
-    fn finish_root_action(state: &mut MatchState, root_item: &StackItem) {
+    fn apply_encounter_growth(
+        state: &mut MatchState,
+        attacker: PlayerId,
+        defender: PlayerId,
+        outcome: EncounterOutcome,
+    ) {
+        let win_gain = state.rules.encounter_win_gain;
+        let loss_gain = state.rules.encounter_loss_gain;
+        let tie_gain = state.rules.encounter_tie_gain;
+
+        match outcome {
+            EncounterOutcome::ActivePlayerWins => {
+                Self::grant_growth(
+                    &mut state.player_for_mut(attacker).magical_girls,
+                    ResourceKind::Radiance,
+                    win_gain,
+                );
+                Self::grant_growth(
+                    &mut state.player_for_mut(defender).baddies,
+                    ResourceKind::Dread,
+                    loss_gain,
+                );
+                state.push_event(format!(
+                    "{attacker:?} Magical Girls beat {defender:?} Baddies."
+                ));
+            }
+            EncounterOutcome::DefendingPlayerWins => {
+                Self::grant_growth(
+                    &mut state.player_for_mut(attacker).magical_girls,
+                    ResourceKind::Radiance,
+                    loss_gain,
+                );
+                Self::grant_growth(
+                    &mut state.player_for_mut(defender).baddies,
+                    ResourceKind::Dread,
+                    win_gain,
+                );
+                state.push_event(format!("{defender:?} Baddies hold against {attacker:?}."));
+            }
+            EncounterOutcome::Tie => {
+                if state.active_magical_girls().main.stage != CharacterStage::Radiant {
+                    Self::grant_growth(
+                        &mut state.player_for_mut(attacker).magical_girls,
+                        ResourceKind::Radiance,
+                        tie_gain,
+                    );
+                }
+
+                if state.defending_baddies().main.stage != CharacterStage::Catastrophe {
+                    Self::grant_growth(
+                        &mut state.player_for_mut(defender).baddies,
+                        ResourceKind::Dread,
+                        tie_gain,
+                    );
+                }
+                state.push_event("Encounter resolved as a tie.");
+            }
+        }
+    }
+
+    fn apply_final_climax_result(
+        state: &mut MatchState,
+        attacker: PlayerId,
+        defender: PlayerId,
+        magical_girl_power: i32,
+        baddie_power: i32,
+    ) {
+        if !state.final_climax_active {
+            return;
+        }
+
+        if magical_girl_power > baddie_power {
+            Self::finish_final_climax_victory(state, attacker, defender);
+            return;
+        }
+
+        Self::grant_failed_final_climax_power(state, attacker);
+
+        if magical_girl_power < baddie_power {
+            Self::apply_failed_final_climax_loss(state, attacker, defender);
+        } else {
+            state.push_event(format!(
+                "{attacker:?} drew Final Climax and gains +1 power for the next attempt."
+            ));
+        }
+    }
+
+    fn resolve_stack_item(state: &mut MatchState, item: StackItem) {
+        match item.kind {
+            StackItemKind::PlayCard { card_id, card_name } => {
+                let effects = state
+                    .story_cards
+                    .get(&card_id)
+                    .map(|card| card.effects.clone())
+                    .unwrap_or_default();
+
+                for effect in &effects {
+                    Self::apply_card_effect(state, item.player, effect);
+                }
+
+                state.last_played_card_name = Some(card_name.clone());
+                state.push_event(format!("{:?} resolved {}.", item.player, card_name));
+            }
+            StackItemKind::RevealSupport {
+                is_magical_girl_side,
+                support_index,
+            } => {
+                let revealed_name = {
+                    let side = state.side_for_mut(item.player, is_magical_girl_side);
+                    side.supports.get_mut(support_index).and_then(|support| {
+                        if support.revealed {
+                            None
+                        } else {
+                            support.revealed = true;
+                            Some(support.runtime.name.clone())
+                        }
+                    })
+                };
+                if let Some(name) = revealed_name {
+                    state.push_event(format!("{:?} revealed {}.", item.player, name));
+                }
+            }
+        }
+    }
+
+    fn finalize_root_stack_item(state: &mut MatchState, root_item: &StackItem) {
+        if root_item.is_reaction {
+            return;
+        }
+
         match root_item.resolves_in_phase {
             MatchPhase::DailyLife => {
                 state.phase_passes = 0;
@@ -400,6 +419,38 @@ impl MatchEngine {
                 state.priority_player = opposing(root_item.player);
             }
             MatchPhase::Finished => {}
+        }
+    }
+
+    fn finish_final_climax_victory(state: &mut MatchState, attacker: PlayerId, defender: PlayerId) {
+        state.phase = MatchPhase::Finished;
+        state.prime_baddie_defeated = true;
+        state.defeated_prime_owner = Some(defender);
+        state.winner = Some(attacker);
+        state.push_event(format!("{defender:?} Prime Baddie was defeated."));
+    }
+
+    fn apply_failed_final_climax_loss(
+        state: &mut MatchState,
+        attacker: PlayerId,
+        defender: PlayerId,
+    ) {
+        if state.player_for(defender).magical_girls.main.stage != CharacterStage::Radiant {
+            state
+                .active_magical_girls_mut()
+                .main
+                .exhausted_until_next_encounter = true;
+            state
+                .active_magical_girls_mut()
+                .main
+                .abilities_blocked_until_next_encounter = true;
+            state.push_event(format!(
+                "{attacker:?} lost Final Climax and its Main Magical Girl is exhausted."
+            ));
+        } else {
+            state.push_event(format!(
+                "{attacker:?} lost Final Climax, but no exhaustion is applied because both Main Magical Girls are Radiant."
+            ));
         }
     }
 
@@ -771,6 +822,22 @@ mod tests {
     }
 
     #[test]
+    fn declaring_final_climax_updates_phase_and_event_log() {
+        let mut state = sample_state();
+        state.phase = MatchPhase::Encounter;
+        state.player_a.magical_girls.main.stage = CharacterStage::Radiant;
+
+        MatchEngine::apply_action(&mut state, MatchAction::DeclareFinalClimax);
+
+        assert_eq!(state.phase, MatchPhase::FinalClimax);
+        assert!(state.final_climax_active);
+        assert!(state
+            .event_log
+            .iter()
+            .any(|event| event.contains("declared Final Climax")));
+    }
+
+    #[test]
     fn reaction_stack_resolves_newest_to_oldest() {
         let mut state = sample_state();
         let player_a_daily = state
@@ -848,6 +915,24 @@ mod tests {
     }
 
     #[test]
+    fn pass_daily_life_ignores_non_priority_player() {
+        let mut state = sample_state();
+        state.phase = MatchPhase::DailyLife;
+        state.priority_player = PlayerId::PlayerA;
+
+        MatchEngine::apply_action(
+            &mut state,
+            MatchAction::PassDailyLife {
+                player: PlayerId::PlayerB,
+            },
+        );
+
+        assert_eq!(state.phase, MatchPhase::DailyLife);
+        assert_eq!(state.phase_passes, 0);
+        assert_eq!(state.priority_player, PlayerId::PlayerA);
+    }
+
+    #[test]
     fn round_start_draws_two_for_both_players_after_encounter() {
         let mut state = sample_state();
         state.phase = MatchPhase::Encounter;
@@ -885,6 +970,26 @@ mod tests {
 
         assert_eq!(state.player_a.supports_revealed_this_round, 1);
         assert!(!state.can_reveal_support(PlayerId::PlayerA, false));
+    }
+
+    #[test]
+    fn reveal_requires_player_priority_when_not_in_reaction_window() {
+        let mut state = sample_state();
+        state.phase = MatchPhase::DailyLife;
+        state.priority_player = PlayerId::PlayerA;
+        state.player_b.magical_girls.supports[1].revealed = false;
+
+        MatchEngine::apply_action(
+            &mut state,
+            MatchAction::RevealFirstHiddenSupport {
+                player: PlayerId::PlayerB,
+                is_magical_girl_side: true,
+            },
+        );
+
+        assert!(state.reaction_stack.is_empty());
+        assert_eq!(state.player_b.supports_revealed_this_round, 0);
+        assert!(!state.player_b.magical_girls.supports[1].revealed);
     }
 
     #[test]

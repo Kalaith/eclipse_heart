@@ -2,9 +2,7 @@
 
 use crate::data::{GameContent, UiText};
 
-use super::{
-    CollectionCardKind, MatchSetup, MatchState, PersistenceBundle, PersistenceManager,
-};
+use super::{CollectionCardKind, MatchSetup, MatchState, PersistenceBundle, PersistenceManager};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AppScreen {
@@ -41,9 +39,21 @@ impl AppState {
             content.magical_girls.iter().map(|entry| entry.id.clone()),
             content.baddies.iter().map(|entry| entry.id.clone()),
         );
-        saves
-            .decks
-            .ensure_active_support_deck(&content.starter_loadouts);
+        let magical_girl_ids = content
+            .magical_girls
+            .iter()
+            .map(|entry| entry.id.clone())
+            .collect::<Vec<_>>();
+        let baddie_ids = content
+            .baddies
+            .iter()
+            .map(|entry| entry.id.clone())
+            .collect::<Vec<_>>();
+        saves.decks.ensure_active_support_deck(
+            &content.starter_loadouts,
+            &magical_girl_ids,
+            &baddie_ids,
+        );
         Self {
             screen: AppScreen::Menu,
             ui_text,

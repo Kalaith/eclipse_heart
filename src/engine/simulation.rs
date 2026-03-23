@@ -106,6 +106,7 @@ impl SimulationRunner {
         let mut actions = Vec::new();
         let mut encounters = Vec::new();
         let mut actions_taken = 0usize;
+        let mut event_cursor = 0usize;
         let action_cap = round_cap as usize * 200;
 
         while state.phase != MatchPhase::Finished
@@ -117,26 +118,22 @@ impl SimulationRunner {
             }
 
             let action = next_simulation_action(&state);
-            let encounter_snapshot =
-                action
-                    .as_ref()
-                    .and_then(|next_action| encounter_snapshot_before_action(&state, next_action));
-            let was_failed_final_climax_attempt = action
+            let encounter_snapshot = action
                 .as_ref()
-                .is_some_and(|next_action| {
-                    action_will_resolve_encounter(&state, next_action)
-                        && state.phase == MatchPhase::FinalClimax
-                });
+                .and_then(|next_action| encounter_snapshot_before_action(&state, next_action));
+            let was_failed_final_climax_attempt = action.as_ref().is_some_and(|next_action| {
+                action_will_resolve_encounter(&state, next_action)
+                    && state.phase == MatchPhase::FinalClimax
+            });
 
             let Some(action) = action else {
                 break;
             };
             let action_context = action_context_before(&state, &action, actions_taken + 1);
-            let previous_events = state.event_log.clone();
 
             MatchEngine::apply_action(&mut state, action);
             actions_taken += 1;
-            actions.push(action_context.finish(&state, &previous_events));
+            actions.push(action_context.finish(&state, &mut event_cursor));
 
             if let Some(snapshot) = encounter_snapshot {
                 encounters.push(snapshot.finish(&state));
@@ -200,7 +197,7 @@ struct ActionContext {
 }
 
 impl ActionContext {
-    fn finish(self, state: &MatchState, previous_events: &[String]) -> ActionReport {
+    fn finish(self, state: &MatchState, event_cursor: &mut usize) -> ActionReport {
         ActionReport {
             sequence: self.sequence,
             round: self.round,
@@ -209,7 +206,7 @@ impl ActionContext {
             action_type: self.action_type.to_string(),
             card_name: self.card_name,
             is_reaction: self.is_reaction,
-            events: appended_events(previous_events, &state.event_log),
+            events: take_new_events(&state.event_log, event_cursor),
         }
     }
 }
@@ -295,14 +292,11 @@ fn action_context_before(
     }
 }
 
-fn appended_events(previous_events: &[String], current_events: &[String]) -> Vec<String> {
-    let max_overlap = previous_events.len().min(current_events.len());
-    let overlap = (0..=max_overlap)
-        .rev()
-        .find(|size| previous_events[previous_events.len() - size..] == current_events[..*size])
-        .unwrap_or(0);
-
-    current_events[overlap..].to_vec()
+fn take_new_events(current_events: &[String], event_cursor: &mut usize) -> Vec<String> {
+    let start = (*event_cursor).min(current_events.len());
+    let events = current_events[start..].to_vec();
+    *event_cursor = current_events.len();
+    events
 }
 
 struct EncounterSnapshot {

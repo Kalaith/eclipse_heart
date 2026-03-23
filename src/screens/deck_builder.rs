@@ -40,25 +40,15 @@ impl DeckBuilderScreen {
             return ScreenAction::DeckBuilderOpenBooster;
         }
 
-        let mut starter_y = ui.y(178.0);
         for (loadout_index, _starter) in state.content.starter_loadouts.iter().enumerate() {
-            let row_rect = Rect::new(ui.x(96.0), starter_y, ui.w(288.0), ui.h(58.0));
-            let load_rect = Rect::new(ui.x(396.0), starter_y, ui.w(64.0), ui.h(58.0));
-            if point_in_rect(row_rect, mouse)
-                && is_mouse_button_pressed(MouseButton::Left)
-            {
+            let row_rect = starter_row_rect(loadout_index);
+            let load_rect = starter_edit_rect(loadout_index);
+            if point_in_rect(row_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
                 self.selected_starter_index = Some(loadout_index);
             }
-            if action_button(
-                load_rect,
-                &format!(
-                    "{}",
-                    state.ui_text.get("deck_builder_load_starter")
-                ),
-            ) {
+            if point_in_rect(load_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
                 return ScreenAction::DeckBuilderLoadStarter { loadout_index };
             }
-            starter_y += ui.h(72.0);
         }
 
         for (index, card) in state.content.story_cards.iter().enumerate() {
@@ -166,23 +156,31 @@ impl DeckBuilderScreen {
         );
 
         let mouse = mouse_position();
-        let mut starter_y = ui.y(250.0);
         for (loadout_index, starter) in state.content.starter_loadouts.iter().enumerate() {
+            let row_rect = starter_row_rect(loadout_index);
+            let edit_rect = starter_edit_rect(loadout_index);
+            let row_hovered = point_in_rect(row_rect, mouse);
+            let saved_preset = state.saves.decks.preset_for_starter(&starter.id);
+            let shown_card_count = saved_preset
+                .map(|deck| deck.story_cards.len())
+                .unwrap_or(starter.support_deck.len());
             draw_soft_panel(
-                ui.x(96.0),
-                starter_y - ui.h(34.0),
-                ui.w(288.0),
-                ui.h(56.0),
+                row_rect.x,
+                row_rect.y,
+                row_rect.w,
+                row_rect.h,
                 if self.selected_starter_index == Some(loadout_index) {
                     SKYBLUE
+                } else if row_hovered {
+                    GRAY
                 } else {
                     DARKGRAY
                 },
             );
             draw_text(
                 &starter.name,
-                ui.x(112.0),
-                starter_y - ui.h(4.0),
+                row_rect.x + ui.w(16.0),
+                row_rect.y + ui.h(30.0),
                 ui.font(22.0),
                 WHITE,
             );
@@ -190,15 +188,33 @@ impl DeckBuilderScreen {
                 &format!(
                     "{} {}/{}",
                     state.ui_text.get("deck_builder_card_total_label"),
-                    starter.support_deck.len(),
+                    shown_card_count,
                     state.content.deck_rules.support_deck_size
                 ),
-                ui.x(112.0),
-                starter_y + ui.h(18.0),
+                row_rect.x + ui.w(16.0),
+                row_rect.y + ui.h(52.0),
                 ui.font(16.0),
                 TEXT_MUTED,
             );
-            starter_y += ui.h(72.0);
+
+            draw_soft_panel(
+                edit_rect.x,
+                edit_rect.y,
+                edit_rect.w,
+                edit_rect.h,
+                if point_in_rect(edit_rect, mouse) {
+                    GOLD
+                } else {
+                    PINK
+                },
+            );
+            draw_text(
+                state.ui_text.get("deck_builder_edit_starter"),
+                edit_rect.x + ui.w(12.0),
+                edit_rect.y + ui.h(28.0),
+                ui.font(18.0),
+                WHITE,
+            );
         }
 
         let mut booster_y = ui.y(992.0);
@@ -214,11 +230,7 @@ impl DeckBuilderScreen {
                 row_rect.y,
                 row_rect.w,
                 row_rect.h,
-                if row_hovered {
-                    PINK
-                } else {
-                    DARKPURPLE
-                },
+                if row_hovered { PINK } else { DARKPURPLE },
             );
             draw_text(
                 &format!(
@@ -265,10 +277,11 @@ impl DeckBuilderScreen {
                     state.ui_text.get("deck_builder_copies_label"),
                     copies
                 ),
-                state
-                    .saves
-                    .decks
-                    .can_add_card(&card.id, &state.content.deck_rules, &state.saves.collection),
+                state.saves.decks.can_add_card(
+                    &card.id,
+                    &state.content.deck_rules,
+                    &state.saves.collection,
+                ),
                 hovered,
             );
 
@@ -333,14 +346,22 @@ impl DeckBuilderScreen {
             self.draw_collection_preview(state, grant);
         } else if let Some(loadout_index) = self.selected_starter_index {
             if let Some(starter) = state.content.starter_loadouts.get(loadout_index) {
+                let shown_cards = state
+                    .saves
+                    .decks
+                    .preset_for_starter(&starter.id)
+                    .map(|deck| deck.story_cards.as_slice())
+                    .unwrap_or(starter.support_deck.as_slice());
+                let shown_count = shown_cards.len();
                 self.draw_deck_preview(
                     state,
                     &starter.name,
-                    &starter.support_deck,
+                    shown_cards,
                     &format!(
-                        "{} {}/{}",
+                        "{} | {} {}/{}",
+                        state.ui_text.get("deck_builder_previewing_starter"),
                         state.ui_text.get("deck_builder_card_total_label"),
-                        starter.support_deck.len(),
+                        shown_count,
                         state.content.deck_rules.support_deck_size
                     ),
                 );
@@ -366,7 +387,12 @@ impl DeckBuilderScreen {
 
         match grant.kind {
             CollectionCardKind::StoryCard => {
-                if let Some(card) = state.content.story_cards.iter().find(|card| card.id == grant.id) {
+                if let Some(card) = state
+                    .content
+                    .story_cards
+                    .iter()
+                    .find(|card| card.id == grant.id)
+                {
                     let footer = vec![format!(
                         "{}: {}",
                         state.ui_text.get("deck_builder_owned_label"),
@@ -397,7 +423,11 @@ impl DeckBuilderScreen {
                 }
             }
             CollectionCardKind::Baddie => {
-                if let Some(character) = state.content.baddies.iter().find(|entry| entry.id == grant.id)
+                if let Some(character) = state
+                    .content
+                    .baddies
+                    .iter()
+                    .find(|entry| entry.id == grant.id)
                 {
                     self.draw_character_preview(
                         rect,
@@ -494,4 +524,24 @@ fn collection_kind_label<'a>(state: &'a AppState, kind: CollectionCardKind) -> &
         CollectionCardKind::Baddie => state.ui_text.get("deck_builder_kind_baddie"),
         CollectionCardKind::StoryCard => state.ui_text.get("deck_builder_kind_story"),
     }
+}
+
+fn starter_row_rect(index: usize) -> Rect {
+    let ui = UiLayout::current();
+    Rect::new(
+        ui.x(96.0),
+        ui.y(216.0 + index as f32 * 72.0),
+        ui.w(288.0),
+        ui.h(56.0),
+    )
+}
+
+fn starter_edit_rect(index: usize) -> Rect {
+    let ui = UiLayout::current();
+    Rect::new(
+        ui.x(396.0),
+        ui.y(216.0 + index as f32 * 72.0),
+        ui.w(72.0),
+        ui.h(56.0),
+    )
 }

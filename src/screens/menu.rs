@@ -5,7 +5,7 @@ use macroquad::prelude::*;
 use crate::screens::ScreenAction;
 use crate::state::AppState;
 use crate::ui::card_widgets::action_button;
-use crate::ui::core::{draw_panel, TEXT_MUTED};
+use crate::ui::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub struct MenuScreen;
@@ -19,6 +19,8 @@ impl MenuScreen {
         let ui = UiLayout::current();
         let setup_rect = ui.rect(1040.0, 760.0, 480.0, 78.0);
         let deck_rect = ui.rect(1040.0, 856.0, 480.0, 78.0);
+        let exit_rect = ui.rect(1040.0, 1090.0, 480.0, 78.0);
+        let checkbox_rect = ui.rect(1040.0, 978.0, 44.0, 44.0);
 
         if action_button(setup_rect, state.ui_text.get("menu_start_battle")) {
             return ScreenAction::OpenSetup;
@@ -26,6 +28,16 @@ impl MenuScreen {
 
         if action_button(deck_rect, state.ui_text.get("menu_open_deck_builder")) {
             return ScreenAction::OpenDeckBuilder;
+        }
+
+        if point_in_rect(checkbox_rect, mouse_position())
+            && is_mouse_button_pressed(MouseButton::Left)
+        {
+            return ScreenAction::ToggleWindowedMode;
+        }
+
+        if action_button(exit_rect, state.ui_text.get("menu_exit_game")) {
+            return ScreenAction::ExitGame;
         }
 
         ScreenAction::None
@@ -51,5 +63,54 @@ impl MenuScreen {
             ui.font(32.0),
             GOLD,
         );
+
+        draw_text(
+            state.ui_text.get("menu_settings_label"),
+            ui.x(1040.0),
+            ui.y(952.0),
+            ui.font(28.0),
+            WHITE,
+        );
+        self.draw_checkbox(
+            ui.rect(1040.0, 978.0, 44.0, 44.0),
+            !state.saves.settings.fullscreen,
+        );
+        draw_text(
+            state.ui_text.get("menu_windowed_mode"),
+            ui.x(1100.0),
+            ui.y(1010.0),
+            ui.font(26.0),
+            TEXT_MUTED,
+        );
     }
+
+    fn draw_checkbox(&self, rect: Rect, checked: bool) {
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, WHITE);
+        if checked {
+            draw_line(
+                rect.x + 10.0,
+                rect.y + 22.0,
+                rect.x + 20.0,
+                rect.y + 34.0,
+                4.0,
+                GOLD,
+            );
+            draw_line(
+                rect.x + 20.0,
+                rect.y + 34.0,
+                rect.x + 34.0,
+                rect.y + 10.0,
+                4.0,
+                GOLD,
+            );
+        }
+    }
+}
+
+fn point_in_rect(rect: Rect, point: (f32, f32)) -> bool {
+    point.0 >= rect.x
+        && point.0 <= rect.x + rect.w
+        && point.1 >= rect.y
+        && point.1 <= rect.y + rect.h
 }

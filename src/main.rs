@@ -8,6 +8,7 @@ fn window_conf() -> Conf {
         window_width: 2560,
         window_height: 1440,
         window_resizable: true,
+        fullscreen: true,
         ..Default::default()
     }
 }

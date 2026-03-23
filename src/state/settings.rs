@@ -14,9 +14,9 @@ impl Default for SettingsSave {
     fn default() -> Self {
         Self {
             version: 1,
-            window_width: 1280,
-            window_height: 720,
-            fullscreen: false,
+            window_width: 2560,
+            window_height: 1440,
+            fullscreen: true,
         }
     }
 }
