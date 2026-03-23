@@ -46,18 +46,7 @@ impl MatchEngine {
                     && (state.phase == MatchPhase::Encounter
                         || state.phase == MatchPhase::FinalClimax)
                 {
-                    let outcome = Self::resolve_encounter(state);
-                    state.last_outcome = Some(outcome);
-                    state.round += 1;
-                    if state.phase != MatchPhase::Finished {
-                        state.phase = if state.final_climax_active {
-                            MatchPhase::FinalClimax
-                        } else {
-                            MatchPhase::DailyLife
-                        };
-                    }
-                    state.clear_encounter_bonuses();
-                    state.ready_end_of_round();
+                    Self::complete_encounter(state);
                 }
             }
             MatchAction::DeclareFinalClimax => {
@@ -83,6 +72,7 @@ impl MatchEngine {
     pub fn can_declare_final_climax(state: &MatchState) -> bool {
         state.reaction_state.is_none()
             && (state.phase == MatchPhase::Encounter || state.phase == MatchPhase::FinalClimax)
+            && state.priority_player == state.active_player
             && state.active_magical_girls().main.stage == CharacterStage::Radiant
             && !state.final_climax_active
     }
@@ -193,15 +183,17 @@ impl MatchEngine {
     fn pass_daily_life(state: &mut MatchState, player: PlayerId) {
         if state.reaction_state.is_none()
             && state.phase == MatchPhase::DailyLife
-            && state.active_player == player
+            && state.priority_player == player
         {
-            state.daily_life_passes += 1;
-            if state.daily_life_passes >= 2 {
+            state.phase_passes += 1;
+            if state.phase_passes >= 2 {
                 state.phase = MatchPhase::Encounter;
-                state.daily_life_passes = 0;
-                state.push_event(format!("{player:?} finished Daily Life. Encounter begins."));
+                state.priority_player = state.active_player;
+                state.phase_passes = 0;
+                state.push_event("Daily Life ended. Encounter begins.");
             } else {
                 state.push_event(format!("{player:?} passed Daily Life."));
+                state.priority_player = opposing(player);
             }
         }
     }
@@ -209,14 +201,22 @@ impl MatchEngine {
     fn pass_encounter(state: &mut MatchState, player: PlayerId) {
         if state.reaction_state.is_some()
             || (state.phase != MatchPhase::Encounter && state.phase != MatchPhase::FinalClimax)
-            || state.active_player != player
+            || state.priority_player != player
         {
             return;
         }
 
         if !state.encounter_card_played(player) {
             state.set_encounter_card_played(player, true);
-            state.push_event(format!("{player:?} passed encounter priority."));
+        }
+
+        state.phase_passes += 1;
+        state.push_event(format!("{player:?} passed encounter priority."));
+
+        if state.phase_passes >= 2 {
+            Self::complete_encounter(state);
+        } else {
+            state.priority_player = opposing(player);
         }
     }
 
@@ -275,7 +275,7 @@ impl MatchEngine {
         }
 
         let is_reaction = state.reaction_priority_player() == Some(player);
-        if !is_reaction && state.active_player != player {
+        if !is_reaction && state.priority_player != player {
             return;
         }
 
@@ -391,10 +391,13 @@ impl MatchEngine {
     fn finish_root_action(state: &mut MatchState, root_item: &StackItem) {
         match root_item.resolves_in_phase {
             MatchPhase::DailyLife => {
-                state.daily_life_passes = 0;
+                state.phase_passes = 0;
+                state.priority_player = opposing(root_item.player);
             }
             MatchPhase::Encounter | MatchPhase::FinalClimax => {
                 state.set_encounter_card_played(root_item.player, true);
+                state.phase_passes = 0;
+                state.priority_player = opposing(root_item.player);
             }
             MatchPhase::Finished => {}
         }
@@ -686,6 +689,21 @@ impl MatchEngine {
             "{name} gains +1 power for the next Final Climax attempt."
         ));
     }
+
+    fn complete_encounter(state: &mut MatchState) {
+        let outcome = Self::resolve_encounter(state);
+        state.last_outcome = Some(outcome);
+        state.round += 1;
+        if state.phase != MatchPhase::Finished {
+            state.phase = if state.final_climax_active {
+                MatchPhase::FinalClimax
+            } else {
+                MatchPhase::DailyLife
+            };
+        }
+        state.clear_encounter_bonuses();
+        state.ready_end_of_round();
+    }
 }
 
 #[cfg(test)]
@@ -819,6 +837,7 @@ mod tests {
             .iter_mut()
             .for_each(|support| support.revealed = true);
         state.active_player = PlayerId::PlayerB;
+        state.priority_player = PlayerId::PlayerB;
         MatchEngine::apply_action(
             &mut state,
             MatchAction::PassEncounter {

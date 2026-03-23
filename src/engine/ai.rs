@@ -17,7 +17,7 @@ impl AiController {
             return reaction_action(state, player);
         }
 
-        if state.active_player != player {
+        if state.proactive_priority_player() != Some(player) {
             return None;
         }
 
@@ -73,21 +73,23 @@ fn encounter_action(state: &MatchState, player: PlayerId) -> Option<MatchAction>
         }
 
         if let Some(hand_index) = state.first_playable_hand_index(player, CardSpeed::Encounter) {
-            Some(MatchAction::PlayCardFromHand { player, hand_index })
-        } else if state.can_reveal_support(player, true) {
-            Some(MatchAction::RevealFirstHiddenSupport {
+            return Some(MatchAction::PlayCardFromHand { player, hand_index });
+        }
+
+        if state.can_reveal_support(player, true) {
+            return Some(MatchAction::RevealFirstHiddenSupport {
                 player,
                 is_magical_girl_side: true,
-            })
-        } else if state.can_reveal_support(player, false) {
-            Some(MatchAction::RevealFirstHiddenSupport {
+            });
+        }
+
+        if state.can_reveal_support(player, false) {
+            return Some(MatchAction::RevealFirstHiddenSupport {
                 player,
                 is_magical_girl_side: false,
-            })
-        } else {
-            Some(MatchAction::PassEncounter { player })
+            });
         }
-    } else {
-        None
     }
+
+    Some(MatchAction::PassEncounter { player })
 }

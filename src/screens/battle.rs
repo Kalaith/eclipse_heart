@@ -106,7 +106,7 @@ impl BattleScreen {
         y += ui.h(80.0);
 
         if match_state.phase == MatchPhase::DailyLife
-            && match_state.active_player == player
+            && match_state.proactive_priority_player() == Some(player)
             && match_state.reaction_state.is_none()
             && action_button(
                 Rect::new(side_x, y, side_width, ui.h(66.0)),
@@ -119,8 +119,7 @@ impl BattleScreen {
 
         if (match_state.phase == MatchPhase::Encounter
             || match_state.phase == MatchPhase::FinalClimax)
-            && match_state.active_player == player
-            && !match_state.encounter_card_played(player)
+            && match_state.proactive_priority_player() == Some(player)
             && match_state.reaction_state.is_none()
             && action_button(
                 Rect::new(side_x, y, side_width, ui.h(66.0)),
@@ -131,20 +130,9 @@ impl BattleScreen {
         }
         y += ui.h(80.0);
 
-        if (match_state.phase == MatchPhase::Encounter
-            || match_state.phase == MatchPhase::FinalClimax)
-            && match_state.reaction_state.is_none()
-            && action_button(
-                Rect::new(side_x, y, side_width, ui.h(66.0)),
-                state.ui_text.get("battle_resolve_encounter"),
-            )
-        {
-            return ScreenAction::ApplyMatchAction(MatchAction::ResolveEncounter);
-        }
-        y += ui.h(80.0);
-
-        if match_state.active_player == player
-            && match_state.player_a.magical_girls.main.stage == CharacterStage::Radiant
+        if match_state.proactive_priority_player() == Some(player)
+            && match_state.active_player == player
+            && match_state.active_magical_girls().main.stage == CharacterStage::Radiant
             && (match_state.phase == MatchPhase::Encounter
                 || match_state.phase == MatchPhase::FinalClimax)
             && !match_state.final_climax_active
@@ -465,7 +453,8 @@ impl BattleScreen {
 
 fn can_reveal_side(match_state: &MatchState, player: PlayerId, is_magical_girl_side: bool) -> bool {
     ((match_state.reaction_priority_player() == Some(player))
-        || (match_state.reaction_state.is_none() && match_state.active_player == player))
+        || (match_state.reaction_state.is_none()
+            && match_state.proactive_priority_player() == Some(player)))
         && match_state.can_reveal_support(player, is_magical_girl_side)
 }
 
@@ -540,12 +529,13 @@ fn battle_action_hint<'a>(
 ) -> &'a str {
     if match_state.reaction_priority_player() == Some(player) {
         state.ui_text.get("battle_hint_reaction")
-    } else if match_state.active_player == player && match_state.phase == MatchPhase::DailyLife {
+    } else if match_state.proactive_priority_player() == Some(player)
+        && match_state.phase == MatchPhase::DailyLife
+    {
         state.ui_text.get("battle_hint_daily_life")
-    } else if match_state.active_player == player
+    } else if match_state.proactive_priority_player() == Some(player)
         && (match_state.phase == MatchPhase::Encounter
             || match_state.phase == MatchPhase::FinalClimax)
-        && !match_state.encounter_card_played(player)
     {
         state.ui_text.get("battle_hint_encounter")
     } else if match_state.phase == MatchPhase::Finished {

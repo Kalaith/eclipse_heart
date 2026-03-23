@@ -59,17 +59,20 @@
 - Reaction cards and reaction-speed support reveals can be added on top of the current stack.
 - Stack resolution is newest-to-oldest after both players pass priority.
 - The battle screen shows whether the reaction window is open and displays a rolling event log of queued and resolved actions.
-- The active player now either plays a chosen card from hand or passes, and the opposing player receives reaction priority if a card or reveal is queued.
+- Daily Life now uses shared alternating proactive priority instead of giving the whole phase to the lane attacker.
+- Encounter now uses the same alternating proactive priority structure, but each player is still limited to one proactive Encounter card play per round.
+- After a proactive card or reveal is queued, the opposing player receives reaction priority before the stack resolves.
 - Each player may reveal at most one support total per round, even if one reveal happens in Daily Life and the other support remains hidden for Encounter.
 
 ## Encounter prototype rules
 
 - The active player alternates by round.
 - During an Encounter, the active player's Magical Girls attack the opposing player's Baddies.
-- Daily Life currently belongs to the active player for the current round.
 - Each player now opens with `4` cards, then both players automatically draw `1` before the first `Daily Life` action window, so the digital match starts with `5` cards in hand.
 - Both players also draw `1` simultaneously at the start of each later `Daily Life` round.
 - At the end of each round, both players automatically discard down to a hand size of `7`.
+- Daily Life ends when both players pass consecutively with no reaction chain active.
+- Encounter resolves automatically when both players pass consecutively with no reaction chain active.
 - Encounter Power only counts main units plus revealed, non-exhausted supports on the engaged lane.
 - Encounter rewards now use configurable `+3 / +1 / +1` win, loss, and tie growth values from `assets/data/rules/match_rules.json`.
 - Story cards no longer directly add, remove, or reduce `Radiance` or `Dread`; those stats now come from encounter results rather than card text.

@@ -86,9 +86,14 @@ Current timing principles:
 - players can react to reactions
 - chains resolve after the reaction sequence completes
 - trigger resolution order is `newest to oldest`
-- in the current implementation, the active player takes the main action window for the round
-- that player either plays a legal card from hand or passes
-- if a card or reveal is played, the opposing player gets a reaction window before the stack resolves
+- during `Daily Life`, players alternate proactive priority
+- on proactive priority, a player either takes `1` proactive action or passes
+- after a proactive action, the opposing player gets a reaction window before the stack resolves
+- after the chain resolves, proactive priority passes to the other player
+- `Daily Life` ends when both players pass consecutively while no reaction chain is active
+- during `Encounter`, players use the same shared proactive priority structure
+- each player may take at most `1` proactive Encounter card action per round
+- after both players pass consecutively with no reaction chain active, the Encounter resolves automatically
 
 Supports:
 

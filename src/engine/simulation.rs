@@ -116,10 +116,17 @@ impl SimulationRunner {
                 final_climax_started_round = Some(state.round);
             }
 
-            let encounter_snapshot = encounter_snapshot_before_action(&state);
             let action = next_simulation_action(&state);
-            let was_failed_final_climax_attempt = action == Some(MatchAction::ResolveEncounter)
-                && state.phase == MatchPhase::FinalClimax;
+            let encounter_snapshot =
+                action
+                    .as_ref()
+                    .and_then(|next_action| encounter_snapshot_before_action(&state, next_action));
+            let was_failed_final_climax_attempt = action
+                .as_ref()
+                .is_some_and(|next_action| {
+                    action_will_resolve_encounter(&state, next_action)
+                        && state.phase == MatchPhase::FinalClimax
+                });
 
             let Some(action) = action else {
                 break;
@@ -171,18 +178,8 @@ fn next_simulation_action(state: &MatchState) -> Option<MatchAction> {
         return AiController::choose_action_for(state, priority_player);
     }
 
-    let active_player = state.active_player;
-    if let Some(action) = AiController::choose_action_for(state, active_player) {
-        return Some(action);
-    }
-
-    if (state.phase == MatchPhase::Encounter || state.phase == MatchPhase::FinalClimax)
-        && state.reaction_state.is_none()
-    {
-        return Some(MatchAction::ResolveEncounter);
-    }
-
-    None
+    let proactive_player = state.proactive_priority_player()?;
+    AiController::choose_action_for(state, proactive_player)
 }
 
 fn action_will_declare_final_climax(state: &MatchState) -> bool {
@@ -358,11 +355,11 @@ impl EncounterSnapshot {
     }
 }
 
-fn encounter_snapshot_before_action(state: &MatchState) -> Option<EncounterSnapshot> {
-    if !matches!(
-        next_simulation_action(state),
-        Some(MatchAction::ResolveEncounter)
-    ) {
+fn encounter_snapshot_before_action(
+    state: &MatchState,
+    action: &MatchAction,
+) -> Option<EncounterSnapshot> {
+    if !action_will_resolve_encounter(state, action) {
         return None;
     }
 
@@ -390,6 +387,22 @@ fn encounter_snapshot_before_action(state: &MatchState) -> Option<EncounterSnaps
         defender_prime_baddie_stage_before: defender_prime_baddie.stage,
         defender_prime_baddie_dread_before: defender_prime_baddie.dread,
     })
+}
+
+fn action_will_resolve_encounter(state: &MatchState, action: &MatchAction) -> bool {
+    if state.phase != MatchPhase::Encounter && state.phase != MatchPhase::FinalClimax {
+        return false;
+    }
+
+    match action {
+        MatchAction::ResolveEncounter => true,
+        MatchAction::PassEncounter { player } => {
+            state.reaction_state.is_none()
+                && state.priority_player == *player
+                && state.phase_passes >= 1
+        }
+        _ => false,
+    }
 }
 
 struct MatchMilestones {

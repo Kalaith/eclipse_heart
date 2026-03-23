@@ -214,7 +214,8 @@ pub struct MatchState {
     pub player_a: PlayerState,
     pub player_b: PlayerState,
     pub active_player: PlayerId,
-    pub daily_life_passes: u8,
+    pub priority_player: PlayerId,
+    pub phase_passes: u8,
     pub last_played_card_name: Option<String>,
     pub last_outcome: Option<crate::engine::EncounterOutcome>,
     pub reaction_stack: Vec<StackItem>,
@@ -322,7 +323,8 @@ impl MatchState {
                 supports_revealed_this_round: 0,
             },
             active_player: starting_player,
-            daily_life_passes: 0,
+            priority_player: starting_player,
+            phase_passes: 0,
             last_played_card_name: None,
             last_outcome: None,
             reaction_stack: Vec::new(),
@@ -374,6 +376,14 @@ impl MatchState {
         self.reaction_state
             .as_ref()
             .map(|state| state.priority_player)
+    }
+
+    pub fn proactive_priority_player(&self) -> Option<PlayerId> {
+        if self.reaction_state.is_none() && self.phase != MatchPhase::Finished {
+            Some(self.priority_player)
+        } else {
+            None
+        }
     }
 
     pub fn player_for(&self, player: PlayerId) -> &PlayerState {
@@ -475,7 +485,7 @@ impl MatchState {
             return Some(CardSpeed::Reaction);
         }
 
-        if self.reaction_state.is_some() || self.active_player != player {
+        if self.reaction_state.is_some() || self.priority_player != player {
             return None;
         }
 
@@ -522,7 +532,8 @@ impl MatchState {
         }
 
         self.active_player = opposing(self.active_player);
-        self.daily_life_passes = 0;
+        self.priority_player = self.active_player;
+        self.phase_passes = 0;
         self.reaction_stack.clear();
         self.reaction_state = None;
 
