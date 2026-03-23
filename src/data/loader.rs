@@ -111,7 +111,7 @@ mod tests {
 
         assert_eq!(content.magical_girls.len(), 5);
         assert_eq!(content.baddies.len(), 5);
-        assert_eq!(content.story_cards.len(), 20);
+        assert_eq!(content.story_cards.len(), 21);
         assert_eq!(content.deck_rules.support_deck_size, 40);
         assert!(content.progression_rules.overflow_is_lost);
         assert!(!content.starter_loadouts.is_empty());

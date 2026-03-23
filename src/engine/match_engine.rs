@@ -848,7 +848,7 @@ mod tests {
     }
 
     #[test]
-    fn round_start_draws_one_for_both_players_after_encounter() {
+    fn round_start_draws_two_for_both_players_after_encounter() {
         let mut state = sample_state();
         state.phase = MatchPhase::Encounter;
         state.player_a.encounter_card_played = true;
@@ -861,10 +861,10 @@ mod tests {
         MatchEngine::apply_action(&mut state, MatchAction::ResolveEncounter);
 
         assert_eq!(state.phase, MatchPhase::DailyLife);
-        assert_eq!(state.player_a.hand.len(), player_a_hand_before + 1);
-        assert_eq!(state.player_b.hand.len(), player_b_hand_before + 1);
-        assert_eq!(state.player_a.deck.len(), player_a_deck_before - 1);
-        assert_eq!(state.player_b.deck.len(), player_b_deck_before - 1);
+        assert_eq!(state.player_a.hand.len(), player_a_hand_before + 2);
+        assert_eq!(state.player_b.hand.len(), player_b_hand_before + 2);
+        assert_eq!(state.player_a.deck.len(), player_a_deck_before - 2);
+        assert_eq!(state.player_b.deck.len(), player_b_deck_before - 2);
     }
 
     #[test]

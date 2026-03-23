@@ -168,6 +168,18 @@
     ]
   },
   {
+    "id": "synchronized_finish",
+    "name": "Synchronized Finish",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 2 },
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
     "id": "panic_in_the_parade_route",
     "name": "Panic in the Parade Route",
     "card_type": "tactic",

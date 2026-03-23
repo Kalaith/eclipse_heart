@@ -276,10 +276,10 @@ impl MatchState {
             .map(|card| (card.id.clone(), card))
             .collect::<HashMap<_, _>>();
 
-        let player_a_hand = draw_opening_hand(&mut player_a_deck, 4);
-        let player_b_hand = draw_opening_hand(&mut player_b_deck, 4);
+        let player_a_hand = draw_opening_hand(&mut player_a_deck, 5);
+        let player_b_hand = draw_opening_hand(&mut player_b_deck, 5);
 
-        let mut state = Self {
+        let state = Self {
             rules: content.rules.clone(),
             story_cards,
             phase: MatchPhase::DailyLife,
@@ -332,7 +332,6 @@ impl MatchState {
             event_log: Vec::new(),
         };
 
-        state.draw_round_start_cards();
         state
     }
 
@@ -558,8 +557,8 @@ impl MatchState {
     }
 
     fn draw_round_start_cards(&mut self) {
-        let player_a_drew = self.draw_cards(PlayerId::PlayerA, 1);
-        let player_b_drew = self.draw_cards(PlayerId::PlayerB, 1);
+        let player_a_drew = self.draw_cards(PlayerId::PlayerA, 2);
+        let player_b_drew = self.draw_cards(PlayerId::PlayerB, 2);
         self.push_event(format!(
             "Round {} draw: PlayerA +{}, PlayerB +{}.",
             self.round, player_a_drew, player_b_drew
@@ -1071,8 +1070,8 @@ mod tests {
         ]);
         state.ready_end_of_round();
 
-        assert_eq!(state.player_a.hand.len(), 8);
-        assert_eq!(state.player_b.hand.len(), 8);
+        assert_eq!(state.player_a.hand.len(), 9);
+        assert_eq!(state.player_b.hand.len(), 9);
         assert!(!state.player_a.discard.is_empty());
         assert!(!state.player_b.discard.is_empty());
     }

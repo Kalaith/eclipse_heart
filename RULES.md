@@ -55,12 +55,12 @@ Hidden support information:
 
 Opening hand and start rules:
 
-- each player draws `4` cards
+- each player draws `5` cards
 - there is no mulligan
 - first player is decided by heads or tails
-- after setup, both players begin with those `4` cards in hand
-- before the first `Daily Life` action window, both players draw `1` card at the same time
-- before each later new `Daily Life` round starts, both players also draw `1` card at the same time
+- after setup, both players begin with those `5` cards in hand
+- there is no extra opening draw before the first `Daily Life` action window
+- before each later new `Daily Life` round starts, both players draw `2` cards at the same time
 - players start with no resources unless a card explicitly grants them
 - players discard down to `7` cards in hand at the end of each round
 

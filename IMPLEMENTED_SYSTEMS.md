@@ -43,7 +43,8 @@
 - A headless AI-vs-AI simulation runner now exists for balance testing.
 - Simulations can run starter-loadout matchups for both starting-player orders without opening the game window.
 - The project now exposes a `simulate` binary that prints a JSON batch report, saves the same report to `simulation_report.json`, and includes winners, rounds completed, Final Climax usage, failed Final Climax counts, round-cap or action-cap exits, milestone rounds, per-action traces with played card names and reaction passes, and per-encounter timelines with power and stage snapshots.
-- The current starter tuning includes a Velvet-specific timing pass: `Velvet Ambush` now runs more Magical Girl growth in its starter deck, `Ominous Graffiti` also grants main Radiance, and `Velvet Hex` reaches later thresholds than the default baddie curve to reduce long mirror stalls.
+- The current starter tuning includes a Velvet-specific starter rebuild: `Velvet Ambush` now leans on higher Prime Baddie power cards plus a smaller package of proactive Magical Girl setup and burst cards, and its Baddie support pair now uses a slightly lower defensive ceiling to avoid mirror-match walling.
+- The prototype story card pool now also includes `Synchronized Finish`, a generic Magical Girl encounter closer that rewards already-revealed support pressure.
 
 ## Hidden support behavior
 
@@ -68,8 +69,8 @@
 
 - The active player alternates by round.
 - During an Encounter, the active player's Magical Girls attack the opposing player's Baddies.
-- Each player now opens with `4` cards, then both players automatically draw `1` before the first `Daily Life` action window, so the digital match starts with `5` cards in hand.
-- Both players also draw `1` simultaneously at the start of each later `Daily Life` round.
+- Each player now opens with `5` cards and there is no extra automatic draw before the first `Daily Life` action window.
+- Both players draw `2` simultaneously at the start of each later `Daily Life` round.
 - At the end of each round, both players automatically discard down to a hand size of `7`.
 - Daily Life ends when both players pass consecutively with no reaction chain active.
 - Encounter resolves automatically when both players pass consecutively with no reaction chain active.

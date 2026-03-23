@@ -25,18 +25,18 @@
     "magical_girl_main": "hana",
     "magical_girl_supports": ["momo", "kiko"],
     "prime_baddie": "velvet_hex",
-    "baddie_supports": ["noctra", "hollow_marionette"],
+    "baddie_supports": ["glass_crow", "hollow_marionette"],
     "support_deck": [
       "ominous_graffiti",
       "quiet_lunch_on_the_rooftop",
-      "twisted_headline",
-      "expose_the_accomplice",
-      "curtain_call_denied",
       "false_sense_of_calm",
+      "crescent_counterpose",
+      "synchronized_finish",
+      "whisper_campaign",
+      "last_minute_cover_story",
       "panic_spiral",
       "panic_in_the_parade_route",
-      "secret_rehearsal",
-      "break_the_formation"
+      "forbidden_bloom_of_calamity"
     ]
   }
 ]
