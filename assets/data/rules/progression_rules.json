@@ -1,0 +1,6 @@
+{
+  "overflow_is_lost": true,
+  "upgrades_happen_immediately": true,
+  "upgrades_do_not_revert_by_default": true,
+  "tie_points_stop_at_final_form": true
+}

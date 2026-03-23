@@ -1,0 +1,227 @@
+[
+  {
+    "id": "identity_reveal",
+    "name": "Identity Reveal",
+    "card_type": "rumor",
+    "speed": "daily_life",
+    "alignment": "baddie",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 2 }
+    ]
+  },
+  {
+    "id": "twisted_headline",
+    "name": "Twisted Headline",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "quiet_lunch_on_the_rooftop",
+    "name": "Quiet Lunch on the Rooftop",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_main_power_next_encounter", "amount": 1 },
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "ominous_graffiti",
+    "name": "Ominous Graffiti",
+    "card_type": "scheme",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_main_power_next_encounter", "amount": 1 },
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "false_sense_of_calm",
+    "name": "False Sense of Calm",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "whisper_campaign",
+    "name": "Whisper Campaign",
+    "card_type": "scheme",
+    "speed": "daily_life",
+    "alignment": "baddie",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 },
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "secret_rehearsal",
+    "name": "Secret Rehearsal",
+    "card_type": "bond",
+    "speed": "daily_life",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": true,
+    "effects": [
+      { "kind": "gain_main_power_next_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "not_on_my_watch",
+    "name": "Not On My Watch!",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "expose_the_accomplice",
+    "name": "Expose the Accomplice",
+    "card_type": "scheme",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reveal_first_hidden_own_support" }
+    ]
+  },
+  {
+    "id": "curtain_call_denied",
+    "name": "Curtain Call Denied",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "exhaust_first_revealed_opponent_support" }
+    ]
+  },
+  {
+    "id": "last_minute_cover_story",
+    "name": "Last-Minute Cover Story",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "shared_umbrella",
+    "name": "Shared Umbrella",
+    "card_type": "bond",
+    "speed": "reaction",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "panic_spiral",
+    "name": "Panic Spiral",
+    "card_type": "scheme",
+    "speed": "reaction",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "emergency_costume_repair",
+    "name": "Emergency Costume Repair",
+    "card_type": "reaction",
+    "speed": "reaction",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "crescent_counterpose",
+    "name": "Crescent Counterpose",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_main_power_this_encounter", "amount": 3 }
+    ]
+  },
+  {
+    "id": "panic_in_the_parade_route",
+    "name": "Panic in the Parade Route",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 2 },
+      { "kind": "gain_prime_power_this_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "forbidden_bloom_of_calamity",
+    "name": "Forbidden Bloom of Calamity",
+    "card_type": "scheme",
+    "speed": "encounter",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_prime_power_this_encounter", "amount": 3 }
+    ]
+  },
+  {
+    "id": "moonlit_rescue_chain",
+    "name": "Moonlit Rescue Chain",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "magical_girl",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "gain_revealed_support_power_this_encounter", "amount": 1 },
+      { "kind": "gain_main_power_next_encounter", "amount": 1 }
+    ]
+  },
+  {
+    "id": "nightmare_spotlight",
+    "name": "Nightmare Spotlight",
+    "card_type": "scheme",
+    "speed": "encounter",
+    "alignment": "baddie",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "reduce_opponent_main_power_this_encounter", "amount": 2 }
+    ]
+  },
+  {
+    "id": "break_the_formation",
+    "name": "Break the Formation",
+    "card_type": "tactic",
+    "speed": "encounter",
+    "alignment": "neutral",
+    "playable_in_daily_life": false,
+    "effects": [
+      { "kind": "exhaust_first_revealed_opponent_support" }
+    ]
+  }
+]

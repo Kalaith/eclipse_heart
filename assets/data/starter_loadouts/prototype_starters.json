@@ -1,0 +1,42 @@
+[
+  {
+    "id": "moonlight_opening",
+    "name": "Moonlight Opening",
+    "magical_girl_main": "yuki",
+    "magical_girl_supports": ["hana", "riri"],
+    "prime_baddie": "noctra",
+    "baddie_supports": ["glass_crow", "thorn_waltz"],
+    "support_deck": [
+      "quiet_lunch_on_the_rooftop",
+      "false_sense_of_calm",
+      "secret_rehearsal",
+      "not_on_my_watch",
+      "shared_umbrella",
+      "emergency_costume_repair",
+      "crescent_counterpose",
+      "moonlit_rescue_chain",
+      "break_the_formation",
+      "identity_reveal"
+    ]
+  },
+  {
+    "id": "velvet_ambush",
+    "name": "Velvet Ambush",
+    "magical_girl_main": "hana",
+    "magical_girl_supports": ["momo", "kiko"],
+    "prime_baddie": "velvet_hex",
+    "baddie_supports": ["noctra", "hollow_marionette"],
+    "support_deck": [
+      "ominous_graffiti",
+      "quiet_lunch_on_the_rooftop",
+      "twisted_headline",
+      "expose_the_accomplice",
+      "curtain_call_denied",
+      "false_sense_of_calm",
+      "panic_spiral",
+      "panic_in_the_parade_route",
+      "secret_rehearsal",
+      "break_the_formation"
+    ]
+  }
+]

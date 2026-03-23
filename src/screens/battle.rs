@@ -1,0 +1,584 @@
+//! Battle screen for the rules-engine shell.
+
+use macroquad::prelude::*;
+
+use crate::data::CardSpeed;
+use crate::engine::MatchAction;
+use crate::screens::ScreenAction;
+use crate::state::{
+    opposing, AppState, CharacterStage, MatchPhase, MatchState, PlayerId, SideState, SupportState,
+};
+use crate::ui::card_widgets::{action_button, card_button, section_panel};
+use crate::ui::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
+use crate::ui::layout::UiLayout;
+
+pub struct BattleScreen;
+
+impl BattleScreen {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn update(&mut self, state: &AppState) -> ScreenAction {
+        let Some(match_state) = state.match_state.as_ref() else {
+            return ScreenAction::BackToMenu;
+        };
+
+        let ui = UiLayout::current();
+        let player = PlayerId::PlayerA;
+
+        let hand_start_x = ui.x(540.0);
+        let hand_start_y = ui.y(946.0);
+        let card_width = ui.w(420.0);
+        let card_height = ui.h(86.0);
+        let card_gap = ui.w(28.0);
+
+        for (hand_index, card_id) in match_state.hand_for(player).iter().enumerate() {
+            let Some(card) = match_state.story_cards.get(card_id) else {
+                continue;
+            };
+            let enabled = match_state.can_play_hand_card(player, hand_index);
+            let column = hand_index % 4;
+            let row = hand_index / 4;
+            let x = hand_start_x + column as f32 * (card_width + card_gap);
+            let y = hand_start_y + row as f32 * ui.h(100.0);
+
+            if card_button(
+                Rect::new(x, y, card_width, card_height),
+                card_speed_label(state, card.speed),
+                hand_card_status_label(state, enabled),
+                &card.name,
+                enabled,
+            ) {
+                return ScreenAction::ApplyMatchAction(MatchAction::PlayCardFromHand {
+                    player,
+                    hand_index,
+                });
+            }
+        }
+
+        let side_x = ui.x(56.0);
+        let side_width = ui.w(410.0);
+        let mut y = ui.y(820.0);
+
+        if action_button(
+            Rect::new(side_x, y, side_width, ui.h(66.0)),
+            state.ui_text.get("battle_back_to_menu"),
+        ) {
+            return ScreenAction::BackToMenu;
+        }
+        y += ui.h(80.0);
+
+        if match_state.reaction_priority_player() == Some(player)
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_pass_reaction"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::PassReaction { player });
+        }
+        y += ui.h(80.0);
+
+        if can_reveal_side(match_state, player, true)
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_reveal_mg_support"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::RevealFirstHiddenSupport {
+                player,
+                is_magical_girl_side: true,
+            });
+        }
+        y += ui.h(80.0);
+
+        if can_reveal_side(match_state, player, false)
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_reveal_baddie_support"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::RevealFirstHiddenSupport {
+                player,
+                is_magical_girl_side: false,
+            });
+        }
+        y += ui.h(80.0);
+
+        if match_state.phase == MatchPhase::DailyLife
+            && match_state.active_player == player
+            && match_state.reaction_state.is_none()
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_pass_daily_life"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::PassDailyLife { player });
+        }
+        y += ui.h(80.0);
+
+        if (match_state.phase == MatchPhase::Encounter
+            || match_state.phase == MatchPhase::FinalClimax)
+            && match_state.active_player == player
+            && !match_state.encounter_card_played(player)
+            && match_state.reaction_state.is_none()
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_pass_encounter"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::PassEncounter { player });
+        }
+        y += ui.h(80.0);
+
+        if (match_state.phase == MatchPhase::Encounter
+            || match_state.phase == MatchPhase::FinalClimax)
+            && match_state.reaction_state.is_none()
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_resolve_encounter"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::ResolveEncounter);
+        }
+        y += ui.h(80.0);
+
+        if match_state.active_player == player
+            && match_state.player_a.magical_girls.main.stage == CharacterStage::Radiant
+            && (match_state.phase == MatchPhase::Encounter
+                || match_state.phase == MatchPhase::FinalClimax)
+            && !match_state.final_climax_active
+            && action_button(
+                Rect::new(side_x, y, side_width, ui.h(66.0)),
+                state.ui_text.get("battle_declare_final_climax"),
+            )
+        {
+            return ScreenAction::ApplyMatchAction(MatchAction::DeclareFinalClimax);
+        }
+
+        ScreenAction::None
+    }
+
+    pub fn draw(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let Some(match_state) = state.match_state.as_ref() else {
+            draw_text(
+                state.ui_text.get("battle_missing_match"),
+                ui.x(56.0),
+                ui.y(84.0),
+                ui.font(48.0),
+                WHITE,
+            );
+            return;
+        };
+
+        section_panel(
+            ui.rect(40.0, 36.0, 430.0, 744.0),
+            state.ui_text.get("battle_event_log"),
+            GRAY,
+        );
+        draw_panel(ui.x(500.0), ui.y(36.0), ui.w(2020.0), ui.h(836.0), SKYBLUE);
+        section_panel(
+            ui.rect(500.0, 890.0, 2020.0, 506.0),
+            state.ui_text.get("battle_your_hand_label"),
+            SKYBLUE,
+        );
+
+        draw_text(
+            state.ui_text.get("battle_title"),
+            ui.x(540.0),
+            ui.y(86.0),
+            ui.font(58.0),
+            WHITE,
+        );
+
+        let lane_line = format!(
+            "{}: {:?} MG -> {:?} Baddie",
+            state.ui_text.get("battle_engagement_label"),
+            match_state.active_player,
+            opposing(match_state.active_player)
+        );
+        draw_text(&lane_line, ui.x(540.0), ui.y(128.0), ui.font(30.0), GOLD);
+
+        if match_state.phase == MatchPhase::Finished {
+            let winner_line = format!(
+                "{}: {}",
+                state.ui_text.get("battle_winner_label"),
+                winner_label(state, match_state.winner)
+            );
+            draw_text(
+                &winner_line,
+                ui.x(540.0),
+                ui.y(170.0),
+                ui.font(30.0),
+                ORANGE,
+            );
+        }
+
+        self.draw_player_column(
+            state,
+            ui.x(540.0),
+            ui.y(180.0),
+            state.ui_text.get("battle_player_a_label"),
+            state.ui_text.get("battle_player_a_identity"),
+            &match_state.player_a.magical_girls,
+            &match_state.player_a.baddies,
+            match_state.player_a.hand.len(),
+            match_state.player_a.deck.len(),
+            player_status(state, match_state, PlayerId::PlayerA),
+            match_state.defeated_prime_owner == Some(PlayerId::PlayerA),
+        );
+
+        self.draw_player_column(
+            state,
+            ui.x(1500.0),
+            ui.y(180.0),
+            state.ui_text.get("battle_player_b_label"),
+            state.ui_text.get("battle_player_b_identity"),
+            &match_state.player_b.magical_girls,
+            &match_state.player_b.baddies,
+            match_state.player_b.hand.len(),
+            match_state.player_b.deck.len(),
+            player_status(state, match_state, PlayerId::PlayerB),
+            match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
+        );
+
+        let phase_line = format!(
+            "{}: {}",
+            state.ui_text.get("phase_label"),
+            match_state.current_phase_label()
+        );
+        draw_text(&phase_line, ui.x(540.0), ui.y(700.0), ui.font(30.0), WHITE);
+
+        let turn_line = format!(
+            "{}: {:?}",
+            state.ui_text.get("controller_label"),
+            match_state
+                .reaction_priority_player()
+                .unwrap_or(match_state.active_player)
+        );
+        draw_text(
+            &turn_line,
+            ui.x(540.0),
+            ui.y(744.0),
+            ui.font(30.0),
+            TEXT_MUTED,
+        );
+
+        let timing_line = if match_state.reaction_state.is_some() {
+            state.ui_text.get("battle_reaction_window_open")
+        } else {
+            state.ui_text.get("battle_reaction_window_closed")
+        };
+        draw_text(
+            timing_line,
+            ui.x(540.0),
+            ui.y(788.0),
+            ui.font(30.0),
+            SKYBLUE,
+        );
+
+        let action_hint = battle_action_hint(state, match_state, PlayerId::PlayerA);
+        draw_text(
+            action_hint,
+            ui.x(540.0),
+            ui.y(832.0),
+            ui.font(28.0),
+            TEXT_MUTED,
+        );
+
+        let mut line_y = ui.y(102.0);
+        let wrapped_lines = wrap_event_lines(
+            &match_state
+                .event_log
+                .iter()
+                .rev()
+                .take(6)
+                .cloned()
+                .collect::<Vec<_>>(),
+            ui.w(360.0),
+            ui.font(24.0),
+        );
+        for line in wrapped_lines {
+            draw_text(&line, ui.x(68.0), line_y, ui.font(24.0), TEXT_MUTED);
+            line_y += ui.h(34.0);
+            if line_y > ui.y(740.0) {
+                break;
+            }
+        }
+
+        if let Some(card_name) = &match_state.last_played_card_name {
+            let played_line = format!("{}: {}", state.ui_text.get("last_card_label"), card_name);
+            draw_text(
+                &played_line,
+                ui.x(1820.0),
+                ui.y(832.0),
+                ui.font(28.0),
+                TEXT_MUTED,
+            );
+        }
+    }
+
+    fn draw_player_column(
+        &self,
+        state: &AppState,
+        x: f32,
+        y: f32,
+        player_label: &str,
+        identity_label: &str,
+        magical_girls: &SideState,
+        baddies: &SideState,
+        hand_size: usize,
+        deck_size: usize,
+        status_label: &str,
+        prime_defeated: bool,
+    ) {
+        let ui = UiLayout::current();
+        draw_text(player_label, x, y, ui.font(30.0), WHITE);
+        draw_text(identity_label, x + ui.w(210.0), y, ui.font(24.0), GRAY);
+        draw_text(status_label, x + ui.w(500.0), y, ui.font(24.0), GOLD);
+
+        self.draw_side_box(
+            state,
+            x,
+            y + ui.h(28.0),
+            ui.w(860.0),
+            ui.h(180.0),
+            state.ui_text.get("battle_magical_girls_label"),
+            magical_girls,
+            true,
+            false,
+        );
+        self.draw_side_box(
+            state,
+            x,
+            y + ui.h(236.0),
+            ui.w(860.0),
+            ui.h(180.0),
+            state.ui_text.get("battle_baddies_label"),
+            baddies,
+            false,
+            prime_defeated,
+        );
+        draw_text(
+            &format!(
+                "{} {}  {} {}",
+                state.ui_text.get("battle_hand_count_label"),
+                hand_size,
+                state.ui_text.get("battle_draw_pile_label"),
+                deck_size
+            ),
+            x,
+            y + ui.h(452.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+        draw_soft_panel(
+            x + ui.w(582.0),
+            y + ui.h(390.0),
+            ui.w(208.0),
+            ui.h(70.0),
+            LIGHTGRAY,
+        );
+        draw_text(
+            &format!(
+                "{} {}",
+                state.ui_text.get("battle_draw_pile_label"),
+                deck_size
+            ),
+            x + ui.w(610.0),
+            y + ui.h(434.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
+    }
+
+    fn draw_side_box(
+        &self,
+        state: &AppState,
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        label: &str,
+        side: &SideState,
+        is_magical_girl_side: bool,
+        prime_defeated: bool,
+    ) {
+        let outline = if prime_defeated {
+            RED
+        } else if is_magical_girl_side {
+            SKYBLUE
+        } else {
+            PINK
+        };
+        let ui = UiLayout::current();
+        section_panel(Rect::new(x, y, width, height), label, outline);
+        if prime_defeated {
+            draw_text(
+                state.ui_text.get("battle_prime_defeated_label"),
+                x + ui.w(520.0),
+                y + ui.h(34.0),
+                ui.font(18.0),
+                RED,
+            );
+        }
+
+        let growth = if is_magical_girl_side {
+            side.main.radiance
+        } else {
+            side.main.dread
+        };
+        draw_text(
+            &side.main.name,
+            x + ui.w(20.0),
+            y + ui.h(82.0),
+            ui.font(30.0),
+            SKYBLUE,
+        );
+        draw_text(
+            &format!(
+                "{} {:?}  {} {}  {} {}  {} {}",
+                state.ui_text.get("battle_stage_label"),
+                side.main.stage,
+                state.ui_text.get("battle_main_power_label"),
+                side.main.current_power(),
+                state.ui_text.get("battle_total_power_label"),
+                side.total_power(),
+                state.ui_text.get("battle_growth_label"),
+                growth
+            ),
+            x + ui.w(20.0),
+            y + ui.h(122.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &format_supports(state, &side.supports),
+            x + ui.w(20.0),
+            y + ui.h(154.0),
+            ui.font(18.0),
+            TEXT_MUTED,
+        );
+    }
+}
+
+fn can_reveal_side(match_state: &MatchState, player: PlayerId, is_magical_girl_side: bool) -> bool {
+    ((match_state.reaction_priority_player() == Some(player))
+        || (match_state.reaction_state.is_none() && match_state.active_player == player))
+        && match_state.can_reveal_support(player, is_magical_girl_side)
+}
+
+fn format_supports(state: &AppState, supports: &[SupportState]) -> String {
+    let labels = supports
+        .iter()
+        .enumerate()
+        .map(|(index, support)| {
+            if support.revealed {
+                format!("S{} {}", index + 1, support.runtime.name)
+            } else {
+                format!(
+                    "S{} {}",
+                    index + 1,
+                    state.ui_text.get("battle_hidden_support_short")
+                )
+            }
+        })
+        .collect::<Vec<_>>();
+
+    format!(
+        "{}: {}",
+        state.ui_text.get("battle_supports_label"),
+        labels.join(" | ")
+    )
+}
+
+fn player_status<'a>(
+    state: &'a AppState,
+    match_state: &'a MatchState,
+    player: PlayerId,
+) -> &'a str {
+    if match_state.phase == MatchPhase::Finished {
+        state.ui_text.get("battle_finished_label")
+    } else if match_state.active_player == player {
+        state.ui_text.get("battle_attacking_label")
+    } else if opposing(match_state.active_player) == player {
+        state.ui_text.get("battle_defending_label")
+    } else {
+        state.ui_text.get("battle_idle_label")
+    }
+}
+
+fn winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
+    match winner {
+        Some(PlayerId::PlayerA) => state.ui_text.get("battle_result_player_a"),
+        Some(PlayerId::PlayerB) => state.ui_text.get("battle_result_player_b"),
+        None => state.ui_text.get("battle_result_unknown"),
+    }
+}
+
+fn card_speed_label<'a>(state: &'a AppState, speed: CardSpeed) -> &'a str {
+    match speed {
+        CardSpeed::DailyLife => state.ui_text.get("battle_speed_daily"),
+        CardSpeed::Reaction => state.ui_text.get("battle_speed_reaction"),
+        CardSpeed::Encounter => state.ui_text.get("battle_speed_encounter"),
+    }
+}
+
+fn hand_card_status_label<'a>(state: &'a AppState, enabled: bool) -> &'a str {
+    if enabled {
+        state.ui_text.get("battle_card_ready")
+    } else {
+        state.ui_text.get("battle_card_hold")
+    }
+}
+
+fn battle_action_hint<'a>(
+    state: &'a AppState,
+    match_state: &'a MatchState,
+    player: PlayerId,
+) -> &'a str {
+    if match_state.reaction_priority_player() == Some(player) {
+        state.ui_text.get("battle_hint_reaction")
+    } else if match_state.active_player == player && match_state.phase == MatchPhase::DailyLife {
+        state.ui_text.get("battle_hint_daily_life")
+    } else if match_state.active_player == player
+        && (match_state.phase == MatchPhase::Encounter
+            || match_state.phase == MatchPhase::FinalClimax)
+        && !match_state.encounter_card_played(player)
+    {
+        state.ui_text.get("battle_hint_encounter")
+    } else if match_state.phase == MatchPhase::Finished {
+        state.ui_text.get("battle_hint_finished")
+    } else {
+        state.ui_text.get("battle_hint_waiting")
+    }
+}
+
+fn wrap_event_lines(events: &[String], max_width: f32, font_size: f32) -> Vec<String> {
+    let mut wrapped = Vec::new();
+
+    for event in events {
+        let mut current = String::new();
+        for word in event.split_whitespace() {
+            let candidate = if current.is_empty() {
+                word.to_owned()
+            } else {
+                format!("{current} {word}")
+            };
+            if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
+                current = candidate;
+            } else {
+                if !current.is_empty() {
+                    wrapped.push(current);
+                }
+                current = word.to_owned();
+            }
+        }
+        if !current.is_empty() {
+            wrapped.push(current);
+        }
+    }
+
+    wrapped
+}

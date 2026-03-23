@@ -1,0 +1,52 @@
+[
+  {
+    "id": "yuki",
+    "name": "Yuki, Moonlit Witness",
+    "kind": "magical_girl",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "hana",
+    "name": "Hana, Gentle Shield",
+    "kind": "magical_girl",
+    "base_power": 1,
+    "transformed_power": 2,
+    "final_power": 4,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "riri",
+    "name": "Riri, Festival Spark",
+    "kind": "magical_girl",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "momo",
+    "name": "Momo, Secret Rehearsal",
+    "kind": "magical_girl",
+    "base_power": 1,
+    "transformed_power": 2,
+    "final_power": 4,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "kiko",
+    "name": "Kiko, Daring Intercept",
+    "kind": "magical_girl",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 3,
+    "second_threshold": 6
+  }
+]

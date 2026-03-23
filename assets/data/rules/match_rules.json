@@ -1,0 +1,13 @@
+{
+  "encounter_win_gain": 3,
+  "encounter_loss_gain": 1,
+  "encounter_tie_gain": 1,
+  "default_magical_girl_rules": {
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  "default_baddie_rules": {
+    "first_threshold": 3,
+    "second_threshold": 6
+  }
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "noctra",
+    "name": "Noctra, Velvet Eclipse",
+    "kind": "baddie",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "velvet_hex",
+    "name": "Velvet Hex, Stage Fright",
+    "kind": "baddie",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 4,
+    "second_threshold": 8
+  },
+  {
+    "id": "glass_crow",
+    "name": "Glass Crow, Watching Above",
+    "kind": "baddie",
+    "base_power": 1,
+    "transformed_power": 2,
+    "final_power": 4,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "thorn_waltz",
+    "name": "Thorn Waltz, Crimson Masquerade",
+    "kind": "baddie",
+    "base_power": 2,
+    "transformed_power": 3,
+    "final_power": 5,
+    "first_threshold": 3,
+    "second_threshold": 6
+  },
+  {
+    "id": "hollow_marionette",
+    "name": "Hollow Marionette, Quiet Strings",
+    "kind": "baddie",
+    "base_power": 1,
+    "transformed_power": 2,
+    "final_power": 4,
+    "first_threshold": 3,
+    "second_threshold": 6
+  }
+]

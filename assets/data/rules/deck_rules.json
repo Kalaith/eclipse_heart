@@ -1,0 +1,5 @@
+{
+  "support_deck_size": 40,
+  "max_copies_per_story_card": 3,
+  "universal_copy_limit": true
+}

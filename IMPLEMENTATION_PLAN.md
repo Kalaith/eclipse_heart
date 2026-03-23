@@ -1,124 +1,58 @@
 # Eclipse Heart Rust Implementation Plan
 
-This document converts `raw_notes.md` into a concrete Rust build plan.
+This document converts `RULES.md` and `raw_notes.md` into a concrete Rust implementation plan.
 
-## Confirmed design direction
+## 1. Confirmed game shape
 
-Eclipse Heart is a 1v1 digital collectible card game with a deck-and-roster hybrid structure.
+Eclipse Heart is a 1v1 digital collectible card game with:
+
+- a Magical Girl roster
+- a Baddie roster
+- a support deck of story cards
 
 Each player brings:
 
-- 5 Magical Girls in a visible match roster
-- 5 Baddies in a visible match roster
-- 1 support deck made of story cards
+- `5` Magical Girls
+- `5` Baddies
+- `1` support deck of `40` cards
 
-Each match starts with each player choosing:
+Each match uses:
 
-- 3 Magical Girls from their 5
-- 1 Prime Baddie
-- 2 Support Baddies
-
-At setup:
-
-- Both players reveal their 5 Magical Girls and 5 Baddies
-- Both players reveal their Main Magical Girl and Prime Baddie
-- The remaining chosen supports begin face-down
+- per player:
+  - `1` Main Magical Girl
+  - `2` Support Magical Girls
+  - `1` Prime Baddie
+  - `2` Support Baddies
 
 Win condition:
 
-- Defeat the opposing Prime Baddie
+- defeat the opposing `Prime Baddie` during `Final Climax`
 
-Core identity:
+## 2. Core implementation goals
 
-- Magical Girls pressure enemy Baddies by winning Encounters
-- Baddies pressure enemy Magical Girls by inflicting Strain
-- The game is about balancing both fronts instead of pure unit combat
+The first Rust implementation should prove these systems:
 
-## Core match rules to implement first
+1. roster reveal and hidden support selection
+2. Daily Life and Encounter turn flow
+3. reaction chains and reveal timing
+4. per-character `Radiance / Dread` growth
+5. `Base -> Transformed -> Radiant`
+6. `Base -> Awakened -> Catastrophe`
+7. exhaustion
+8. Final Climax declaration
+9. Prime Baddie defeat resolution
 
-### Match structure
+## 3. Rust architecture
 
-The playable prototype should use this flow:
+Use the repository standard stack:
 
-1. Setup
-2. Daily Life
-3. Encounter
-4. Repeat Daily Life / Encounter
-5. Final Climax
-6. Resolution
+- Rust 2021
+- Macroquad
+- `macroquad-toolkit`
+- `serde`
+- `serde_json`
 
-Daily Life is the setup phase:
-
-- Players alternate actions
-- Players may play Daily Life cards
-- Players may use Daily Life abilities
-- Reaction and counter-reaction windows can happen after an action
-- Daily Life ends when both players pass with no active chain
-
-Encounter is the contest phase:
-
-- Both players commit power through their Main Magical Girl, Prime Baddie, revealed supports, and Encounter-speed cards
-- Support reveal effects mostly happen here
-- Power is compared here
-- Encounter results add Strain and Exposure
-- Transform and Awaken checks happen here
-
-Final Climax is the last escalation:
-
-- It begins at the end of an Encounter once both players have a Transformed Main Magical Girl and an Awakened Prime Baddie
-- Only during Final Climax can Main Magical Girls become Radiant and Prime Baddies become Catastrophe
-
-### Resource and progression rules
-
-Use these prototype rules from the notes:
-
-- `Power`: simple combat number used during Encounter
-- `Strain`: Magical Girl side pressure track
-- `Exposure`: Baddie side pressure track
-- `Bond`: persistent per-Magical-Girl resource, cap 3
-- `Dread`: persistent per-Baddie resource, cap 3
-
-Global prototype thresholds:
-
-- Magical Girl side transforms at 6 Strain
-- Baddie side awakens at 6 Exposure
-
-Progression ladders:
-
-- Magical Girl: `Base -> Transformed -> Radiant`
-- Baddie: `Base -> Awakened -> Catastrophe`
-
-Upgrade timing:
-
-- Before Final Climax: Main MG can reach `Transformed`, Prime Baddie can reach `Awakened`
-- During Final Climax only: Main MG can reach `Radiant`, Prime Baddie can reach `Catastrophe`
-
-### Card classes
-
-The implementation should support these card groups:
-
-- Roster cards
-  - Magical Girls
-  - Baddies
-- Main deck story cards
-  - Daily Life cards
-  - Reactions
-  - Encounter cards
-  - Bonds
-  - Schemes
-  - Tactics
-
-Card speed is a first-class rule:
-
-- `DailyLife`
-- `Reaction`
-- `Encounter`
-
-## Rust architecture
-
-The repo guidance already points to Macroquad plus `macroquad-toolkit`. Use that directly.
-
-Recommended project structure:
+Recommended structure:
 
 ```text
 eclipse_heart/
@@ -138,7 +72,8 @@ eclipse_heart/
 │   │   ├── action_validator.rs
 │   │   ├── encounter.rs
 │   │   ├── progression.rs
-│   │   └── ai.rs
+│   │   ├── timing.rs
+│   │   └── final_climax.rs
 │   ├── state/
 │   │   ├── mod.rs
 │   │   ├── app_state.rs
@@ -164,19 +99,20 @@ eclipse_heart/
     └── data/
 ```
 
-### Responsibility split
+Responsibility split:
 
 - `data/`: JSON-backed definitions only
-- `state/`: mutable save, match, and screen state
-- `engine/`: rules resolution and validation
-- `screens/`: translate UI input into intents
-- `ui/`: drawing helpers and reusable widgets
+- `state/`: mutable runtime and save state
+- `engine/`: legal actions, resolution, and rule enforcement
+- `screens/`: UI intent capture
+- `ui/`: drawing helpers
 
-UI must not apply rules directly. It should produce typed actions that the engine resolves.
+UI must never apply rules directly.
+UI should be fully playable with the mouse alone; keyboard input may be added later as optional convenience, not as a requirement.
 
-## Data model
+## 4. Data model
 
-### Static content
+### Static definitions
 
 Use JSON for all design content:
 
@@ -186,28 +122,42 @@ assets/data/
 ├── rules/
 │   ├── match_rules.json
 │   ├── deck_rules.json
-│   └── roster_rules.json
+│   └── progression_rules.json
 ├── magical_girls/
 ├── baddies/
 ├── story_cards/
 └── starter_loadouts/
 ```
 
-Recommended top-level data types:
+Core definition types:
 
 - `MagicalGirlDefinition`
 - `BaddieDefinition`
 - `StoryCardDefinition`
 - `MatchRules`
-- `DeckRules`
 - `StarterLoadout`
 
-### Runtime match state
+Each character definition needs:
 
-Keep runtime state separate from definitions:
+- character id
+- display name key
+- base Power
+- transformed/awakened Power
+- radiant/catastrophe Power
+- first threshold
+- second threshold
+- reveal ability text/effects
+- transformed ability/effects
+- final-form ability/effects
+
+### Runtime state
+
+Keep runtime state separate from static definitions.
+
+Suggested core enums:
 
 ```rust
-pub enum UnitStage {
+pub enum CharacterStage {
     Base,
     Transformed,
     Radiant,
@@ -224,255 +174,325 @@ pub enum MatchPhase {
 }
 ```
 
-Recommended state structures:
+Suggested runtime structures:
 
 - `MatchState`
 - `PlayerMatchState`
-- `MainMagicalGirlState`
-- `SupportMagicalGirlState`
-- `PrimeBaddieState`
-- `SupportBaddieState`
+- `CharacterRuntimeState`
+- `SupportSlotState`
 - `EncounterState`
-- `ActionStack`
+- `ReactionStack`
 - `EventLog`
 
-Each player match state should include:
+Each `CharacterRuntimeState` should contain:
 
-- roster reveal info
-- chosen team info
-- support deck / hand / discard
-- current Strain
-- current Exposure
-- per-unit Bond or Dread counters
-- revealed or hidden support slots
+- definition id
+- current stage
+- current Power modifiers
+- current `Radiance` or `Dread`
+- exhausted flag
+- revealed flag if support
+- threshold values copied from definition or referenced from definition
 
-### Actions and events
+Each player match state should contain:
 
-Use explicit action and event enums.
+- `player_id`
+- full 5 MG roster
+- full 5 Baddie roster
+- selected Main MG
+- selected Prime Baddie
+- hidden or revealed support slots for both rosters
+- deck / hand / discard
+
+`MatchState` should additionally track:
+
+- `player_a`
+- `player_b`
+- `active_player`
+- current engagement lane
+  - active player's Magical Girls
+  - versus opposing player's Baddies
+- reaction stack / priority state
+
+## 5. Core rules model
+
+### Growth stats
+
+The old `Bond / Strain / Exposure` model is obsolete.
+
+Use only:
+
+- `Radiance` for Magical Girls
+- `Dread` for Baddies
+
+Rules:
+
+- growth is per-character
+- values never go below zero
+- thresholds vary by character
+- upgrade progress resets when a threshold is reached
+- overflow is lost
+- upgrades do not revert unless a card says so
+
+### Progression
+
+Magical Girls:
+
+- `Base -> Transformed -> Radiant`
+
+Baddies:
+
+- `Base -> Awakened -> Catastrophe`
+
+All units, including supports, can reach final form.
+
+Upgrades happen immediately when:
+
+1. an effect resolves
+2. the resulting `Radiance` or `Dread` meets threshold
+
+Reactions can still stop the gain before resolution.
+
+### Encounter rewards
+
+Default reward mapping:
+
+- winner gains `+3`
+- loser gains `+1`
+- tie gives both `+2`
+
+Apply rewards to:
+
+- Magical Girls as `Radiance`
+- Baddies as `Dread`
+
+Implementation note:
+
+- reward functions should still live in config so tuning remains data-driven
+
+### Power calculation
+
+Encounter Power is:
+
+- the active player's Main MG Power plus all revealed, non-exhausted Support MG Power
+- versus the opposing player's Prime Baddie Power plus all revealed, non-exhausted Support Baddie Power
+
+Hidden supports add nothing.
+Exhausted units add no Power and cannot use abilities.
+
+## 6. Timing engine
+
+The timing system needs to support:
+
+- Daily Life actions
+- Encounter actions
+- reactions
+- reactions to reactions
+- support reveals as either actions or reactions
+- newest-to-oldest trigger resolution
+
+Recommended approach:
+
+- resolve player actions through a typed command enum
+- use a reaction stack
+- emit events as each step resolves
 
 Core action families:
 
-- roster selection
+- choose Main MG / Prime Baddie for each player
+- choose hidden supports for each player
 - reveal support
 - play card
-- use unit ability
-- pass priority
-- commit to Encounter
-- resolve transformation
-- resolve awakening
-- trigger Final Climax choice
+- use character ability
+- pass
+- declare Final Climax
 
 Core event families:
 
 - card played
 - support revealed
-- Strain changed
-- Exposure changed
-- Bond changed
-- Dread changed
+- radiance changed
+- dread changed
 - unit exhausted
-- unit transformed
-- unit awakened
-- unit became Radiant
-- unit became Catastrophe
+- unit stage changed
+- Final Climax declared
 - Prime Baddie defeated
 
-This event log should drive battle UI, debugging, and tests.
+## 7. Final Climax implementation
 
-## Engine design
+Current rule:
 
-### Deterministic resolution
+- Final Climax may be declared only at the start of an Encounter
+- only the active player's Main MG may declare it
+- that Main MG must be fully transformed
+- the opposing player cannot stop the declaration unless a card explicitly says so
 
-The rules engine should be deterministic and UI-agnostic.
+Prime defeat rule:
 
-Use an engine entry like:
+- if it is Final Climax and the defending player's Prime Baddie's total Power is lower when the Encounter ends, it is defeated
 
-```rust
-pub fn apply_action(
-    state: &mut MatchState,
-    rules: &MatchRules,
-    action: PlayerAction,
-) -> ActionResolution
-```
+Tie rule:
 
-Resolution order should be:
+- no defeat on tie
+- ties may still grant growth points
+- fully transformed characters cannot use tie points for further growth
 
-1. Validate legal timing
-2. Validate card targets
-3. Apply costs and exhaustion
-4. Apply primary effect
-5. Apply triggered reactions
-6. Update Strain / Exposure / Bond / Dread
-7. Check transform or awaken thresholds
-8. Check Final Climax trigger
-9. Check Prime Baddie defeat
-10. Emit events
+Loss penalty:
 
-### Encounter resolution
+- if the active player's Main MG loses Final Climax, it becomes exhausted for one turn
+- it does not count its Power during the next Encounter
 
-Keep Encounter resolution simple for the first playable:
+Implementation recommendation:
 
-1. Determine active modifiers
-2. Sum MG-side Encounter power
-3. Sum Baddie-side Encounter pressure
-4. Compare results
-5. Assign standard rewards
+- track `final_climax_declared: bool`
+- track which player is attacking and which player is defending during the current Encounter
+- reuse normal Encounter resolution with a Final Climax flag
+- attach post-resolution defeat checks only when that flag is active
 
-Prototype reward rule from the notes:
+## 8. Hidden support handling
 
-- winner side gains 1 pressure on itself
-- loser side gains 2 pressure on the opposing front
+Setup rules require real hidden information.
 
-Translated to current terms:
+Implementation rules:
 
-- if your MG side wins an Encounter, your MG side gains 1 Strain and the enemy Baddie side gains 2 Exposure
-- if your Baddie pressure wins, your Baddie side gains 1 Exposure and the enemy MG side gains 2 Strain
+- each player sees the opponent's original 5 MG and 5 Baddie rosters
+- each player does not know which 2 support units were chosen on either opposing roster
+- hidden support slots should store only owning-player-visible identity
+- hidden supports cannot be targeted unless a card explicitly reveals or affects hidden cards
 
-This should live in rules JSON so the numbers can be tuned without code edits.
+UI implications:
 
-### Progression system
+- owning player sees exact hidden support identity for both of their rosters
+- opponent sees only hidden slots
 
-Progression must be generic, because any of the five rostered units can be chosen.
+## 9. Exhaustion
 
-Each Magical Girl definition needs:
+Exhaustion blocks:
 
-- base form stats and text
-- transformed form stats and text
-- radiant form stats and text
+- Power contribution
+- abilities
 
-Each Baddie definition needs:
+Default timing:
 
-- base form stats and text
-- awakened form stats and text
-- catastrophe form stats and text
+- exhausted during Daily Life -> no Power in the next Encounter
+- exhausted mid-Encounter -> no Power for that Encounter
+- exhausted at end of Encounter -> remains exhausted through end of next Encounter
 
-Use these implementation rules:
+Implementation recommendation:
 
-- base form carries identity
-- transformed / awakened adds one tactical once-per-Encounter ability
-- radiant / catastrophe adds one once-per-Final-Climax payoff ability
+- track an exhaustion expiry marker instead of a simple bool if needed
+- example: `UntilCurrentEncounterEnds`, `UntilNextEncounterEnds`
 
-## Save and collection model
+## 10. Save and collection model
 
-The game goal is collectible and tradeable, so save structure matters early.
-
-MVP local save should include:
+MVP local save should contain:
 
 - owned Magical Girls
 - owned Baddies
 - owned story cards
 - saved support decks
-- saved 5-card roster presets
+- roster presets
 - settings
-- profile progression
 
-Do not mix card definitions with player ownership.
+Character ownership is separate from card definitions.
 
-Recommended save files:
+Suggested save files:
 
 - `save/profile.json`
 - `save/collection.json`
 - `save/decks.json`
 - `save/settings.json`
 
-Version all save data from day one.
+Version save data from the start.
 
-## Online and trading plan
+## 11. First playable content slice
 
-The notes describe an online competitive game, but the first Rust implementation should not block on backend work.
+Use the currently designed prototype set:
 
-Recommended delivery order:
+- `20` story cards
+- `5` Magical Girls
+- `5` Baddies
 
-1. Offline playable client
-2. Local collection and deck persistence
-3. AI opponent
-4. Local simulated trade model
-5. Separate Rust service for account, ownership, and trade authority
-6. Online PvP authority
+First milestone content target:
 
-When online work starts, keep it in a separate crate or service. Do not push networking into the Macroquad client core.
+- encode the 20 current story cards as JSON
+- encode 5 Magical Girls
+- encode 5 Baddies
+- fully implement Yuki and Noctra as the first progression templates
 
-## First playable milestone
+## 12. Suggested implementation phases
 
-The first playable should prove the game loop, not content scale.
-
-Target scope:
-
-- 1 playable battle screen
-- 5 Magical Girls
-- 5 Baddies
-- 20 story cards from the current notes
-- 1 starter support deck per side
-- roster selection from 5 into chosen 3
-- hidden support reveal
-- Strain / Exposure / Bond / Dread tracking
-- Base -> Transformed and Base -> Awakened progression
-- Final Climax trigger
-- Yuki and Noctra full upgraded ladder support
-
-Delay these until after the loop works:
-
-- full card animations
-- bundle shop
-- boosters
-- fusions
-- online trading
-- ranked multiplayer
-
-## Suggested implementation phases
-
-### Phase 1: Crate and data scaffolding
+### Phase 1: crate and data scaffolding
 
 - create `eclipse_heart` Cargo crate
-- add Macroquad dependencies
-- add `assets/data/` structure
-- define Serde schemas for cards and rules
+- add workspace entry
+- add dependencies
+- scaffold `src/` tree
+- scaffold `assets/data/`
 
-### Phase 2: Match engine skeleton
+### Phase 2: runtime state and loaders
 
-- define `MatchState`
-- define `PlayerAction`
-- define `MatchEvent`
-- implement Setup, Daily Life, Encounter, Final Climax phases
+- implement JSON schemas
+- implement loaders
+- implement runtime state structs
+- implement save data structs
 
-### Phase 3: Core prototype rules
+### Phase 3: timing and action engine
 
-- implement pressure tracks
+- implement action enums
+- implement reaction stack
+- implement trigger ordering
 - implement reveal rules
+
+### Phase 4: progression and Encounter resolution
+
+- implement growth gain and reduction
+- implement threshold checks
+- implement upgrade resets
+- implement Power summing
 - implement exhaustion
-- implement transform and awaken checks
-- implement win condition
 
-### Phase 4: Content slice
+### Phase 5: Final Climax and win condition
 
-- load 20 story cards from JSON
-- load 5 Magical Girls and 5 Baddies
-- encode Yuki and Noctra full form ladders
+- implement declaration rules
+- implement Final Climax Encounter flag
+- implement Prime defeat check
+- implement tie handling
 
-### Phase 5: UI shell
+### Phase 6: UI shell
 
 - main menu
-- deck/roster builder
-- match setup
+- deck builder
+- roster selection
 - battle screen
 - result screen
+- all core flows must be mouse-driven so a player can navigate and complete a match without touching the keyboard
 
-### Phase 6: Persistence and tests
+### Phase 7: persistence and tests
 
-- save collection and decks
-- add loader tests
-- add encounter resolution tests
-- add progression threshold tests
+- save/load
+- loader tests
+- progression tests
+- Encounter resolution tests
+- Final Climax tests
 
-## Open design gaps from the notes
+## 13. Testing priorities
 
-These points still need a final call before implementation gets too far:
+Focus tests on:
 
-- exact support deck size: the notes mention `20`, `30`, and `30 to 40`
-- whether support Baddies can ever progress past base by default
-- whether support Magical Girls can transform outside rare effects
-- exact defeat rule for Prime Baddies
-- exact opening hand size and mulligan rules
-- whether cards can target hidden support slots directly or only force reveals
+- JSON loading
+- hidden support secrecy
+- reaction ordering
+- threshold crossing and upgrade reset
+- exhaustion duration
+- Final Climax declaration legality
+- Prime Baddie defeat checks
 
-Until those are finalized, code the engine so these values come from rules/config instead of hardcoding them.
+## 14. Remaining design edge cases
+
+Core rules are settled, but implementation may still need exact wording for:
+
+- simultaneous downgrade and upgrade interactions
+- rare card-specific reveal exceptions
+- rare card-specific exhaustion exceptions
+- simultaneous replacement effects during Final Climax

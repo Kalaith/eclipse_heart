@@ -8,32 +8,32 @@ The project has design notes and deployment scaffolding, but no Rust crate or ga
 
 - [x] Review `AGENTS.md`, repo guides, and `raw_notes.md`
 - [x] Write project-specific PRD, tech stack, and implementation plan
-- [ ] Create `eclipse_heart` Cargo crate
-- [ ] Add crate to workspace root
-- [ ] Create `src/` module tree
-- [ ] Create `assets/data/` tree
-- [ ] Add empty app shell that builds for native
+- [x] Create `eclipse_heart` Cargo crate
+- [x] Add crate to workspace root
+- [x] Create `src/` module tree
+- [x] Create `assets/data/` tree
+- [x] Add empty app shell that builds for native
 
 ## Phase 2: Rules core
 
-- [ ] Define match phases
-- [ ] Define player actions and event log enums
-- [ ] Define runtime state for Main MG, supports, Prime Baddie, and support baddies
-- [ ] Implement Daily Life action flow
-- [ ] Implement Encounter resolution
-- [ ] Implement Strain and Exposure thresholds
-- [ ] Implement transform and awaken checks
-- [ ] Implement Final Climax trigger
-- [ ] Implement Prime Baddie defeat condition
+- [x] Define match phases
+- [x] Define player actions and event log enums
+- [x] Define runtime state for Main MG, supports, Prime Baddie, and support baddies
+- [x] Implement Daily Life action flow
+- [x] Implement Encounter resolution
+- [x] Implement `Radiance` and `Dread` thresholds
+- [x] Implement transform and awaken checks
+- [x] Implement Final Climax trigger
+- [x] Implement Prime Baddie defeat condition
 
 ## Phase 3: Content pipeline
 
-- [ ] Define JSON schemas for Magical Girls
-- [ ] Define JSON schemas for Baddies
-- [ ] Define JSON schemas for story cards
-- [ ] Encode the current 20 story cards
-- [ ] Encode the current 5 Magical Girls
-- [ ] Encode the current 5 Baddies
+- [x] Define JSON schemas for Magical Girls
+- [x] Define JSON schemas for Baddies
+- [x] Define JSON schemas for story cards
+- [x] Encode the current 20 story cards
+- [x] Encode the current 5 Magical Girls
+- [x] Encode the current 5 Baddies
 - [ ] Encode Yuki and Noctra full upgrade ladders
 
 ## Phase 4: Playable client
@@ -57,7 +57,7 @@ The project has design notes and deployment scaffolding, but no Rust crate or ga
 
 ## Phase 6: Later systems
 
-- [ ] AI opponent
+- [x] AI opponent
 - [ ] local simulated trade flow
 - [ ] online account and trade authority
 - [ ] online PvP authority

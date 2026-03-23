@@ -14,9 +14,18 @@
 - Eclipse Heart-specific `.project/prd.md`
 - Eclipse Heart-specific `.project/tech-stack.md`
 - Eclipse Heart-specific `.project/build-plan.md`
+- Initial `eclipse_heart` Rust crate scaffold with separated `data`, `engine`, `state`, `screens`, and `ui` modules
+- Initial deterministic rules-engine shell for Encounter resolution, growth, stage upgrades, and Final Climax defeat checks
+- Minimal Macroquad prototype shell wired to the separated rules/state layers
+- JSON-backed rules and UI text assets
+- Daily Life action flow with pass-to-Encounter transition
+- JSON-loaded prototype set for 20 story cards, 5 Magical Girls, and 5 Baddies
+- Basic offline AI that uses the same match actions as the player-side rules shell
 
 ### Changed
 - Replaced generic project templates with game-specific planning documents
+- Updated planning docs to align with the `Radiance / Dread` rules model
+- Reworked the prototype runtime from hardcoded placeholder units toward data-driven loaded content
 
 ### Fixed
 - Removed placeholder planning content that did not match the actual game design

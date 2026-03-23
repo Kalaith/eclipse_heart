@@ -1,0 +1,62 @@
+{
+  "canvas": {
+    "width": 750,
+    "height": 1050,
+    "safe_margin": 36
+  },
+  "zones": [
+    { "id": "name_bar", "x": 52, "y": 42, "width": 546, "height": 74 },
+    { "id": "speed_badge", "x": 618, "y": 42, "width": 80, "height": 80 },
+    { "id": "art_frame", "x": 52, "y": 136, "width": 646, "height": 410 },
+    { "id": "type_row", "x": 52, "y": 566, "width": 646, "height": 42 },
+    { "id": "rules_box", "x": 52, "y": 628, "width": 646, "height": 276 },
+    { "id": "flavor_box", "x": 52, "y": 916, "width": 646, "height": 52 },
+    { "id": "footer_meta", "x": 52, "y": 980, "width": 646, "height": 24 }
+  ],
+  "template_families": [
+    {
+      "id": "magical_girl",
+      "display_name": "Magical Girl",
+      "asset_name": "card_template_magical_girl.png",
+      "palette": ["#FFF8EF", "#9ED8FF", "#FF8CAB", "#F1C65D"],
+      "motifs": ["crescent", "star", "ribbon", "stage_light"],
+      "tone": "optimistic, luminous, graceful"
+    },
+    {
+      "id": "baddie",
+      "display_name": "Baddie",
+      "asset_name": "card_template_baddie.png",
+      "palette": ["#1F1824", "#8B1E3F", "#E53F8A", "#2AA6A4"],
+      "motifs": ["thorn", "broken_glass", "curtain", "watchful_eye"],
+      "tone": "theatrical, hostile, dramatic"
+    },
+    {
+      "id": "neutral",
+      "display_name": "Neutral",
+      "asset_name": "card_template_neutral.png",
+      "palette": ["#F2E8D2", "#9A7B49", "#59616A", "#A34D41"],
+      "motifs": ["panel_line", "seal", "sigil", "tactical_grid"],
+      "tone": "tactical, shared-system, restrained"
+    }
+  ],
+  "speed_badges": [
+    {
+      "id": "daily_life",
+      "short_label": "Daily",
+      "accent_color": "#7FB7D9",
+      "badge_asset": "badge_daily_life.png"
+    },
+    {
+      "id": "reaction",
+      "short_label": "React",
+      "accent_color": "#F08A5D",
+      "badge_asset": "badge_reaction.png"
+    },
+    {
+      "id": "encounter",
+      "short_label": "Encounter",
+      "accent_color": "#C94C4C",
+      "badge_asset": "badge_encounter.png"
+    }
+  ]
+}

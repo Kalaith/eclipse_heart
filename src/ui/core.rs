@@ -1,0 +1,18 @@
+//! Shared UI colors and primitive drawing helpers.
+
+use macroquad::prelude::*;
+
+pub const BACKGROUND: Color = Color::new(0.09, 0.08, 0.14, 1.0);
+pub const PANEL: Color = Color::new(0.12, 0.12, 0.20, 0.96);
+pub const PANEL_SOFT: Color = Color::new(0.16, 0.16, 0.26, 0.92);
+pub const TEXT_MUTED: Color = Color::new(0.76, 0.78, 0.86, 1.0);
+
+pub fn draw_panel(x: f32, y: f32, width: f32, height: f32, outline: Color) {
+    draw_rectangle(x, y, width, height, PANEL);
+    draw_rectangle_lines(x, y, width, height, 2.0, outline);
+}
+
+pub fn draw_soft_panel(x: f32, y: f32, width: f32, height: f32, outline: Color) {
+    draw_rectangle(x, y, width, height, PANEL_SOFT);
+    draw_rectangle_lines(x, y, width, height, 2.0, outline);
+}
