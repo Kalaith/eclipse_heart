@@ -38,15 +38,15 @@
 
 ## Deck builder shell
 
-- A dedicated deck builder screen now exists for the active support deck prototype.
-- The screen can load a starter support deck into the active preset.
-- Starter rows now use matched visual and clickable rectangles, and each row has an explicit `Edit` button that opens a persistent editable preset for that starter instead of resetting it each time.
-- The deck builder now has a separate roster-edit layer for the active preset, with saved Magical Girl and Baddie rosters kept distinct from support-card editing.
+- A dedicated deck builder screen now supports an explicit saved-deck list instead of only editing one implicit active starter deck.
+- Saved decks can now be created, selected, renamed, duplicated, and deleted directly in the builder.
+- Starter loadouts now act as reusable templates with explicit `Create` actions that generate editable saved decks without mutating the template itself.
+- Saved decks now record optional template origin metadata so copied starter-based decks stay distinct from custom decks.
+- The deck builder now has a separate roster-edit layer for the selected saved deck, with Magical Girl and Baddie rosters kept distinct from support-card editing.
 - The screen can open a `10`-card booster that rolls from the full Magical Girl, Baddie, and story-card pool and records those results in local collection counts.
-- The screen can add or remove story cards while respecting configured deck size, per-card copy limits, and owned story-card copies in collection.
+- The screen can add or remove story cards on the selected saved deck while respecting configured deck size, per-card copy limits, and owned story-card copies in collection.
 - The deck builder now uses a fixed grid plus a dedicated preview panel so the full card list fits the 1440p layout without overlapping columns.
-- Hovering a booster-result row now previews the opened card in the same right-side panel, and clicking a starter row shows that starter deck's card list without loading it.
-- The active support deck is created automatically from the first starter loadout if no local deck preset exists yet.
+- Hovering a booster-result row now previews the opened card in the same right-side panel, and clicking a starter template row previews that template without creating a deck.
 
 ## AI simulation
 

@@ -70,8 +70,13 @@ impl Game {
                 self.handle_navigation_action(action);
             }
             ScreenAction::DeckBuilderOpenBooster
+            | ScreenAction::DeckBuilderCreateEmptyDeck
+            | ScreenAction::DeckBuilderSelectDeck { .. }
+            | ScreenAction::DeckBuilderRenameSelectedDeck { .. }
+            | ScreenAction::DeckBuilderDuplicateSelectedDeck
+            | ScreenAction::DeckBuilderDeleteSelectedDeck
             | ScreenAction::DeckBuilderSetRosterSlot { .. }
-            | ScreenAction::DeckBuilderLoadStarter { .. }
+            | ScreenAction::DeckBuilderCreateDeckFromTemplate { .. }
             | ScreenAction::DeckBuilderAddCard { .. }
             | ScreenAction::DeckBuilderRemoveCard { .. } => {
                 self.handle_deck_builder_action(action);
@@ -113,11 +118,10 @@ impl Game {
                     .iter()
                     .map(|entry| entry.id.clone())
                     .collect::<Vec<_>>();
-                self.state.saves.decks.ensure_active_support_deck(
-                    &self.state.content.starter_loadouts,
-                    &magical_girl_ids,
-                    &baddie_ids,
-                );
+                self.state
+                    .saves
+                    .decks
+                    .ensure_valid_support_decks(&magical_girl_ids, &baddie_ids);
                 self.state.screen = AppScreen::DeckBuilder;
             }
             ScreenAction::BackToMenu => {
@@ -215,7 +219,46 @@ impl Game {
                 }
                 should_save = true;
             }
-            ScreenAction::DeckBuilderLoadStarter { loadout_index } => {
+            ScreenAction::DeckBuilderCreateEmptyDeck => {
+                let magical_girl_ids = self
+                    .state
+                    .content
+                    .magical_girls
+                    .iter()
+                    .map(|entry| entry.id.clone())
+                    .collect::<Vec<_>>();
+                let baddie_ids = self
+                    .state
+                    .content
+                    .baddies
+                    .iter()
+                    .map(|entry| entry.id.clone())
+                    .collect::<Vec<_>>();
+                self.state.saves.decks.create_empty_deck(
+                    self.state.ui_text.get("deck_builder_default_new_deck_name"),
+                    &magical_girl_ids,
+                    &baddie_ids,
+                );
+                should_save = true;
+            }
+            ScreenAction::DeckBuilderSelectDeck { deck_id } => {
+                should_save = self.state.saves.decks.select_support_deck(&deck_id);
+            }
+            ScreenAction::DeckBuilderRenameSelectedDeck { name } => {
+                should_save = self.state.saves.decks.rename_selected_deck(&name);
+            }
+            ScreenAction::DeckBuilderDuplicateSelectedDeck => {
+                should_save = self
+                    .state
+                    .saves
+                    .decks
+                    .duplicate_selected_deck(self.state.ui_text.get("deck_builder_copy_suffix"))
+                    .is_some();
+            }
+            ScreenAction::DeckBuilderDeleteSelectedDeck => {
+                should_save = self.state.saves.decks.delete_selected_deck();
+            }
+            ScreenAction::DeckBuilderCreateDeckFromTemplate { loadout_index } => {
                 if let Some(starter) = self.state.content.starter_loadouts.get(loadout_index) {
                     let magical_girl_ids = self
                         .state
@@ -231,10 +274,11 @@ impl Game {
                         .iter()
                         .map(|entry| entry.id.clone())
                         .collect::<Vec<_>>();
-                    self.state.saves.decks.edit_starter_deck(
+                    self.state.saves.decks.create_deck_from_template(
                         starter,
                         &magical_girl_ids,
                         &baddie_ids,
+                        self.state.ui_text.get("deck_builder_copy_suffix"),
                     );
                     should_save = true;
                 }

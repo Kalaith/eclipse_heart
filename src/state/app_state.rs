@@ -49,11 +49,9 @@ impl AppState {
             .iter()
             .map(|entry| entry.id.clone())
             .collect::<Vec<_>>();
-        saves.decks.ensure_active_support_deck(
-            &content.starter_loadouts,
-            &magical_girl_ids,
-            &baddie_ids,
-        );
+        saves
+            .decks
+            .ensure_valid_support_decks(&magical_girl_ids, &baddie_ids);
         Self {
             screen: AppScreen::Menu,
             ui_text,

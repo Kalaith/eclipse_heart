@@ -21,6 +21,15 @@ pub enum ScreenAction {
     ToggleWindowedMode,
     ExitGame,
     DeckBuilderOpenBooster,
+    DeckBuilderCreateEmptyDeck,
+    DeckBuilderSelectDeck {
+        deck_id: String,
+    },
+    DeckBuilderRenameSelectedDeck {
+        name: String,
+    },
+    DeckBuilderDuplicateSelectedDeck,
+    DeckBuilderDeleteSelectedDeck,
     DeckBuilderSetRosterSlot {
         is_magical_girl_side: bool,
         slot_index: usize,
@@ -44,7 +53,7 @@ pub enum ScreenAction {
         is_magical_girl_side: bool,
         pair_index: usize,
     },
-    DeckBuilderLoadStarter {
+    DeckBuilderCreateDeckFromTemplate {
         loadout_index: usize,
     },
     DeckBuilderAddCard {

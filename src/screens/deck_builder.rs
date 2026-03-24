@@ -4,33 +4,41 @@ use macroquad::prelude::*;
 
 use crate::data::CharacterDefinition;
 use crate::screens::ScreenAction;
-use crate::state::{AppState, CollectionCardKind};
+use crate::state::{AppState, BoosterCardGrant, CollectionCardKind};
 use crate::ui::card_widgets::{
     action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
 };
 use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
+const MAX_DECK_NAME_LENGTH: usize = 28;
+
 pub struct DeckBuilderScreen {
-    selected_starter_index: Option<usize>,
+    selected_template_index: Option<usize>,
     active_layer: DeckBuilderLayer,
     selected_magical_girl_slot: Option<usize>,
     selected_baddie_slot: Option<usize>,
+    rename_dialog: Option<DeckRenameDialog>,
 }
 
 impl DeckBuilderScreen {
     pub fn new() -> Self {
         Self {
-            selected_starter_index: None,
+            selected_template_index: None,
             active_layer: DeckBuilderLayer::SupportCards,
             selected_magical_girl_slot: None,
             selected_baddie_slot: None,
+            rename_dialog: None,
         }
     }
 
     pub fn update(&mut self, state: &AppState) -> ScreenAction {
         let ui = UiLayout::current();
         let mouse = mouse_position();
+
+        if let Some(action) = self.update_rename_dialog(mouse) {
+            return action;
+        }
 
         if action_button(
             ui.rect(80.0, 1328.0, 360.0, 70.0),
@@ -46,6 +54,27 @@ impl DeckBuilderScreen {
             return ScreenAction::DeckBuilderOpenBooster;
         }
 
+        for (button_index, action) in deck_action_buttons(state).into_iter().enumerate() {
+            if !action.enabled {
+                continue;
+            }
+
+            if action_button(deck_action_button_rect(button_index), action.label) {
+                match action.kind {
+                    DeckActionKind::Create => return ScreenAction::DeckBuilderCreateEmptyDeck,
+                    DeckActionKind::Rename => {
+                        if let Some(deck) = state.saves.decks.selected_support_deck() {
+                            self.rename_dialog = Some(DeckRenameDialog::new(&deck.name));
+                        }
+                    }
+                    DeckActionKind::Duplicate => {
+                        return ScreenAction::DeckBuilderDuplicateSelectedDeck;
+                    }
+                    DeckActionKind::Delete => return ScreenAction::DeckBuilderDeleteSelectedDeck,
+                }
+            }
+        }
+
         if point_in_rect(deck_builder_tab_rect(DeckBuilderLayer::SupportCards), mouse)
             && is_mouse_button_pressed(MouseButton::Left)
         {
@@ -57,14 +86,25 @@ impl DeckBuilderScreen {
             self.active_layer = DeckBuilderLayer::Roster;
         }
 
-        for (loadout_index, _starter) in state.content.starter_loadouts.iter().enumerate() {
-            let row_rect = starter_row_rect(loadout_index);
-            let load_rect = starter_edit_rect(loadout_index);
+        for (deck_index, deck) in state.saves.decks.support_decks.iter().enumerate() {
+            let row_rect = saved_deck_row_rect(deck_index);
             if point_in_rect(row_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
-                self.selected_starter_index = Some(loadout_index);
+                self.selected_template_index = None;
+                return ScreenAction::DeckBuilderSelectDeck {
+                    deck_id: deck.id.clone(),
+                };
             }
-            if point_in_rect(load_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
-                return ScreenAction::DeckBuilderLoadStarter { loadout_index };
+        }
+
+        for (loadout_index, _) in state.content.starter_loadouts.iter().enumerate() {
+            let row_rect = starter_row_rect(loadout_index);
+            let create_rect = starter_create_rect(loadout_index);
+            if point_in_rect(row_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                self.selected_template_index = Some(loadout_index);
+            }
+            if point_in_rect(create_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                self.selected_template_index = Some(loadout_index);
+                return ScreenAction::DeckBuilderCreateDeckFromTemplate { loadout_index };
             }
         }
 
@@ -98,33 +138,111 @@ impl DeckBuilderScreen {
                 ui.h(36.0),
             );
 
-            if point_in_rect(add_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
-                if can_add {
-                    return ScreenAction::DeckBuilderAddCard {
-                        card_id: card.id.clone(),
-                    };
-                }
+            if point_in_rect(add_rect, mouse)
+                && is_mouse_button_pressed(MouseButton::Left)
+                && can_add
+            {
+                return ScreenAction::DeckBuilderAddCard {
+                    card_id: card.id.clone(),
+                };
             }
 
-            if point_in_rect(remove_rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
-                if can_remove {
-                    return ScreenAction::DeckBuilderRemoveCard {
-                        card_id: card.id.clone(),
-                    };
-                }
+            if point_in_rect(remove_rect, mouse)
+                && is_mouse_button_pressed(MouseButton::Left)
+                && can_remove
+            {
+                return ScreenAction::DeckBuilderRemoveCard {
+                    card_id: card.id.clone(),
+                };
             }
         }
 
         ScreenAction::None
     }
 
+    fn update_rename_dialog(&mut self, mouse: (f32, f32)) -> Option<ScreenAction> {
+        let dialog = self.rename_dialog.as_mut()?;
+
+        while let Some(character) = get_char_pressed() {
+            if !character.is_control() && dialog.value.chars().count() < MAX_DECK_NAME_LENGTH {
+                dialog.value.push(character);
+            }
+        }
+
+        if is_key_pressed(KeyCode::Backspace) {
+            dialog.value.pop();
+        }
+
+        if is_key_pressed(KeyCode::Escape) {
+            self.rename_dialog = None;
+            return Some(ScreenAction::None);
+        }
+
+        if is_key_pressed(KeyCode::Enter) {
+            let new_name = dialog.value.trim().to_owned();
+            self.rename_dialog = None;
+            if !new_name.is_empty() {
+                return Some(ScreenAction::DeckBuilderRenameSelectedDeck { name: new_name });
+            }
+            return Some(ScreenAction::None);
+        }
+
+        if point_in_rect(rename_dialog_save_rect(), mouse)
+            && is_mouse_button_pressed(MouseButton::Left)
+        {
+            let new_name = dialog.value.trim().to_owned();
+            self.rename_dialog = None;
+            if !new_name.is_empty() {
+                return Some(ScreenAction::DeckBuilderRenameSelectedDeck { name: new_name });
+            }
+            return Some(ScreenAction::None);
+        }
+
+        if point_in_rect(rename_dialog_cancel_rect(), mouse)
+            && is_mouse_button_pressed(MouseButton::Left)
+        {
+            self.rename_dialog = None;
+            return Some(ScreenAction::None);
+        }
+
+        if !point_in_rect(rename_dialog_rect(), mouse) && is_mouse_button_pressed(MouseButton::Left)
+        {
+            self.rename_dialog = None;
+            return Some(ScreenAction::None);
+        }
+
+        None
+    }
+
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
-        let active_deck = state.saves.decks.active_support_deck();
+        let active_deck = state.saves.decks.selected_support_deck();
         let deck_name = active_deck
             .map(|deck| deck.name.as_str())
             .unwrap_or(state.ui_text.get("deck_builder_missing_deck"));
         let deck_size = active_deck.map(|deck| deck.story_cards.len()).unwrap_or(0);
+        let origin_text = active_deck
+            .and_then(|deck| deck.source_template_id.as_deref())
+            .and_then(|template_id| {
+                state
+                    .content
+                    .starter_loadouts
+                    .iter()
+                    .find(|starter| starter.id == template_id)
+                    .map(|starter| {
+                        format!(
+                            "{}: {}",
+                            state.ui_text.get("deck_builder_template_origin_label"),
+                            starter.name
+                        )
+                    })
+            })
+            .unwrap_or_else(|| {
+                state
+                    .ui_text
+                    .get("deck_builder_custom_origin_label")
+                    .to_owned()
+            });
 
         draw_text(
             state.ui_text.get("deck_builder_title"),
@@ -142,9 +260,14 @@ impl DeckBuilderScreen {
         );
 
         section_panel(
-            ui.rect(80.0, 178.0, 400.0, 730.0),
-            state.ui_text.get("deck_builder_starters_label"),
+            ui.rect(80.0, 178.0, 400.0, 416.0),
+            state.ui_text.get("deck_builder_saved_decks_label"),
             SKYBLUE,
+        );
+        section_panel(
+            ui.rect(80.0, 612.0, 400.0, 296.0),
+            state.ui_text.get("deck_builder_templates_label"),
+            GOLD,
         );
         section_panel(
             ui.rect(80.0, 930.0, 400.0, 358.0),
@@ -163,7 +286,7 @@ impl DeckBuilderScreen {
         );
         self.draw_layer_tabs(state);
 
-        draw_text(deck_name, ui.x(570.0), ui.y(154.0), ui.font(34.0), WHITE);
+        draw_text(deck_name, ui.x(570.0), ui.y(148.0), ui.font(34.0), WHITE);
         draw_text(
             &format!(
                 "{}: {}/{}",
@@ -171,30 +294,144 @@ impl DeckBuilderScreen {
                 deck_size,
                 state.content.deck_rules.support_deck_size
             ),
-            ui.x(1500.0),
-            ui.y(154.0),
+            ui.x(1460.0),
+            ui.y(148.0),
             ui.font(28.0),
             TEXT_MUTED,
         );
+        draw_text(
+            &origin_text,
+            ui.x(570.0),
+            ui.y(176.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
 
-        let mouse = mouse_position();
-        for (loadout_index, starter) in state.content.starter_loadouts.iter().enumerate() {
-            let row_rect = starter_row_rect(loadout_index);
-            let edit_rect = starter_edit_rect(loadout_index);
-            let row_hovered = point_in_rect(row_rect, mouse);
-            let saved_preset = state.saves.decks.preset_for_starter(&starter.id);
-            let shown_card_count = saved_preset
-                .map(|deck| deck.story_cards.len())
-                .unwrap_or(starter.support_deck.len());
+        self.draw_saved_deck_list(state);
+        self.draw_template_list(state);
+        self.draw_booster_results(state);
+        self.draw_support_card_grid(state, active_deck.is_some());
+
+        if self.active_layer == DeckBuilderLayer::Roster {
+            self.draw_roster_layer(state);
+            self.draw_roster_preview(state);
+        } else {
+            self.draw_preview_panel(state);
+        }
+
+        if let Some(dialog) = &self.rename_dialog {
+            self.draw_rename_dialog(state, dialog);
+        }
+    }
+
+    fn draw_saved_deck_list(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        for (button_index, action) in deck_action_buttons(state).into_iter().enumerate() {
+            let rect = deck_action_button_rect(button_index);
+            draw_soft_panel(
+                rect.x,
+                rect.y,
+                rect.w,
+                rect.h,
+                if action.enabled { GOLD } else { DARKGRAY },
+            );
+            draw_text(
+                action.label,
+                rect.x + ui.w(12.0),
+                rect.y + ui.h(28.0),
+                ui.font(18.0),
+                WHITE,
+            );
+        }
+
+        if state.saves.decks.support_decks.is_empty() {
+            draw_text(
+                state.ui_text.get("deck_builder_no_saved_decks"),
+                ui.x(100.0),
+                ui.y(286.0),
+                ui.font(22.0),
+                TEXT_MUTED,
+            );
+            return;
+        }
+
+        for (deck_index, deck) in state.saves.decks.support_decks.iter().enumerate() {
+            let row_rect = saved_deck_row_rect(deck_index);
+            let is_selected = state
+                .saves
+                .decks
+                .selected_support_deck()
+                .map(|selected| selected.id == deck.id)
+                .unwrap_or(false);
+            let origin_label = deck
+                .source_template_id
+                .as_deref()
+                .and_then(|template_id| {
+                    state
+                        .content
+                        .starter_loadouts
+                        .iter()
+                        .find(|starter| starter.id == template_id)
+                        .map(|starter| starter.name.as_str())
+                })
+                .unwrap_or(state.ui_text.get("deck_builder_custom_origin_short"));
+
             draw_soft_panel(
                 row_rect.x,
                 row_rect.y,
                 row_rect.w,
                 row_rect.h,
-                if self.selected_starter_index == Some(loadout_index) {
-                    SKYBLUE
-                } else if row_hovered {
-                    GRAY
+                if is_selected { SKYBLUE } else { DARKGRAY },
+            );
+            draw_text(
+                &deck.name,
+                row_rect.x + ui.w(16.0),
+                row_rect.y + ui.h(28.0),
+                ui.font(20.0),
+                WHITE,
+            );
+            draw_text(
+                &format!(
+                    "{} {}/{}",
+                    state.ui_text.get("deck_builder_card_total_label"),
+                    deck.story_cards.len(),
+                    state.content.deck_rules.support_deck_size
+                ),
+                row_rect.x + ui.w(16.0),
+                row_rect.y + ui.h(50.0),
+                ui.font(16.0),
+                TEXT_MUTED,
+            );
+            draw_text(
+                origin_label,
+                row_rect.x + ui.w(206.0),
+                row_rect.y + ui.h(50.0),
+                ui.font(16.0),
+                TEXT_MUTED,
+            );
+        }
+    }
+
+    fn draw_template_list(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        for (loadout_index, starter) in state.content.starter_loadouts.iter().enumerate() {
+            let row_rect = starter_row_rect(loadout_index);
+            let create_rect = starter_create_rect(loadout_index);
+            let created_decks = state
+                .saves
+                .decks
+                .support_decks
+                .iter()
+                .filter(|deck| deck.source_template_id.as_deref() == Some(starter.id.as_str()))
+                .count();
+
+            draw_soft_panel(
+                row_rect.x,
+                row_rect.y,
+                row_rect.w,
+                row_rect.h,
+                if self.selected_template_index == Some(loadout_index) {
+                    GOLD
                 } else {
                     DARKGRAY
                 },
@@ -202,51 +439,46 @@ impl DeckBuilderScreen {
             draw_text(
                 &starter.name,
                 row_rect.x + ui.w(16.0),
-                row_rect.y + ui.h(30.0),
-                ui.font(22.0),
+                row_rect.y + ui.h(28.0),
+                ui.font(20.0),
                 WHITE,
             );
             draw_text(
                 &format!(
-                    "{} {}/{}",
-                    state.ui_text.get("deck_builder_card_total_label"),
-                    shown_card_count,
-                    state.content.deck_rules.support_deck_size
+                    "{} {}",
+                    state.ui_text.get("deck_builder_template_decks_created"),
+                    created_decks
                 ),
                 row_rect.x + ui.w(16.0),
-                row_rect.y + ui.h(52.0),
+                row_rect.y + ui.h(50.0),
                 ui.font(16.0),
                 TEXT_MUTED,
             );
 
             draw_soft_panel(
-                edit_rect.x,
-                edit_rect.y,
-                edit_rect.w,
-                edit_rect.h,
-                if point_in_rect(edit_rect, mouse) {
-                    GOLD
-                } else {
-                    PINK
-                },
+                create_rect.x,
+                create_rect.y,
+                create_rect.w,
+                create_rect.h,
+                SKYBLUE,
             );
             draw_text(
-                state.ui_text.get("deck_builder_edit_starter"),
-                edit_rect.x + ui.w(12.0),
-                edit_rect.y + ui.h(28.0),
-                ui.font(18.0),
+                state.ui_text.get("deck_builder_create_from_template"),
+                create_rect.x + ui.w(10.0),
+                create_rect.y + ui.h(28.0),
+                ui.font(16.0),
                 WHITE,
             );
         }
+    }
 
+    fn draw_booster_results(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let mouse = mouse_position();
         let mut booster_y = ui.y(992.0);
-        let mut hovered_booster = None;
         for grant in state.last_opened_booster.iter().take(10) {
             let row_rect = Rect::new(ui.x(100.0), booster_y - ui.h(30.0), ui.w(360.0), ui.h(40.0));
             let row_hovered = point_in_rect(row_rect, mouse);
-            if row_hovered {
-                hovered_booster = Some(grant);
-            }
             draw_soft_panel(
                 row_rect.x,
                 row_rect.y,
@@ -267,91 +499,120 @@ impl DeckBuilderScreen {
             );
             booster_y += ui.h(28.0);
         }
+    }
 
-        let mut hovered_card = None;
-        if self.active_layer == DeckBuilderLayer::SupportCards {
-            for (index, card) in state.content.story_cards.iter().enumerate() {
-                let row = index / 4;
-                let column = index % 4;
-                let base_x = ui.x(560.0 + column as f32 * 350.0);
-                let base_y = ui.y(232.0 + row as f32 * 134.0);
-                let copies = state.saves.decks.card_count(&card.id);
-                let owned = state
-                    .saves
-                    .collection
-                    .owned_count(CollectionCardKind::StoryCard, &card.id);
-                let available = state
-                    .saves
-                    .collection
-                    .story_cards_available_for_deck(&card.id, copies);
-                let rect = Rect::new(base_x, base_y, ui.w(328.0), ui.h(116.0));
-                let hovered = point_in_rect(rect, mouse);
-                if hovered {
-                    hovered_card = Some((card, copies, owned, available));
-                }
-
-                draw_story_card_tile(
-                    rect,
-                    card,
-                    &format!(
-                        "{} {} | {} {}",
-                        state.ui_text.get("deck_builder_owned_label"),
-                        owned,
-                        state.ui_text.get("deck_builder_copies_label"),
-                        copies
-                    ),
-                    state.saves.decks.can_add_card(
-                        &card.id,
-                        &state.content.deck_rules,
-                        &state.saves.collection,
-                    ),
-                    hovered,
-                );
-
-                draw_soft_panel(
-                    rect.x + rect.w - ui.w(112.0),
-                    rect.y + ui.h(12.0),
-                    ui.w(92.0),
-                    ui.h(36.0),
-                    if available > 0 { SKYBLUE } else { DARKGRAY },
-                );
-                draw_text(
-                    if available > 0 {
-                        state.ui_text.get("deck_builder_add_card")
-                    } else {
-                        state.ui_text.get("deck_builder_add_locked")
-                    },
-                    rect.x + rect.w - ui.w(96.0),
-                    rect.y + ui.h(36.0),
-                    ui.font(16.0),
-                    WHITE,
-                );
-
-                draw_soft_panel(
-                    rect.x + rect.w - ui.w(112.0),
-                    rect.y + ui.h(60.0),
-                    ui.w(92.0),
-                    ui.h(36.0),
-                    if copies > 0 { PINK } else { DARKGRAY },
-                );
-                draw_text(
-                    if copies > 0 {
-                        state.ui_text.get("deck_builder_remove_card")
-                    } else {
-                        state.ui_text.get("deck_builder_remove_locked")
-                    },
-                    rect.x + rect.w - ui.w(94.0),
-                    rect.y + ui.h(84.0),
-                    ui.font(16.0),
-                    WHITE,
-                );
-            }
+    fn draw_support_card_grid(&self, state: &AppState, has_active_deck: bool) {
+        if self.active_layer != DeckBuilderLayer::SupportCards {
+            return;
         }
 
-        if self.active_layer == DeckBuilderLayer::Roster {
-            self.draw_roster_layer(state);
-            self.draw_roster_preview(state);
-        } else if let Some((card, copies, owned, available)) = hovered_card {
+        let ui = UiLayout::current();
+        let mouse = mouse_position();
+        for (index, card) in state.content.story_cards.iter().enumerate() {
+            let row = index / 4;
+            let column = index % 4;
+            let base_x = ui.x(560.0 + column as f32 * 350.0);
+            let base_y = ui.y(232.0 + row as f32 * 134.0);
+            let copies = state.saves.decks.card_count(&card.id);
+            let owned = state
+                .saves
+                .collection
+                .owned_count(CollectionCardKind::StoryCard, &card.id);
+            let available = state
+                .saves
+                .collection
+                .story_cards_available_for_deck(&card.id, copies);
+            let rect = Rect::new(base_x, base_y, ui.w(328.0), ui.h(116.0));
+            let hovered = point_in_rect(rect, mouse);
+
+            draw_story_card_tile(
+                rect,
+                card,
+                &format!(
+                    "{} {} | {} {}",
+                    state.ui_text.get("deck_builder_owned_label"),
+                    owned,
+                    state.ui_text.get("deck_builder_copies_label"),
+                    copies
+                ),
+                state.saves.decks.can_add_card(
+                    &card.id,
+                    &state.content.deck_rules,
+                    &state.saves.collection,
+                ),
+                hovered,
+            );
+
+            draw_soft_panel(
+                rect.x + rect.w - ui.w(112.0),
+                rect.y + ui.h(12.0),
+                ui.w(92.0),
+                ui.h(36.0),
+                if available > 0 && has_active_deck {
+                    SKYBLUE
+                } else {
+                    DARKGRAY
+                },
+            );
+            draw_text(
+                if available > 0 && has_active_deck {
+                    state.ui_text.get("deck_builder_add_card")
+                } else {
+                    state.ui_text.get("deck_builder_add_locked")
+                },
+                rect.x + rect.w - ui.w(96.0),
+                rect.y + ui.h(36.0),
+                ui.font(16.0),
+                WHITE,
+            );
+
+            draw_soft_panel(
+                rect.x + rect.w - ui.w(112.0),
+                rect.y + ui.h(60.0),
+                ui.w(92.0),
+                ui.h(36.0),
+                if copies > 0 { PINK } else { DARKGRAY },
+            );
+            draw_text(
+                if copies > 0 {
+                    state.ui_text.get("deck_builder_remove_card")
+                } else {
+                    state.ui_text.get("deck_builder_remove_locked")
+                },
+                rect.x + rect.w - ui.w(94.0),
+                rect.y + ui.h(84.0),
+                ui.font(16.0),
+                WHITE,
+            );
+        }
+    }
+
+    fn draw_preview_panel(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let mouse = mouse_position();
+
+        for (index, card) in state.content.story_cards.iter().enumerate() {
+            let row = index / 4;
+            let column = index % 4;
+            let rect = Rect::new(
+                ui.x(560.0 + column as f32 * 350.0),
+                ui.y(232.0 + row as f32 * 134.0),
+                ui.w(328.0),
+                ui.h(116.0),
+            );
+            if !point_in_rect(rect, mouse) {
+                continue;
+            }
+
+            let copies = state.saves.decks.card_count(&card.id);
+            let owned = state
+                .saves
+                .collection
+                .owned_count(CollectionCardKind::StoryCard, &card.id);
+            let available = state
+                .saves
+                .collection
+                .story_cards_available_for_deck(&card.id, copies);
             let preview_rect = ui.rect(2120.0, 136.0, 330.0, 1120.0);
             let footer = vec![
                 format!(
@@ -369,31 +630,33 @@ impl DeckBuilderScreen {
                 ),
             ];
             draw_story_card_preview(preview_rect, card, &footer);
-        } else if let Some(grant) = hovered_booster {
+            return;
+        }
+
+        if let Some(grant) = self.hovered_booster_result(state, mouse) {
             self.draw_collection_preview(state, grant);
-        } else if let Some(loadout_index) = self.selected_starter_index {
+            return;
+        }
+
+        if let Some(loadout_index) = self.selected_template_index {
             if let Some(starter) = state.content.starter_loadouts.get(loadout_index) {
-                let shown_cards = state
-                    .saves
-                    .decks
-                    .preset_for_starter(&starter.id)
-                    .map(|deck| deck.story_cards.as_slice())
-                    .unwrap_or(starter.support_deck.as_slice());
-                let shown_count = shown_cards.len();
                 self.draw_deck_preview(
                     state,
                     &starter.name,
-                    shown_cards,
+                    &starter.support_deck,
                     &format!(
                         "{} | {} {}/{}",
-                        state.ui_text.get("deck_builder_previewing_starter"),
+                        state.ui_text.get("deck_builder_previewing_template"),
                         state.ui_text.get("deck_builder_card_total_label"),
-                        shown_count,
+                        starter.support_deck.len(),
                         state.content.deck_rules.support_deck_size
                     ),
                 );
+                return;
             }
-        } else if let Some(deck) = active_deck {
+        }
+
+        if let Some(deck) = state.saves.decks.selected_support_deck() {
             self.draw_deck_preview(
                 state,
                 &deck.name,
@@ -405,10 +668,30 @@ impl DeckBuilderScreen {
                     state.content.deck_rules.support_deck_size
                 ),
             );
+            return;
         }
+
+        self.draw_empty_preview(state);
     }
 
-    fn draw_collection_preview(&self, state: &AppState, grant: &crate::state::BoosterCardGrant) {
+    fn hovered_booster_result<'a>(
+        &self,
+        state: &'a AppState,
+        mouse: (f32, f32),
+    ) -> Option<&'a BoosterCardGrant> {
+        let ui = UiLayout::current();
+        let mut booster_y = ui.y(992.0);
+        for grant in state.last_opened_booster.iter().take(10) {
+            let row_rect = Rect::new(ui.x(100.0), booster_y - ui.h(30.0), ui.w(360.0), ui.h(40.0));
+            if point_in_rect(row_rect, mouse) {
+                return Some(grant);
+            }
+            booster_y += ui.h(28.0);
+        }
+        None
+    }
+
+    fn draw_collection_preview(&self, state: &AppState, grant: &BoosterCardGrant) {
         let ui = UiLayout::current();
         let rect = ui.rect(2120.0, 136.0, 330.0, 1120.0);
 
@@ -544,8 +827,28 @@ impl DeckBuilderScreen {
         }
     }
 
+    fn draw_empty_preview(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let rect = ui.rect(2120.0, 136.0, 330.0, 1120.0);
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_text(
+            state.ui_text.get("deck_builder_empty_preview_title"),
+            rect.x + ui.w(18.0),
+            rect.y + ui.h(42.0),
+            ui.font(28.0),
+            WHITE,
+        );
+        draw_text(
+            state.ui_text.get("deck_builder_empty_preview_body"),
+            rect.x + ui.w(18.0),
+            rect.y + ui.h(92.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
+    }
+
     fn update_roster_layer(&mut self, state: &AppState, mouse: (f32, f32)) -> ScreenAction {
-        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+        let Some(active_deck) = state.saves.decks.selected_support_deck() else {
             return ScreenAction::None;
         };
 
@@ -626,7 +929,7 @@ impl DeckBuilderScreen {
     }
 
     fn draw_roster_layer(&self, state: &AppState) {
-        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+        let Some(active_deck) = state.saves.decks.selected_support_deck() else {
             return;
         };
         let ui = UiLayout::current();
@@ -741,7 +1044,7 @@ impl DeckBuilderScreen {
     }
 
     fn draw_roster_preview(&self, state: &AppState) {
-        let Some(active_deck) = state.saves.decks.active_support_deck() else {
+        let Some(active_deck) = state.saves.decks.selected_support_deck() else {
             return;
         };
         let ui = UiLayout::current();
@@ -790,12 +1093,130 @@ impl DeckBuilderScreen {
             }
         }
     }
+
+    fn draw_rename_dialog(&self, state: &AppState, dialog: &DeckRenameDialog) {
+        let ui = UiLayout::current();
+        let rect = rename_dialog_rect();
+        draw_rectangle(
+            ui.x(0.0),
+            ui.y(0.0),
+            ui.w(2560.0),
+            ui.h(1440.0),
+            Color::new(0.03, 0.04, 0.08, 0.75),
+        );
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_text(
+            state.ui_text.get("deck_builder_rename_prompt"),
+            rect.x + ui.w(24.0),
+            rect.y + ui.h(42.0),
+            ui.font(26.0),
+            WHITE,
+        );
+
+        let input_rect = rename_dialog_input_rect();
+        draw_soft_panel(
+            input_rect.x,
+            input_rect.y,
+            input_rect.w,
+            input_rect.h,
+            BLACK,
+        );
+        draw_text(
+            if dialog.value.is_empty() {
+                state.ui_text.get("deck_builder_rename_placeholder")
+            } else {
+                &dialog.value
+            },
+            input_rect.x + ui.w(14.0),
+            input_rect.y + ui.h(34.0),
+            ui.font(24.0),
+            WHITE,
+        );
+
+        let save_rect = rename_dialog_save_rect();
+        draw_soft_panel(save_rect.x, save_rect.y, save_rect.w, save_rect.h, SKYBLUE);
+        draw_text(
+            state.ui_text.get("deck_builder_confirm_rename"),
+            save_rect.x + ui.w(14.0),
+            save_rect.y + ui.h(30.0),
+            ui.font(20.0),
+            WHITE,
+        );
+
+        let cancel_rect = rename_dialog_cancel_rect();
+        draw_soft_panel(
+            cancel_rect.x,
+            cancel_rect.y,
+            cancel_rect.w,
+            cancel_rect.h,
+            PINK,
+        );
+        draw_text(
+            state.ui_text.get("deck_builder_cancel_rename"),
+            cancel_rect.x + ui.w(14.0),
+            cancel_rect.y + ui.h(30.0),
+            ui.font(20.0),
+            WHITE,
+        );
+    }
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum DeckBuilderLayer {
     SupportCards,
     Roster,
+}
+
+struct DeckRenameDialog {
+    value: String,
+}
+
+impl DeckRenameDialog {
+    fn new(current_name: &str) -> Self {
+        Self {
+            value: current_name.to_owned(),
+        }
+    }
+}
+
+struct DeckActionButton<'a> {
+    kind: DeckActionKind,
+    label: &'a str,
+    enabled: bool,
+}
+
+#[derive(Clone, Copy)]
+enum DeckActionKind {
+    Create,
+    Rename,
+    Duplicate,
+    Delete,
+}
+
+fn deck_action_buttons<'a>(state: &'a AppState) -> [DeckActionButton<'a>; 4] {
+    let has_selected_deck = state.saves.decks.selected_support_deck().is_some();
+    [
+        DeckActionButton {
+            kind: DeckActionKind::Create,
+            label: state.ui_text.get("deck_builder_new_deck"),
+            enabled: true,
+        },
+        DeckActionButton {
+            kind: DeckActionKind::Rename,
+            label: state.ui_text.get("deck_builder_rename_deck"),
+            enabled: has_selected_deck,
+        },
+        DeckActionButton {
+            kind: DeckActionKind::Duplicate,
+            label: state.ui_text.get("deck_builder_duplicate_deck"),
+            enabled: has_selected_deck,
+        },
+        DeckActionButton {
+            kind: DeckActionKind::Delete,
+            label: state.ui_text.get("deck_builder_delete_deck"),
+            enabled: has_selected_deck,
+        },
+    ]
 }
 
 fn collection_kind_label<'a>(state: &'a AppState, kind: CollectionCardKind) -> &'a str {
@@ -806,22 +1227,42 @@ fn collection_kind_label<'a>(state: &'a AppState, kind: CollectionCardKind) -> &
     }
 }
 
+fn deck_action_button_rect(index: usize) -> Rect {
+    let ui = UiLayout::current();
+    Rect::new(
+        ui.x(98.0 + index as f32 * 94.0),
+        ui.y(214.0),
+        ui.w(84.0),
+        ui.h(40.0),
+    )
+}
+
+fn saved_deck_row_rect(index: usize) -> Rect {
+    let ui = UiLayout::current();
+    Rect::new(
+        ui.x(96.0),
+        ui.y(272.0 + index as f32 * 60.0),
+        ui.w(368.0),
+        ui.h(52.0),
+    )
+}
+
 fn starter_row_rect(index: usize) -> Rect {
     let ui = UiLayout::current();
     Rect::new(
         ui.x(96.0),
-        ui.y(216.0 + index as f32 * 72.0),
-        ui.w(288.0),
+        ui.y(650.0 + index as f32 * 72.0),
+        ui.w(272.0),
         ui.h(56.0),
     )
 }
 
-fn starter_edit_rect(index: usize) -> Rect {
+fn starter_create_rect(index: usize) -> Rect {
     let ui = UiLayout::current();
     Rect::new(
-        ui.x(396.0),
-        ui.y(216.0 + index as f32 * 72.0),
-        ui.w(72.0),
+        ui.x(378.0),
+        ui.y(650.0 + index as f32 * 72.0),
+        ui.w(86.0),
         ui.h(56.0),
     )
 }
@@ -868,4 +1309,24 @@ fn roster_pool_rect(is_magical_girl_side: bool, index: usize) -> Rect {
         ui.w(300.0),
         ui.h(74.0),
     )
+}
+
+fn rename_dialog_rect() -> Rect {
+    let ui = UiLayout::current();
+    ui.rect(910.0, 520.0, 740.0, 220.0)
+}
+
+fn rename_dialog_input_rect() -> Rect {
+    let ui = UiLayout::current();
+    ui.rect(934.0, 574.0, 692.0, 54.0)
+}
+
+fn rename_dialog_save_rect() -> Rect {
+    let ui = UiLayout::current();
+    ui.rect(934.0, 650.0, 220.0, 48.0)
+}
+
+fn rename_dialog_cancel_rect() -> Rect {
+    let ui = UiLayout::current();
+    ui.rect(1170.0, 650.0, 220.0, 48.0)
 }
