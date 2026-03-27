@@ -1,0 +1,63 @@
+{
+  "id": "magical_girl_rising",
+  "name": "Magical Girl Rising",
+  "description": "A first single-player campaign where the player pilots a Magical Girl deck through escalating AI encounters and defeats the final boss.",
+  "nodes": [
+    {
+      "id": "opening_hunt",
+      "encounter_id": "crow_scouts",
+      "next_node_ids": ["velvet_assault"],
+      "boss": false
+    },
+    {
+      "id": "velvet_assault",
+      "encounter_id": "velvet_assault",
+      "next_node_ids": ["final_stage"],
+      "boss": false
+    },
+    {
+      "id": "final_stage",
+      "encounter_id": "queen_of_glass",
+      "next_node_ids": [],
+      "boss": true
+    }
+  ],
+  "encounters": [
+    {
+      "id": "crow_scouts",
+      "name": "Crow Scouts",
+      "enemy_loadout_id": "moonlight_opening",
+      "intro_text": "A probing enemy force tests your opening deck and reaction timing before the real threats arrive.",
+      "reward_story_card_ids": [
+        "quiet_lunch_on_the_rooftop",
+        "secret_rehearsal",
+        "crescent_counterpose"
+      ],
+      "boss": false
+    },
+    {
+      "id": "velvet_assault",
+      "name": "Velvet Assault",
+      "enemy_loadout_id": "velvet_ambush",
+      "intro_text": "Velvet's lieutenants lean on sharper Baddie pressure and punish weak encounter turns.",
+      "reward_story_card_ids": [
+        "moonlit_rescue_chain",
+        "shared_umbrella",
+        "synchronized_finish"
+      ],
+      "boss": false
+    },
+    {
+      "id": "queen_of_glass",
+      "name": "Queen of Glass",
+      "enemy_loadout_id": "velvet_ambush",
+      "intro_text": "The campaign boss doubles down on tempo pressure and asks you to close before the counterpunch lands.",
+      "reward_story_card_ids": [
+        "synchronized_finish",
+        "identity_reveal",
+        "break_the_formation"
+      ],
+      "boss": true
+    }
+  ]
+}

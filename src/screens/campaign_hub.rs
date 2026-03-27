@@ -1,0 +1,389 @@
+//! Campaign hub screen.
+
+use macroquad::prelude::*;
+
+use crate::data::{CharacterDefinition, StoryCardDefinition};
+use crate::screens::ScreenAction;
+use crate::state::AppState;
+use crate::ui::card_widgets::{action_button, point_in_rect};
+use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
+use crate::ui::layout::UiLayout;
+
+pub struct CampaignHubScreen;
+
+impl CampaignHubScreen {
+    pub fn new() -> Self {
+        Self
+    }
+
+    pub fn update(&mut self, state: &AppState) -> ScreenAction {
+        let ui = UiLayout::current();
+        let mouse = mouse_position();
+
+        for target in support_targets(state) {
+            if point_in_rect(target.rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                return ScreenAction::CampaignToggleSupportSelection {
+                    character_id: target.character_id.clone(),
+                };
+            }
+        }
+
+        if state.saves.campaigns.selected_run_is_in_progress()
+            && state.saves.campaigns.selected_run_has_valid_support_pair()
+            && action_button(
+                ui.rect(1860.0, 1328.0, 620.0, 70.0),
+                state.ui_text.get("campaign_start_encounter"),
+            )
+        {
+            return ScreenAction::CampaignStartEncounter;
+        }
+        if action_button(
+            ui.rect(80.0, 1328.0, 400.0, 70.0),
+            state.ui_text.get("battle_back_to_menu"),
+        ) {
+            return ScreenAction::OpenCampaignMenu;
+        }
+        ScreenAction::None
+    }
+
+    pub fn draw(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let Some(run) = state.saves.campaigns.selected_run() else {
+            draw_text(
+                state.ui_text.get("campaign_no_active_run"),
+                ui.x(80.0),
+                ui.y(110.0),
+                ui.font(48.0),
+                WHITE,
+            );
+            return;
+        };
+        let Some(node) = state.content.campaign.node(&run.current_node_id) else {
+            draw_text(
+                state.ui_text.get("campaign_missing_node"),
+                ui.x(80.0),
+                ui.y(110.0),
+                ui.font(48.0),
+                RED,
+            );
+            return;
+        };
+        let Some(encounter) = state.content.campaign.encounter(&node.encounter_id) else {
+            draw_text(
+                state.ui_text.get("campaign_missing_encounter"),
+                ui.x(80.0),
+                ui.y(110.0),
+                ui.font(48.0),
+                RED,
+            );
+            return;
+        };
+
+        draw_text(
+            state.ui_text.get("campaign_hub_title"),
+            ui.x(80.0),
+            ui.y(110.0),
+            ui.font(72.0),
+            WHITE,
+        );
+        draw_text(
+            &format!(
+                "{}: {}",
+                state.ui_text.get("campaign_selected_slot_label"),
+                run.name
+            ),
+            ui.x(80.0),
+            ui.y(164.0),
+            ui.font(28.0),
+            GOLD,
+        );
+        draw_text(
+            &format!(
+                "{}: {}",
+                state.ui_text.get("campaign_current_encounter_label"),
+                encounter.name
+            ),
+            ui.x(80.0),
+            ui.y(220.0),
+            ui.font(32.0),
+            WHITE,
+        );
+        draw_text(
+            &encounter.intro_text,
+            ui.x(80.0),
+            ui.y(266.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &format!(
+                "{}: {}/{}",
+                state.ui_text.get("campaign_progress_label"),
+                run.completed_node_ids.len(),
+                state.content.campaign.nodes.len()
+            ),
+            ui.x(80.0),
+            ui.y(328.0),
+            ui.font(24.0),
+            SKYBLUE,
+        );
+        draw_text(
+            &format!(
+                "{}: {}",
+                state.ui_text.get("campaign_deck_label"),
+                run.player_deck.name
+            ),
+            ui.x(80.0),
+            ui.y(384.0),
+            ui.font(28.0),
+            WHITE,
+        );
+        draw_text(
+            &format!(
+                "{} {}",
+                state.ui_text.get("campaign_deck_cards_label"),
+                run.player_deck.story_cards.len()
+            ),
+            ui.x(80.0),
+            ui.y(420.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+        if !run.player_deck.recent_story_cards.is_empty() {
+            draw_text(
+                &format!(
+                    "{}: {}",
+                    state.ui_text.get("campaign_recent_rewards_label"),
+                    format_story_cards(
+                        &run.player_deck.recent_story_cards,
+                        &state.content.story_cards
+                    )
+                ),
+                ui.x(80.0),
+                ui.y(456.0),
+                ui.font(20.0),
+                TEXT_MUTED,
+            );
+        }
+
+        draw_text(
+            state.ui_text.get("campaign_support_pair_label"),
+            ui.x(80.0),
+            ui.y(520.0),
+            ui.font(24.0),
+            WHITE,
+        );
+        draw_text(
+            state.ui_text.get("campaign_support_pair_help"),
+            ui.x(80.0),
+            ui.y(554.0),
+            ui.font(18.0),
+            TEXT_MUTED,
+        );
+
+        if let Some(main_character) = run
+            .player_deck
+            .magical_girl_roster
+            .first()
+            .and_then(|character_id| lookup_character(&state.content.magical_girls, character_id))
+        {
+            self.draw_character_tile(
+                state,
+                ui.rect(80.0, 590.0, 320.0, 118.0),
+                main_character,
+                true,
+                false,
+                false,
+            );
+        }
+
+        let selected_supports = current_support_characters(state);
+        for index in 0..2 {
+            let rect = ui.rect(430.0 + index as f32 * 350.0, 590.0, 320.0, 118.0);
+            if let Some(character) = selected_supports.get(index) {
+                self.draw_character_tile(state, rect, character, true, false, true);
+            } else {
+                self.draw_empty_support_slot(state, rect);
+            }
+        }
+
+        for target in support_targets(state) {
+            self.draw_character_tile(
+                state,
+                target.rect,
+                target.character,
+                target.selected,
+                target.hovered,
+                true,
+            );
+        }
+
+        draw_text(
+            &format!(
+                "{}: {}",
+                state.ui_text.get("campaign_run_roster_label"),
+                format_character_roster(
+                    &run.player_deck.magical_girl_roster,
+                    &state.content.magical_girls
+                )
+            ),
+            ui.x(80.0),
+            ui.y(1036.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
+        if !state.saves.campaigns.selected_run_has_valid_support_pair() {
+            draw_text(
+                state.ui_text.get("campaign_support_pair_required"),
+                ui.x(80.0),
+                ui.y(1076.0),
+                ui.font(22.0),
+                ORANGE,
+            );
+        }
+        if let Some(message) = &state.campaign_notice {
+            draw_text(message, ui.x(80.0), ui.y(1112.0), ui.font(24.0), GOLD);
+        }
+    }
+
+    fn draw_character_tile(
+        &self,
+        state: &AppState,
+        rect: Rect,
+        character: &CharacterDefinition,
+        selected: bool,
+        hovered: bool,
+        selectable: bool,
+    ) {
+        let ui = UiLayout::current();
+        let outline = if selected {
+            GOLD
+        } else if hovered {
+            WHITE
+        } else {
+            SKYBLUE
+        };
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
+        draw_text(
+            &character.name,
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(32.0),
+            ui.font(22.0),
+            WHITE,
+        );
+        draw_text(
+            &format!(
+                "{} / {} / {}",
+                character.base_power, character.transformed_power, character.final_power
+            ),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(66.0),
+            ui.font(18.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &format!(
+                "{} {} / {}",
+                state.ui_text.get("battle_growth_label"),
+                character.first_threshold,
+                character.second_threshold
+            ),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(96.0),
+            ui.font(18.0),
+            if selectable { TEXT_MUTED } else { GOLD },
+        );
+    }
+
+    fn draw_empty_support_slot(&self, state: &AppState, rect: Rect) {
+        let ui = UiLayout::current();
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, GRAY);
+        draw_text(
+            state.ui_text.get("campaign_support_slot_empty"),
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(58.0),
+            ui.font(20.0),
+            TEXT_MUTED,
+        );
+    }
+}
+
+struct SupportTarget<'a> {
+    character_id: String,
+    rect: Rect,
+    character: &'a CharacterDefinition,
+    selected: bool,
+    hovered: bool,
+}
+
+fn support_targets<'a>(state: &'a AppState) -> Vec<SupportTarget<'a>> {
+    let ui = UiLayout::current();
+    let mouse = mouse_position();
+    let Some(run) = state.saves.campaigns.selected_run() else {
+        return Vec::new();
+    };
+    let selected_ids = &run.selected_magical_girl_support_ids;
+
+    run.player_deck
+        .magical_girl_roster
+        .iter()
+        .skip(1)
+        .enumerate()
+        .filter_map(|(index, character_id)| {
+            let character = lookup_character(&state.content.magical_girls, character_id)?;
+            let rect = ui.rect(80.0 + index as f32 * 350.0, 748.0, 320.0, 118.0);
+            Some(SupportTarget {
+                character_id: character_id.clone(),
+                rect,
+                character,
+                selected: selected_ids.iter().any(|entry| entry == character_id),
+                hovered: point_in_rect(rect, mouse),
+            })
+        })
+        .collect()
+}
+
+fn current_support_characters<'a>(state: &'a AppState) -> Vec<&'a CharacterDefinition> {
+    let Some(run) = state.saves.campaigns.selected_run() else {
+        return Vec::new();
+    };
+    run.selected_magical_girl_support_ids
+        .iter()
+        .filter_map(|character_id| lookup_character(&state.content.magical_girls, character_id))
+        .collect()
+}
+
+fn lookup_character<'a>(
+    definitions: &'a [CharacterDefinition],
+    character_id: &str,
+) -> Option<&'a CharacterDefinition> {
+    definitions.iter().find(|entry| entry.id == character_id)
+}
+
+fn format_character_roster(roster: &[String], definitions: &[CharacterDefinition]) -> String {
+    roster
+        .iter()
+        .map(|character_id| {
+            lookup_character(definitions, character_id)
+                .map(|entry| entry.name.clone())
+                .unwrap_or_else(|| character_id.clone())
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn format_story_cards(card_ids: &[String], definitions: &[StoryCardDefinition]) -> String {
+    card_ids
+        .iter()
+        .map(|card_id| {
+            definitions
+                .iter()
+                .find(|entry| &entry.id == card_id)
+                .map(|entry| entry.name.clone())
+                .unwrap_or_else(|| card_id.clone())
+        })
+        .collect::<Vec<_>>()
+        .join(", ")
+}

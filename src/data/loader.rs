@@ -6,8 +6,8 @@ use serde::de::DeserializeOwned;
 use thiserror::Error;
 
 use crate::data::{
-    CardVisualSpec, CharacterDefinition, DeckRules, MatchRules, ProgressionRules, StarterLoadout,
-    StoryCardDefinition, UiText,
+    CampaignDefinition, CardVisualSpec, CharacterDefinition, DeckRules, MatchRules,
+    ProgressionRules, StarterLoadout, StoryCardDefinition, UiText,
 };
 
 #[derive(Debug, Error)]
@@ -27,6 +27,7 @@ pub struct GameContent {
     pub deck_rules: DeckRules,
     pub progression_rules: ProgressionRules,
     pub starter_loadouts: Vec<StarterLoadout>,
+    pub campaign: CampaignDefinition,
     pub card_visuals: CardVisualSpec,
 }
 
@@ -40,6 +41,7 @@ impl Default for GameContent {
             deck_rules: DeckRules::default(),
             progression_rules: ProgressionRules::default(),
             starter_loadouts: Vec::new(),
+            campaign: CampaignDefinition::default(),
             card_visuals: CardVisualSpec {
                 canvas: crate::data::CardCanvas {
                     width: 0,
@@ -69,6 +71,8 @@ impl GameContent {
         let starter_loadouts = load_json::<Vec<StarterLoadout>>(
             "assets/data/starter_loadouts/prototype_starters.json",
         )?;
+        let campaign =
+            load_json::<CampaignDefinition>("assets/data/campaigns/magical_girl_campaign.json")?;
         let card_visuals = load_json::<CardVisualSpec>("assets/data/card_visuals.json")?;
         Ok(Self {
             magical_girls,
@@ -78,6 +82,7 @@ impl GameContent {
             deck_rules,
             progression_rules,
             starter_loadouts,
+            campaign,
             card_visuals,
         })
     }
@@ -115,6 +120,16 @@ mod tests {
         assert_eq!(content.deck_rules.support_deck_size, 40);
         assert!(content.progression_rules.overflow_is_lost);
         assert!(!content.starter_loadouts.is_empty());
+        assert!(content
+            .starter_loadouts
+            .iter()
+            .all(|starter| !starter.description.trim().is_empty()));
+        assert!(content
+            .starter_loadouts
+            .iter()
+            .all(|starter| !starter.playstyle.trim().is_empty()));
+        assert_eq!(content.campaign.id, "magical_girl_rising");
+        assert_eq!(content.campaign.nodes.len(), 3);
         assert_eq!(content.card_visuals.canvas.width, 750);
         assert_eq!(content.card_visuals.template_families.len(), 3);
         assert_eq!(content.card_visuals.speed_badges.len(), 3);

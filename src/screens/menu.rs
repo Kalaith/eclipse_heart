@@ -17,10 +17,15 @@ impl MenuScreen {
 
     pub fn update(&mut self, state: &AppState) -> ScreenAction {
         let ui = UiLayout::current();
-        let setup_rect = ui.rect(1040.0, 760.0, 480.0, 78.0);
-        let deck_rect = ui.rect(1040.0, 856.0, 480.0, 78.0);
+        let campaign_rect = ui.rect(1040.0, 720.0, 480.0, 78.0);
+        let setup_rect = ui.rect(1040.0, 816.0, 480.0, 78.0);
+        let deck_rect = ui.rect(1040.0, 912.0, 480.0, 78.0);
         let exit_rect = ui.rect(1040.0, 1090.0, 480.0, 78.0);
-        let checkbox_rect = ui.rect(1040.0, 978.0, 44.0, 44.0);
+        let checkbox_rect = ui.rect(1040.0, 1018.0, 44.0, 44.0);
+
+        if action_button(campaign_rect, state.ui_text.get("menu_start_campaign")) {
+            return ScreenAction::OpenCampaignMenu;
+        }
 
         if action_button(setup_rect, state.ui_text.get("menu_start_battle")) {
             return ScreenAction::OpenSetup;
@@ -67,18 +72,18 @@ impl MenuScreen {
         draw_text(
             state.ui_text.get("menu_settings_label"),
             ui.x(1040.0),
-            ui.y(952.0),
+            ui.y(992.0),
             ui.font(28.0),
             WHITE,
         );
         self.draw_checkbox(
-            ui.rect(1040.0, 978.0, 44.0, 44.0),
+            ui.rect(1040.0, 1018.0, 44.0, 44.0),
             !state.saves.settings.fullscreen,
         );
         draw_text(
             state.ui_text.get("menu_windowed_mode"),
             ui.x(1100.0),
-            ui.y(1010.0),
+            ui.y(1050.0),
             ui.font(26.0),
             TEXT_MUTED,
         );

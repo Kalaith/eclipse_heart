@@ -1,10 +1,12 @@
 //! Versioned deck and roster preset save data.
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use serde::{Deserialize, Serialize};
 
 use crate::data::{DeckRules, StarterLoadout};
 
-use super::CollectionSave;
+use super::{CollectionSave, ImportedDeck};
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct DeckPreset {
@@ -12,11 +14,21 @@ pub struct DeckPreset {
     pub name: String,
     #[serde(default)]
     pub source_template_id: Option<String>,
+    #[serde(default)]
+    pub notes: String,
+    #[serde(default)]
+    pub archetype_tags: Vec<String>,
     pub story_cards: Vec<String>,
     #[serde(default)]
     pub magical_girl_roster: Vec<String>,
     #[serde(default)]
     pub baddie_roster: Vec<String>,
+    #[serde(default = "current_unix_timestamp")]
+    pub created_at_unix: i64,
+    #[serde(default = "current_unix_timestamp")]
+    pub updated_at_unix: i64,
+    #[serde(default)]
+    pub recent_story_cards: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -29,16 +41,19 @@ pub struct DecksSave {
     pub roster_presets: Vec<String>,
     #[serde(default, skip_serializing)]
     legacy_active_support_deck_index: usize,
+    #[serde(default, skip_serializing)]
+    undo_snapshot: Option<DeckPreset>,
 }
 
 impl Default for DecksSave {
     fn default() -> Self {
         Self {
-            version: 2,
+            version: 3,
             support_decks: Vec::new(),
             selected_support_deck_id: None,
             roster_presets: Vec::new(),
             legacy_active_support_deck_index: 0,
+            undo_snapshot: None,
         }
     }
 }
@@ -52,10 +67,11 @@ impl DecksSave {
         for deck in &mut self.support_decks {
             fill_missing_roster(&mut deck.magical_girl_roster, magical_girl_ids);
             fill_missing_roster(&mut deck.baddie_roster, baddie_ids);
+            ensure_deck_metadata(deck);
         }
 
         self.selected_support_deck_id = self.resolve_selected_deck_id();
-        self.version = self.version.max(2);
+        self.version = self.version.max(3);
     }
 
     pub fn selected_support_deck(&self) -> Option<&DeckPreset> {
@@ -123,8 +139,11 @@ impl DecksSave {
             return false;
         }
 
+        self.snapshot_selected_deck();
         if let Some(deck) = self.selected_support_deck_mut() {
             deck.story_cards.push(card_id.to_owned());
+            touch_deck(deck);
+            push_recent_story_card(&mut deck.recent_story_cards, card_id);
             return true;
         }
 
@@ -132,6 +151,11 @@ impl DecksSave {
     }
 
     pub fn remove_card(&mut self, card_id: &str) -> bool {
+        if self.selected_support_deck().is_none() {
+            return false;
+        }
+        self.snapshot_selected_deck();
+
         let Some(deck) = self.selected_support_deck_mut() else {
             return false;
         };
@@ -141,6 +165,8 @@ impl DecksSave {
         };
 
         deck.story_cards.remove(index);
+        touch_deck(deck);
+        push_recent_story_card(&mut deck.recent_story_cards, card_id);
         true
     }
 
@@ -152,15 +178,22 @@ impl DecksSave {
     ) -> String {
         let deck_id = self.next_deck_id();
         let deck_name = self.unique_deck_name(base_name);
+        let now = current_unix_timestamp();
         self.support_decks.push(DeckPreset {
             id: deck_id.clone(),
             name: deck_name,
             source_template_id: None,
+            notes: String::new(),
+            archetype_tags: Vec::new(),
             story_cards: Vec::new(),
             magical_girl_roster: magical_girl_ids.to_vec(),
             baddie_roster: baddie_ids.to_vec(),
+            created_at_unix: now,
+            updated_at_unix: now,
+            recent_story_cards: Vec::new(),
         });
         self.selected_support_deck_id = Some(deck_id.clone());
+        self.undo_snapshot = None;
         deck_id
     }
 
@@ -178,6 +211,7 @@ impl DecksSave {
             format!("{} {copy_suffix}", starter.name)
         };
         let deck_name = self.unique_deck_name(&preferred_name);
+        let now = current_unix_timestamp();
         let magical_girl_roster = build_template_roster(
             &starter.magical_girl_main,
             &starter.magical_girl_supports,
@@ -189,12 +223,18 @@ impl DecksSave {
             id: deck_id.clone(),
             name: deck_name,
             source_template_id: Some(starter.id.clone()),
+            notes: starter.description.clone(),
+            archetype_tags: normalized_tags(&[starter.playstyle.clone()]),
             story_cards: starter.support_deck.clone(),
             magical_girl_roster,
             baddie_roster,
+            created_at_unix: now,
+            updated_at_unix: now,
+            recent_story_cards: starter.support_deck.iter().take(5).cloned().collect(),
         };
         self.support_decks.push(deck);
         self.selected_support_deck_id = Some(deck_id.clone());
+        self.undo_snapshot = None;
 
         deck_id
     }
@@ -214,8 +254,10 @@ impl DecksSave {
         }
 
         let unique_name = self.unique_deck_name_for(trimmed_name, Some(selected_id.as_str()));
+        self.snapshot_selected_deck();
         if let Some(deck) = self.selected_support_deck_mut() {
             deck.name = unique_name;
+            touch_deck(deck);
             return true;
         }
 
@@ -226,15 +268,22 @@ impl DecksSave {
         let source_deck = self.selected_support_deck()?.clone();
         let deck_id = self.next_deck_id();
         let deck_name = self.unique_deck_name(&format!("{} {copy_suffix}", source_deck.name));
+        let now = current_unix_timestamp();
         self.support_decks.push(DeckPreset {
             id: deck_id.clone(),
             name: deck_name,
             source_template_id: source_deck.source_template_id,
+            notes: source_deck.notes,
+            archetype_tags: source_deck.archetype_tags,
             story_cards: source_deck.story_cards,
             magical_girl_roster: source_deck.magical_girl_roster,
             baddie_roster: source_deck.baddie_roster,
+            created_at_unix: now,
+            updated_at_unix: now,
+            recent_story_cards: source_deck.recent_story_cards,
         });
         self.selected_support_deck_id = Some(deck_id.clone());
+        self.undo_snapshot = None;
         Some(deck_id)
     }
 
@@ -252,7 +301,42 @@ impl DecksSave {
 
         self.support_decks.remove(index);
         self.selected_support_deck_id = self.resolve_selected_deck_id();
+        self.undo_snapshot = None;
         true
+    }
+
+    pub fn import_deck(&mut self, imported: ImportedDeck, default_name: &str) -> String {
+        let ImportedDeck {
+            name,
+            story_cards,
+            magical_girl_roster,
+            baddie_roster,
+        } = imported;
+        let deck_id = self.next_deck_id();
+        let preferred_name = if name.trim().is_empty() {
+            default_name
+        } else {
+            name.trim()
+        };
+        let deck_name = self.unique_deck_name(preferred_name);
+        let now = current_unix_timestamp();
+        let recent_story_cards = story_cards.iter().take(5).cloned().collect();
+        self.support_decks.push(DeckPreset {
+            id: deck_id.clone(),
+            name: deck_name,
+            source_template_id: None,
+            notes: String::new(),
+            archetype_tags: Vec::new(),
+            story_cards,
+            magical_girl_roster,
+            baddie_roster,
+            created_at_unix: now,
+            updated_at_unix: now,
+            recent_story_cards,
+        });
+        self.selected_support_deck_id = Some(deck_id.clone());
+        self.undo_snapshot = None;
+        deck_id
     }
 
     pub fn set_roster_slot(
@@ -261,6 +345,11 @@ impl DecksSave {
         slot_index: usize,
         character_id: &str,
     ) -> bool {
+        if self.selected_support_deck().is_none() {
+            return false;
+        }
+        self.snapshot_selected_deck();
+
         let Some(deck) = self.selected_support_deck_mut() else {
             return false;
         };
@@ -277,11 +366,93 @@ impl DecksSave {
 
         if let Some(existing_index) = roster.iter().position(|entry| entry == character_id) {
             roster.swap(slot_index, existing_index);
+            touch_deck(deck);
             return true;
         }
 
         roster[slot_index] = character_id.to_owned();
+        touch_deck(deck);
         true
+    }
+
+    pub fn update_selected_deck_metadata(&mut self, notes: &str, tags: &[String]) -> bool {
+        let Some(_) = self.selected_support_deck() else {
+            return false;
+        };
+        self.snapshot_selected_deck();
+        if let Some(deck) = self.selected_support_deck_mut() {
+            deck.notes = notes.trim().to_owned();
+            deck.archetype_tags = normalized_tags(tags);
+            touch_deck(deck);
+            return true;
+        }
+        false
+    }
+
+    pub fn undo_selected_deck_change(&mut self) -> bool {
+        let Some(snapshot) = self.undo_snapshot.clone() else {
+            return false;
+        };
+        let Some(index) = self
+            .support_decks
+            .iter()
+            .position(|deck| deck.id == snapshot.id)
+        else {
+            self.undo_snapshot = None;
+            return false;
+        };
+
+        self.support_decks[index] = snapshot.clone();
+        self.selected_support_deck_id = Some(snapshot.id);
+        self.undo_snapshot = None;
+        true
+    }
+
+    pub fn can_undo_selected_deck_change(&self) -> bool {
+        self.undo_snapshot.is_some()
+    }
+
+    pub fn reset_selected_deck_to_template(&mut self, starter: &StarterLoadout) -> bool {
+        let Some(deck) = self.selected_support_deck() else {
+            return false;
+        };
+        if deck.source_template_id.as_deref() != Some(starter.id.as_str()) {
+            return false;
+        }
+
+        self.snapshot_selected_deck();
+        if let Some(deck) = self.selected_support_deck_mut() {
+            deck.story_cards = starter.support_deck.clone();
+            deck.magical_girl_roster = build_template_roster(
+                &starter.magical_girl_main,
+                &starter.magical_girl_supports,
+                &deck.magical_girl_roster.clone(),
+            );
+            deck.baddie_roster = build_template_roster(
+                &starter.prime_baddie,
+                &starter.baddie_supports,
+                &deck.baddie_roster.clone(),
+            );
+            deck.recent_story_cards = starter.support_deck.iter().take(5).cloned().collect();
+            touch_deck(deck);
+            return true;
+        }
+
+        false
+    }
+
+    pub fn recently_modified_deck_ids(&self, limit: usize) -> Vec<String> {
+        let mut decks = self
+            .support_decks
+            .iter()
+            .map(|deck| (deck.id.clone(), deck.updated_at_unix))
+            .collect::<Vec<_>>();
+        decks.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
+        decks.into_iter().take(limit).map(|(id, _)| id).collect()
+    }
+
+    fn snapshot_selected_deck(&mut self) {
+        self.undo_snapshot = self.selected_support_deck().cloned();
     }
 
     fn resolve_selected_deck_id(&self) -> Option<String> {
@@ -355,6 +526,59 @@ fn fill_missing_roster(roster: &mut Vec<String>, fallback: &[String]) {
     *roster = fallback.to_vec();
 }
 
+fn current_unix_timestamp() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_secs() as i64)
+        .unwrap_or(0)
+}
+
+fn touch_deck(deck: &mut DeckPreset) {
+    deck.updated_at_unix = current_unix_timestamp();
+}
+
+fn ensure_deck_metadata(deck: &mut DeckPreset) {
+    if deck.created_at_unix <= 0 {
+        deck.created_at_unix = current_unix_timestamp();
+    }
+    if deck.updated_at_unix <= 0 {
+        deck.updated_at_unix = deck.created_at_unix;
+    }
+    deck.archetype_tags = normalized_tags(&deck.archetype_tags);
+    if deck.recent_story_cards.is_empty() {
+        deck.recent_story_cards = deck.story_cards.iter().rev().take(5).cloned().collect();
+        deck.recent_story_cards.reverse();
+    } else {
+        deck.recent_story_cards.truncate(5);
+    }
+}
+
+fn normalized_tags(tags: &[String]) -> Vec<String> {
+    let mut normalized = Vec::new();
+    for tag in tags {
+        let trimmed = tag.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if normalized
+            .iter()
+            .any(|entry: &String| entry.eq_ignore_ascii_case(trimmed))
+        {
+            continue;
+        }
+        normalized.push(trimmed.to_owned());
+    }
+    normalized
+}
+
+fn push_recent_story_card(recent_story_cards: &mut Vec<String>, card_id: &str) {
+    recent_story_cards.retain(|entry| entry != card_id);
+    recent_story_cards.push(card_id.to_owned());
+    if recent_story_cards.len() > 5 {
+        recent_story_cards.remove(0);
+    }
+}
+
 fn build_template_roster(
     main_id: &str,
     support_ids: &[String],
@@ -396,6 +620,8 @@ mod tests {
         StarterLoadout {
             id: "starter_alpha".to_owned(),
             name: "Starter Alpha".to_owned(),
+            description: "Sample starter".to_owned(),
+            playstyle: "Balanced".to_owned(),
             magical_girl_main: "yuki".to_owned(),
             magical_girl_supports: vec!["hana".to_owned(), "riri".to_owned()],
             prime_baddie: "noctra".to_owned(),

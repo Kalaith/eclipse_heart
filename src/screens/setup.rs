@@ -60,6 +60,42 @@ impl SetupScreen {
             return ScreenAction::BackToMenu;
         }
 
+        if action_button(
+            ui.rect(700.0, 1328.0, 360.0, 70.0),
+            state.ui_text.get("setup_use_selected_deck_player_a"),
+        ) {
+            return ScreenAction::SetupUseSelectedDeck {
+                player: PlayerId::PlayerA,
+            };
+        }
+
+        if action_button(
+            ui.rect(1080.0, 1328.0, 280.0, 70.0),
+            state.ui_text.get("setup_clear_player_a_deck"),
+        ) {
+            return ScreenAction::SetupClearAssignedDeck {
+                player: PlayerId::PlayerA,
+            };
+        }
+
+        if action_button(
+            ui.rect(1380.0, 1328.0, 360.0, 70.0),
+            state.ui_text.get("setup_use_selected_deck_player_b"),
+        ) {
+            return ScreenAction::SetupUseSelectedDeck {
+                player: PlayerId::PlayerB,
+            };
+        }
+
+        if action_button(
+            ui.rect(1760.0, 1328.0, 280.0, 70.0),
+            state.ui_text.get("setup_clear_player_b_deck"),
+        ) {
+            return ScreenAction::SetupClearAssignedDeck {
+                player: PlayerId::PlayerB,
+            };
+        }
+
         ScreenAction::None
     }
 
@@ -88,9 +124,19 @@ impl SetupScreen {
         draw_text(
             state.ui_text.get("setup_hidden_support_note"),
             ui.x(80.0),
-            ui.y(1288.0),
-            ui.font(22.0),
+            ui.y(1252.0),
+            ui.font(20.0),
             GOLD,
+        );
+        self.draw_assigned_deck_summary(
+            state,
+            PlayerId::PlayerA,
+            ui.rect(700.0, 1242.0, 660.0, 72.0),
+        );
+        self.draw_assigned_deck_summary(
+            state,
+            PlayerId::PlayerB,
+            ui.rect(1380.0, 1242.0, 660.0, 72.0),
         );
     }
 
@@ -215,6 +261,61 @@ impl SetupScreen {
             state.ui_text.get("setup_hidden_supports_label"),
             rect.x + ui.w(14.0),
             rect.y + ui.h(56.0),
+            ui.font(16.0),
+            TEXT_MUTED,
+        );
+    }
+
+    fn draw_assigned_deck_summary(&self, state: &AppState, player: PlayerId, rect: Rect) {
+        let ui = UiLayout::current();
+        let assigned_deck_id = match player {
+            PlayerId::PlayerA => state.setup.player_a_support_deck_id.as_deref(),
+            PlayerId::PlayerB => state.setup.player_b_support_deck_id.as_deref(),
+        };
+        let selected_deck_name = state
+            .saves
+            .decks
+            .selected_support_deck()
+            .map(|deck| deck.name.as_str())
+            .unwrap_or(state.ui_text.get("setup_no_saved_deck_selected"));
+        let assigned_deck_name = assigned_deck_id
+            .and_then(|deck_id| {
+                state
+                    .saves
+                    .decks
+                    .support_decks
+                    .iter()
+                    .find(|deck| deck.id == deck_id)
+                    .map(|deck| deck.name.as_str())
+            })
+            .unwrap_or(state.ui_text.get("setup_default_support_deck"));
+
+        draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        draw_text(
+            match player {
+                PlayerId::PlayerA => state.ui_text.get("setup_player_a_assigned_deck"),
+                PlayerId::PlayerB => state.ui_text.get("setup_player_b_assigned_deck"),
+            },
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(28.0),
+            ui.font(18.0),
+            WHITE,
+        );
+        draw_text(
+            assigned_deck_name,
+            rect.x + ui.w(14.0),
+            rect.y + ui.h(54.0),
+            ui.font(18.0),
+            GOLD,
+        );
+        draw_text(
+            &format!(
+                "{}: {}",
+                state.ui_text.get("setup_current_selected_deck"),
+                selected_deck_name
+            ),
+            rect.x + ui.w(300.0),
+            rect.y + ui.h(54.0),
             ui.font(16.0),
             TEXT_MUTED,
         );

@@ -2,6 +2,7 @@
 
 ## Current prototype loop
 
+- Main menu now separates `Single-Player Campaign`, `Configure Match`, and `Open Deck Builder` so the campaign sits alongside the existing skirmish shell instead of replacing it.
 - Main menu opens a dedicated match setup screen instead of jumping straight into a hardcoded battle.
 - The game now boots fullscreen by default and the main menu includes a saved `Windowed Mode` checkbox that persists through local settings.
 - The main menu also includes a direct `Exit Game` action.
@@ -27,6 +28,8 @@
 - Hand cards and deck-builder cards now render as compact rectangular card tiles with hover previews that draw above the rest of the interface so card text stays readable.
 - The battle screen shows visible draw-pile counts for both players.
 - The defending player's Prime Baddie is marked when defeated and the finished state shows the winner.
+- Campaign battles now use a separate presentation layer that frames the match as `you vs enemy`, and the visible combat panels only show the player's Magical Girls against the AI's Baddies.
+- Campaign battles now also hide player-facing Baddie-support reveal controls, so the visible actions stay aligned with the single-player Magical Girl framing.
 
 ## Persistence
 
@@ -35,6 +38,21 @@
 - Finishing a match updates the local profile match and win counters and writes the save bundle back to disk.
 - Collection ownership now stores counted inventory and still accepts the older array-shaped save format on load.
 - The deck builder edits the active local support deck preset and saves changes immediately.
+- Local persistence now also stores `campaigns.json`, including active or completed campaign runs, their deck snapshot, encounter progress, and battle history.
+- Campaign persistence now supports multiple saved run slots and keeps a selected campaign slot so the player can swap between in-progress, won, or lost runs from the campaign menu.
+
+## Single-player campaign
+
+- The game now loads a data-driven `Magical Girl Rising` campaign from `assets/data/campaigns/`.
+- Starting a campaign creates a persistent run that snapshots the currently selected saved support deck; if no saved deck is selected, the first starter template is used as a fallback seed deck.
+- Campaign battles always place the player on `Player A` and feed the opposing AI side from encounter-defined starter loadouts.
+- The campaign menu supports starting a new run, continuing the selected in-progress run, abandoning the selected in-progress run, and reviewing how many campaign clears have been recorded locally.
+- The campaign menu now shows explicit save slots for every stored run, lets the player select which slot to inspect or continue, and starts new runs without overwriting older slots.
+- The campaign hub shows the current encounter, run deck, roster snapshot, recent reward cards, and progression before launching the next battle.
+- The campaign hub now also lets the player explicitly choose exactly two Magical Girls from the roster as that run's current supports before an encounter can begin.
+- Winning an encounter advances the run to the next node, adds the encounter's first configured reward card directly to the run deck snapshot, and preserves that upgraded deck for later battles in the same run.
+- Winning the final encounter marks the run as cleared and returns the player to the campaign menu with a completion notice.
+- Losing a campaign battle marks that run slot as lost and returns the player to the campaign menu without affecting the existing skirmish setup flow.
 
 ## Deck builder shell
 
@@ -42,7 +60,20 @@
 - Saved decks can now be created, selected, renamed, duplicated, and deleted directly in the builder.
 - Starter loadouts now act as reusable templates with explicit `Create` actions that generate editable saved decks without mutating the template itself.
 - Saved decks now record optional template origin metadata so copied starter-based decks stay distinct from custom decks.
+- Match setup can now assign the currently selected saved support deck to `Player A` or `Player B`, and starting a battle uses those assigned saved decks instead of always falling back to the prototype defaults.
 - The deck builder now has a separate roster-edit layer for the selected saved deck, with Magical Girl and Baddie rosters kept distinct from support-card editing.
+- The right-side rail now includes a permanent deck summary panel that shows legal or illegal status, support-card count, Magical Girl roster count, Baddie roster count, collection completeness, and current warnings.
+- Deck validation now reports support-count problems, duplicate support-card copy-limit violations, duplicate roster entries, and missing owned cards separately.
+- The support-card browser now has a live search bar with result counts and soft-failing query tags for `speed`, `align`, `type`, `owned`, `missing`, and `copies`.
+- The support-card browser now also exposes toggleable filter buttons for speed, alignment, card type, owned, missing, in-deck, and not-in-deck states, plus removable active-filter chips and a `Clear All` action.
+- The support-card browser now exposes visible sort, group, and view controls, with sorting applied after search and filtering, grouping headers for alignment, speed, or card type, and both grid and compact-list card views.
+- The editor layout now uses three explicit tabs for `Support Cards`, `Magical Girl Roster`, and `Baddie Roster` instead of a shared roster tab.
+- The right rail now keeps both preview content and current deck contents visible at the same time, so support-card counts or active roster slots stay readable while browsing the collection.
+- Roster editing now uses the full center browser area for one side at a time, with the visible right-rail slots acting as the swap targets for that side.
+- Starter templates now surface their own playstyle, description, roster seed, and support-card seed in the deck-builder preview, and their left-rail action is an explicit `Create Deck` flow that always produces a new editable saved deck.
+- The deck builder can now export the selected saved deck to a portable `EH1` deck-code string and import that code into a new editable saved deck, with in-screen copy and paste actions for sharing.
+- Imported or incomplete decks now highlight missing support cards directly in the browser and current-deck rail, show a dedicated missing-count summary, and surface owned replacement suggestions that prioritize matching speed, alignment, and card type.
+- Saved decks now carry deck notes, archetype tags, created and updated timestamps, and recent-card history; the builder exposes metadata editing plus `Undo` and template-based `Reset` actions, and the saved-deck list now marks recently modified decks.
 - The screen can open a `10`-card booster that rolls from the full Magical Girl, Baddie, and story-card pool and records those results in local collection counts.
 - The screen can add or remove story cards on the selected saved deck while respecting configured deck size, per-card copy limits, and owned story-card copies in collection.
 - The deck builder now uses a fixed grid plus a dedicated preview panel so the full card list fits the 1440p layout without overlapping columns.

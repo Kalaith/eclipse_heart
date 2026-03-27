@@ -1,9 +1,12 @@
 {
-  "version": 1,
+  "version": 3,
   "support_decks": [
     {
       "id": "velvet_ambush",
       "name": "Velvet Ambush",
+      "source_template_id": null,
+      "notes": "",
+      "archetype_tags": [],
       "story_cards": [
         "ominous_graffiti",
         "quiet_lunch_on_the_rooftop",
@@ -29,9 +32,72 @@
         "glass_crow",
         "thorn_waltz",
         "hollow_marionette"
+      ],
+      "created_at_unix": 1774328377,
+      "updated_at_unix": 1774328377,
+      "recent_story_cards": [
+        "whisper_campaign",
+        "last_minute_cover_story",
+        "panic_spiral",
+        "panic_in_the_parade_route",
+        "forbidden_bloom_of_calamity"
+      ]
+    },
+    {
+      "id": "deck_2",
+      "name": "Bobs Deck",
+      "source_template_id": null,
+      "notes": "",
+      "archetype_tags": [],
+      "story_cards": [
+        "break_the_formation",
+        "curtain_call_denied",
+        "expose_the_accomplice",
+        "identity_reveal",
+        "not_on_my_watch",
+        "whisper_campaign",
+        "synchronized_finish",
+        "sunrise_promise",
+        "shared_umbrella",
+        "snare_the_lead",
+        "spotlight_exchange",
+        "stage_whisper",
+        "nightmare_spotlight",
+        "forbidden_bloom_of_calamity",
+        "forbidden_bloom_of_calamity",
+        "forbidden_bloom_of_calamity",
+        "emergency_costume_repair",
+        "emergency_costume_repair",
+        "emergency_costume_repair",
+        "crossfire_block",
+        "crossfire_block",
+        "crossfire_block"
+      ],
+      "magical_girl_roster": [
+        "yuki",
+        "hana",
+        "riri",
+        "momo",
+        "kiko"
+      ],
+      "baddie_roster": [
+        "noctra",
+        "velvet_hex",
+        "glass_crow",
+        "thorn_waltz",
+        "hollow_marionette"
+      ],
+      "created_at_unix": 1774328395,
+      "updated_at_unix": 1774328954,
+      "recent_story_cards": [
+        "stage_whisper",
+        "nightmare_spotlight",
+        "forbidden_bloom_of_calamity",
+        "emergency_costume_repair",
+        "crossfire_block"
       ]
     }
   ],
-  "active_support_deck_index": 0,
+  "selected_support_deck_id": "deck_2",
   "roster_presets": []
 }

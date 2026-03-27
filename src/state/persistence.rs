@@ -7,11 +7,12 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 use thiserror::Error;
 
-use super::{CollectionSave, DecksSave, ProfileSave, SettingsSave};
+use super::{CampaignSaveBundle, CollectionSave, DecksSave, ProfileSave, SettingsSave};
 
 const PROFILE_FILE: &str = "profile.json";
 const COLLECTION_FILE: &str = "collection.json";
 const DECKS_FILE: &str = "decks.json";
+const CAMPAIGNS_FILE: &str = "campaigns.json";
 const SETTINGS_FILE: &str = "settings.json";
 
 #[derive(Clone, Debug, Default)]
@@ -19,6 +20,7 @@ pub struct PersistenceBundle {
     pub profile: ProfileSave,
     pub collection: CollectionSave,
     pub decks: DecksSave,
+    pub campaigns: CampaignSaveBundle,
     pub settings: SettingsSave,
 }
 
@@ -51,6 +53,7 @@ impl PersistenceManager {
             profile: load_or_default(self.root.join(PROFILE_FILE))?,
             collection: load_or_default(self.root.join(COLLECTION_FILE))?,
             decks: load_or_default(self.root.join(DECKS_FILE))?,
+            campaigns: load_or_default(self.root.join(CAMPAIGNS_FILE))?,
             settings: load_or_default(self.root.join(SETTINGS_FILE))?,
         })
     }
@@ -61,6 +64,7 @@ impl PersistenceManager {
         save_json(self.root.join(PROFILE_FILE), &bundle.profile)?;
         save_json(self.root.join(COLLECTION_FILE), &bundle.collection)?;
         save_json(self.root.join(DECKS_FILE), &bundle.decks)?;
+        save_json(self.root.join(CAMPAIGNS_FILE), &bundle.campaigns)?;
         save_json(self.root.join(SETTINGS_FILE), &bundle.settings)?;
         Ok(())
     }
@@ -113,6 +117,7 @@ mod tests {
         assert_eq!(bundle.profile.version, 1);
         assert!(bundle.collection.owned_magical_girls.is_empty());
         assert!(bundle.decks.support_decks.is_empty());
+        assert!(bundle.campaigns.runs.is_empty());
         assert_eq!(bundle.settings.window_width, 2560);
         assert!(bundle.settings.fullscreen);
 
@@ -136,6 +141,7 @@ mod tests {
             2,
         );
         bundle.decks.roster_presets = vec!["starter_a".to_owned()];
+        bundle.campaigns.runs = Vec::new();
         bundle.settings.fullscreen = true;
 
         manager.save_all(&bundle).expect("save bundle");
@@ -156,6 +162,7 @@ mod tests {
             2
         );
         assert_eq!(loaded.decks.roster_presets, vec!["starter_a"]);
+        assert!(loaded.campaigns.runs.is_empty());
         assert!(loaded.settings.fullscreen);
 
         std::fs::remove_dir_all(root).expect("cleanup temp dir");

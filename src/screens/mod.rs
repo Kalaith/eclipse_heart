@@ -1,11 +1,15 @@
 //! Screen controllers.
 
 mod battle;
+mod campaign_hub;
+mod campaign_menu;
 mod deck_builder;
 mod menu;
 mod setup;
 
 pub use battle::BattleScreen;
+pub use campaign_hub::CampaignHubScreen;
+pub use campaign_menu::CampaignMenuScreen;
 pub use deck_builder::DeckBuilderScreen;
 pub use menu::MenuScreen;
 pub use setup::SetupScreen;
@@ -16,6 +20,7 @@ use crate::state::PlayerId;
 #[derive(Clone, Debug)]
 pub enum ScreenAction {
     None,
+    OpenCampaignMenu,
     OpenSetup,
     OpenDeckBuilder,
     ToggleWindowedMode,
@@ -30,6 +35,15 @@ pub enum ScreenAction {
     },
     DeckBuilderDuplicateSelectedDeck,
     DeckBuilderDeleteSelectedDeck,
+    DeckBuilderImportDeckCode {
+        code: String,
+    },
+    DeckBuilderSaveMetadata {
+        notes: String,
+        tags: Vec<String>,
+    },
+    DeckBuilderUndoSelectedDeckChange,
+    DeckBuilderResetSelectedDeckToTemplate,
     DeckBuilderSetRosterSlot {
         is_magical_girl_side: bool,
         slot_index: usize,
@@ -53,6 +67,22 @@ pub enum ScreenAction {
         is_magical_girl_side: bool,
         pair_index: usize,
     },
+    SetupUseSelectedDeck {
+        player: PlayerId,
+    },
+    SetupClearAssignedDeck {
+        player: PlayerId,
+    },
+    CampaignSelectRun {
+        run_id: String,
+    },
+    CampaignToggleSupportSelection {
+        character_id: String,
+    },
+    CampaignStartNewRun,
+    CampaignContinueRun,
+    CampaignAbandonRun,
+    CampaignStartEncounter,
     DeckBuilderCreateDeckFromTemplate {
         loadout_index: usize,
     },

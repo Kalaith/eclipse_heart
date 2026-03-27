@@ -5,7 +5,8 @@ use macroquad::prelude::*;
 use crate::engine::MatchAction;
 use crate::screens::ScreenAction;
 use crate::state::{
-    opposing, AppState, CharacterStage, MatchPhase, MatchState, PlayerId, SideState, SupportState,
+    opposing, AppState, BattleContext, CharacterStage, MatchPhase, MatchState, PlayerId, SideState,
+    SupportState,
 };
 use crate::ui::card_widgets::{
     action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
@@ -86,7 +87,8 @@ impl BattleScreen {
         }
         y += ui.h(80.0);
 
-        if can_reveal_side(match_state, player, false)
+        if !matches!(state.battle_context, BattleContext::Campaign { .. })
+            && can_reveal_side(match_state, player, false)
             && action_button(
                 Rect::new(side_x, y, side_width, ui.h(66.0)),
                 state.ui_text.get("battle_reveal_baddie_support"),
@@ -166,64 +168,11 @@ impl BattleScreen {
             SKYBLUE,
         );
 
-        draw_text(
-            state.ui_text.get("battle_title"),
-            ui.x(540.0),
-            ui.y(86.0),
-            ui.font(58.0),
-            WHITE,
-        );
-
-        let lane_line = format!(
-            "{}: {:?} MG -> {:?} Baddie",
-            state.ui_text.get("battle_engagement_label"),
-            match_state.active_player,
-            opposing(match_state.active_player)
-        );
-        draw_text(&lane_line, ui.x(540.0), ui.y(128.0), ui.font(30.0), GOLD);
-
-        if match_state.phase == MatchPhase::Finished {
-            let winner_line = format!(
-                "{}: {}",
-                state.ui_text.get("battle_winner_label"),
-                winner_label(state, match_state.winner)
-            );
-            draw_text(
-                &winner_line,
-                ui.x(540.0),
-                ui.y(170.0),
-                ui.font(30.0),
-                ORANGE,
-            );
+        if matches!(state.battle_context, BattleContext::Campaign { .. }) {
+            self.draw_campaign_battle(state, match_state);
+        } else {
+            self.draw_skirmish_battle(state, match_state);
         }
-
-        self.draw_player_column(
-            state,
-            ui.x(540.0),
-            ui.y(180.0),
-            state.ui_text.get("battle_player_a_label"),
-            state.ui_text.get("battle_player_a_identity"),
-            &match_state.player_a.magical_girls,
-            &match_state.player_a.baddies,
-            match_state.player_a.hand.len(),
-            match_state.player_a.deck.len(),
-            player_status(state, match_state, PlayerId::PlayerA),
-            match_state.defeated_prime_owner == Some(PlayerId::PlayerA),
-        );
-
-        self.draw_player_column(
-            state,
-            ui.x(1500.0),
-            ui.y(180.0),
-            state.ui_text.get("battle_player_b_label"),
-            state.ui_text.get("battle_player_b_identity"),
-            &match_state.player_b.magical_girls,
-            &match_state.player_b.baddies,
-            match_state.player_b.hand.len(),
-            match_state.player_b.deck.len(),
-            player_status(state, match_state, PlayerId::PlayerB),
-            match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
-        );
 
         let phase_line = format!(
             "{}: {}",
@@ -301,6 +250,168 @@ impl BattleScreen {
         }
 
         self.draw_hand_cards(state, match_state, PlayerId::PlayerA);
+    }
+
+    fn draw_skirmish_battle(&self, state: &AppState, match_state: &MatchState) {
+        let ui = UiLayout::current();
+        draw_text(
+            state.ui_text.get("battle_title"),
+            ui.x(540.0),
+            ui.y(86.0),
+            ui.font(58.0),
+            WHITE,
+        );
+
+        let lane_line = format!(
+            "{}: {:?} MG -> {:?} Baddie",
+            state.ui_text.get("battle_engagement_label"),
+            match_state.active_player,
+            opposing(match_state.active_player)
+        );
+        draw_text(&lane_line, ui.x(540.0), ui.y(128.0), ui.font(30.0), GOLD);
+
+        if match_state.phase == MatchPhase::Finished {
+            let winner_line = format!(
+                "{}: {}",
+                state.ui_text.get("battle_winner_label"),
+                winner_label(state, match_state.winner)
+            );
+            draw_text(
+                &winner_line,
+                ui.x(540.0),
+                ui.y(170.0),
+                ui.font(30.0),
+                ORANGE,
+            );
+        }
+
+        self.draw_player_column(
+            state,
+            ui.x(540.0),
+            ui.y(180.0),
+            state.ui_text.get("battle_player_a_label"),
+            state.ui_text.get("battle_player_a_identity"),
+            &match_state.player_a.magical_girls,
+            &match_state.player_a.baddies,
+            match_state.player_a.hand.len(),
+            match_state.player_a.deck.len(),
+            player_status(state, match_state, PlayerId::PlayerA),
+            match_state.defeated_prime_owner == Some(PlayerId::PlayerA),
+        );
+
+        self.draw_player_column(
+            state,
+            ui.x(1500.0),
+            ui.y(180.0),
+            state.ui_text.get("battle_player_b_label"),
+            state.ui_text.get("battle_player_b_identity"),
+            &match_state.player_b.magical_girls,
+            &match_state.player_b.baddies,
+            match_state.player_b.hand.len(),
+            match_state.player_b.deck.len(),
+            player_status(state, match_state, PlayerId::PlayerB),
+            match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
+        );
+    }
+
+    fn draw_campaign_battle(&self, state: &AppState, match_state: &MatchState) {
+        let ui = UiLayout::current();
+        draw_text(
+            state.ui_text.get("campaign_battle_title"),
+            ui.x(540.0),
+            ui.y(86.0),
+            ui.font(58.0),
+            WHITE,
+        );
+
+        let encounter_name = campaign_encounter_name(state);
+        draw_text(
+            &encounter_name,
+            ui.x(540.0),
+            ui.y(128.0),
+            ui.font(32.0),
+            GOLD,
+        );
+
+        let lane_line = if match_state.active_player == PlayerId::PlayerA {
+            state.ui_text.get("campaign_battle_lane_player_attack")
+        } else {
+            state.ui_text.get("campaign_battle_lane_enemy_attack")
+        };
+        draw_text(lane_line, ui.x(540.0), ui.y(170.0), ui.font(28.0), ORANGE);
+
+        if match_state.phase == MatchPhase::Finished {
+            let winner_line = format!(
+                "{}: {}",
+                state.ui_text.get("battle_winner_label"),
+                campaign_winner_label(state, match_state.winner)
+            );
+            draw_text(
+                &winner_line,
+                ui.x(540.0),
+                ui.y(206.0),
+                ui.font(28.0),
+                ORANGE,
+            );
+        }
+
+        self.draw_side_box(
+            state,
+            ui.x(540.0),
+            ui.y(232.0),
+            ui.w(860.0),
+            ui.h(180.0),
+            state.ui_text.get("campaign_battle_player_mg_label"),
+            &match_state.player_a.magical_girls,
+            true,
+            false,
+        );
+        self.draw_side_box(
+            state,
+            ui.x(1500.0),
+            ui.y(232.0),
+            ui.w(860.0),
+            ui.h(180.0),
+            state.ui_text.get("campaign_battle_enemy_baddie_label"),
+            &match_state.player_b.baddies,
+            false,
+            match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
+        );
+
+        draw_text(
+            state.ui_text.get("campaign_battle_focus_note"),
+            ui.x(540.0),
+            ui.y(462.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+
+        draw_text(
+            &format!(
+                "{} {}  {} {}",
+                state.ui_text.get("battle_hand_count_label"),
+                match_state.player_a.hand.len(),
+                state.ui_text.get("battle_draw_pile_label"),
+                match_state.player_a.deck.len()
+            ),
+            ui.x(540.0),
+            ui.y(512.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &format!(
+                "{} {}  {} {}",
+                state.ui_text.get("campaign_battle_enemy_hand_label"),
+                match_state.player_b.hand.len(),
+                state.ui_text.get("battle_draw_pile_label"),
+                match_state.player_b.deck.len()
+            ),
+            ui.x(1500.0),
+            ui.y(512.0),
+            ui.font(24.0),
+            TEXT_MUTED,
+        );
     }
 
     fn draw_player_column(
@@ -543,6 +654,14 @@ fn winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
     }
 }
 
+fn campaign_winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
+    match winner {
+        Some(PlayerId::PlayerA) => state.ui_text.get("campaign_battle_player_wins"),
+        Some(PlayerId::PlayerB) => state.ui_text.get("campaign_battle_enemy_wins"),
+        None => state.ui_text.get("battle_result_unknown"),
+    }
+}
+
 fn hand_card_status_label<'a>(state: &'a AppState, enabled: bool) -> &'a str {
     if enabled {
         state.ui_text.get("battle_card_ready")
@@ -572,6 +691,19 @@ fn battle_action_hint<'a>(
     } else {
         state.ui_text.get("battle_hint_waiting")
     }
+}
+
+fn campaign_encounter_name(state: &AppState) -> String {
+    let BattleContext::Campaign { node_id, .. } = &state.battle_context else {
+        return String::new();
+    };
+    state
+        .content
+        .campaign
+        .node(node_id)
+        .and_then(|node| state.content.campaign.encounter(&node.encounter_id))
+        .map(|encounter| encounter.name.clone())
+        .unwrap_or_else(|| state.ui_text.get("campaign_missing_encounter").to_owned())
 }
 
 fn wrap_event_lines(events: &[String], max_width: f32, font_size: f32) -> Vec<String> {

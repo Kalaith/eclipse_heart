@@ -236,10 +236,12 @@ pub struct MatchSetup {
     pub player_a_mg_support_pair_index: usize,
     pub player_a_baddie_main_index: usize,
     pub player_a_baddie_support_pair_index: usize,
+    pub player_a_support_deck_id: Option<String>,
     pub player_b_mg_main_index: usize,
     pub player_b_mg_support_pair_index: usize,
     pub player_b_baddie_main_index: usize,
     pub player_b_baddie_support_pair_index: usize,
+    pub player_b_support_deck_id: Option<String>,
 }
 
 pub fn opposing(player: PlayerId) -> PlayerId {
@@ -254,7 +256,7 @@ mod tests {
     use crate::data::GameContent;
 
     use super::round_flow::discard_player_down_to_hand_limit;
-    use super::{MatchSetup, MatchState};
+    use super::{MatchSetup, MatchState, PlayerId};
 
     #[test]
     fn end_of_round_discards_down_to_seven_cards() {
@@ -309,5 +311,18 @@ mod tests {
         assert_eq!(discarded, 0);
         assert_eq!(hand, vec!["a".to_string(), "b".to_string()]);
         assert!(discard.is_empty());
+    }
+
+    #[test]
+    fn setup_can_store_assigned_support_deck_ids() {
+        let content = GameContent::load().unwrap_or_default();
+        let mut setup = MatchSetup::default_for_content(&content);
+
+        setup.assign_support_deck(PlayerId::PlayerA, Some("deck_7".to_owned()));
+        setup.assign_support_deck(PlayerId::PlayerB, Some("deck_9".to_owned()));
+        setup.clear_missing_support_deck_assignments(&["deck_9".to_owned()]);
+
+        assert_eq!(setup.player_a_support_deck_id, None);
+        assert_eq!(setup.player_b_support_deck_id.as_deref(), Some("deck_9"));
     }
 }

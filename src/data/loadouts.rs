@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 pub struct StarterLoadout {
     pub id: String,
     pub name: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub playstyle: String,
     pub magical_girl_main: String,
     pub magical_girl_supports: Vec<String>,
     pub prime_baddie: String,

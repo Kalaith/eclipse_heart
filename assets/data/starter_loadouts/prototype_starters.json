@@ -2,6 +2,8 @@
   {
     "id": "moonlight_opening",
     "name": "Moonlight Opening",
+    "description": "A steady Magical Girl opener that develops hidden support value, protects its main unit through reactions, and closes with flexible encounter pressure.",
+    "playstyle": "Balanced tempo",
     "magical_girl_main": "yuki",
     "magical_girl_supports": ["hana", "riri"],
     "prime_baddie": "noctra",
@@ -22,6 +24,8 @@
   {
     "id": "velvet_ambush",
     "name": "Velvet Ambush",
+    "description": "A sharper Baddie-leaning template that mixes proactive setup with punishing reaction swings and higher-end encounter bursts from the Prime side.",
+    "playstyle": "Baddie pressure",
     "magical_girl_main": "hana",
     "magical_girl_supports": ["momo", "kiko"],
     "prime_baddie": "velvet_hex",

@@ -7,6 +7,8 @@ use super::{CollectionCardKind, MatchSetup, MatchState, PersistenceBundle, Persi
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AppScreen {
     Menu,
+    CampaignMenu,
+    CampaignHub,
     Setup,
     DeckBuilder,
     Battle,
@@ -19,12 +21,20 @@ pub struct BoosterCardGrant {
     pub name: String,
 }
 
+#[derive(Clone, Debug)]
+pub enum BattleContext {
+    Skirmish,
+    Campaign { run_id: String, node_id: String },
+}
+
 pub struct AppState {
     pub screen: AppScreen,
     pub ui_text: UiText,
     pub content: GameContent,
     pub setup: MatchSetup,
     pub match_state: Option<MatchState>,
+    pub battle_context: BattleContext,
+    pub campaign_notice: Option<String>,
     pub saves: PersistenceBundle,
     pub persistence: PersistenceManager,
     pub last_opened_booster: Vec<BoosterCardGrant>,
@@ -58,6 +68,8 @@ impl AppState {
             content,
             setup,
             match_state: None,
+            battle_context: BattleContext::Skirmish,
+            campaign_notice: None,
             saves,
             persistence,
             last_opened_booster: Vec::new(),

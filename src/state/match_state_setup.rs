@@ -29,6 +29,14 @@ impl MatchState {
         )
     }
 
+    pub fn default_player_a_support_deck() -> Vec<String> {
+        default_player_a_deck()
+    }
+
+    pub fn default_player_b_support_deck() -> Vec<String> {
+        default_player_b_deck()
+    }
+
     pub fn from_setup_with_options(
         content: &GameContent,
         setup: &MatchSetup,
@@ -121,6 +129,7 @@ impl MatchSetup {
                 player_a_baddie_main_index,
                 ["glass_crow", "thorn_waltz"],
             ),
+            player_a_support_deck_id: None,
             player_b_mg_main_index,
             player_b_mg_support_pair_index: support_pair_index_for_main(
                 &content.magical_girls,
@@ -133,6 +142,7 @@ impl MatchSetup {
                 player_b_baddie_main_index,
                 ["noctra", "hollow_marionette"],
             ),
+            player_b_support_deck_id: None,
         }
     }
 
@@ -157,6 +167,7 @@ impl MatchSetup {
                 &player_a.prime_baddie,
                 &player_a.baddie_supports,
             ),
+            player_a_support_deck_id: None,
             player_b_mg_main_index: required_index(
                 &content.magical_girls,
                 &player_b.magical_girl_main,
@@ -172,6 +183,85 @@ impl MatchSetup {
                 &player_b.prime_baddie,
                 &player_b.baddie_supports,
             ),
+            player_b_support_deck_id: None,
+        }
+    }
+
+    pub fn from_player_deck_and_enemy_loadout(
+        content: &GameContent,
+        player_deck: &crate::state::DeckPreset,
+        selected_magical_girl_supports: &[String],
+        enemy: &StarterLoadout,
+    ) -> Self {
+        let player_mg_main = player_deck
+            .magical_girl_roster
+            .first()
+            .expect("campaign player deck missing magical girl roster entry");
+        let player_baddie_main = player_deck
+            .baddie_roster
+            .first()
+            .expect("campaign player deck missing baddie roster entry");
+        let player_mg_supports = if selected_magical_girl_supports.len() == 2 {
+            selected_magical_girl_supports.to_vec()
+        } else {
+            player_deck.magical_girl_roster[1..3].to_vec()
+        };
+        let player_baddie_supports = player_deck.baddie_roster[1..3].to_vec();
+
+        Self {
+            player_a_mg_main_index: required_index(&content.magical_girls, player_mg_main),
+            player_a_mg_support_pair_index: support_pair_index_for_ids(
+                &content.magical_girls,
+                player_mg_main,
+                &player_mg_supports,
+            ),
+            player_a_baddie_main_index: required_index(&content.baddies, player_baddie_main),
+            player_a_baddie_support_pair_index: support_pair_index_for_ids(
+                &content.baddies,
+                player_baddie_main,
+                &player_baddie_supports,
+            ),
+            player_a_support_deck_id: None,
+            player_b_mg_main_index: required_index(
+                &content.magical_girls,
+                &enemy.magical_girl_main,
+            ),
+            player_b_mg_support_pair_index: support_pair_index_for_ids(
+                &content.magical_girls,
+                &enemy.magical_girl_main,
+                &enemy.magical_girl_supports,
+            ),
+            player_b_baddie_main_index: required_index(&content.baddies, &enemy.prime_baddie),
+            player_b_baddie_support_pair_index: support_pair_index_for_ids(
+                &content.baddies,
+                &enemy.prime_baddie,
+                &enemy.baddie_supports,
+            ),
+            player_b_support_deck_id: None,
+        }
+    }
+
+    pub fn assign_support_deck(&mut self, player: PlayerId, deck_id: Option<String>) {
+        match player {
+            PlayerId::PlayerA => self.player_a_support_deck_id = deck_id,
+            PlayerId::PlayerB => self.player_b_support_deck_id = deck_id,
+        }
+    }
+
+    pub fn clear_missing_support_deck_assignments(&mut self, available_deck_ids: &[String]) {
+        if self
+            .player_a_support_deck_id
+            .as_deref()
+            .is_some_and(|deck_id| !available_deck_ids.iter().any(|entry| entry == deck_id))
+        {
+            self.player_a_support_deck_id = None;
+        }
+        if self
+            .player_b_support_deck_id
+            .as_deref()
+            .is_some_and(|deck_id| !available_deck_ids.iter().any(|entry| entry == deck_id))
+        {
+            self.player_b_support_deck_id = None;
         }
     }
 
