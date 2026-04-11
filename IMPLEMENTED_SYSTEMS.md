@@ -20,6 +20,8 @@
 - Shared UI helpers now live under `src/ui/` for colors, 1440p-first layout scaling, and reusable card/panel widgets.
 - The prototype window now targets a `2560 x 1440` baseline and the main screens scale from that layout space.
 - The menu now links to a deck builder shell as well as match setup.
+- The repo now ships procedural card-frame and speed-badge PNG assets under `assets/generated/cards/`, including layered frame pieces, art masks, gloss overlays, badge bases, and badge icons generated from `assets/data/card_visuals.json`.
+- The repo now also generates procedural roster portraits, story-card illustration placeholders, and widescreen UI backdrops under `assets/generated/`, with a machine-readable catalog in `assets/data/art_catalog.json`.
 - Current UI flows are mouse-driven; the prototype does not require keyboard input to navigate menu, setup, deck builder, or battle actions.
 - The battle screen is now player-centric instead of faction-centric.
 - The prototype shows `You` and `Enemy` columns with each player's Magical Girl side and Baddie side.

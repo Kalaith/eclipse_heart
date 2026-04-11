@@ -13,7 +13,7 @@ use crate::state::{
 use crate::ui::card_widgets::{
     action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
 };
-use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 const MAX_DECK_NAME_LENGTH: usize = 28;
@@ -363,6 +363,9 @@ impl DeckBuilderScreen {
 
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
+        if let Some(background) = state.assets.ui_background("menu") {
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.78));
+        }
         let active_deck = state.saves.decks.selected_support_deck();
         let deck_name = active_deck
             .map(|deck| deck.name.as_str())
@@ -1562,6 +1565,7 @@ impl DeckBuilderScreen {
                     let hovered = point_in_rect(card_layout.rect, mouse);
 
                     draw_story_card_tile(
+                        state,
                         card_layout.rect,
                         card,
                         &format!(
@@ -1678,7 +1682,7 @@ impl DeckBuilderScreen {
                             available
                         ),
                     ];
-                    draw_story_card_preview(preview_rect, card, &footer);
+                    draw_story_card_preview(state, preview_rect, card, &footer);
                     return;
                 }
             }
@@ -2101,7 +2105,7 @@ impl DeckBuilderScreen {
                             .collection
                             .owned_count(CollectionCardKind::StoryCard, &grant.id)
                     )];
-                    draw_story_card_preview(rect, card, &footer);
+                    draw_story_card_preview(state, rect, card, &footer);
                 }
             }
             CollectionCardKind::MagicalGirl => {
@@ -2112,6 +2116,7 @@ impl DeckBuilderScreen {
                     .find(|entry| entry.id == grant.id)
                 {
                     self.draw_character_preview(
+                        state,
                         rect,
                         state.ui_text.get("deck_builder_kind_magical_girl"),
                         character,
@@ -2130,6 +2135,7 @@ impl DeckBuilderScreen {
                     .find(|entry| entry.id == grant.id)
                 {
                     self.draw_character_preview(
+                        state,
                         rect,
                         state.ui_text.get("deck_builder_kind_baddie"),
                         character,
@@ -2145,20 +2151,33 @@ impl DeckBuilderScreen {
 
     fn draw_character_preview(
         &self,
+        state: &AppState,
         rect: Rect,
         kind_label: &str,
         character: &CharacterDefinition,
         owned: u32,
     ) {
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, SKYBLUE);
+        if let Some(texture) = state.assets.portrait(&character.id) {
+            draw_texture_ex(
+                texture,
+                rect.x + 18.0,
+                rect.y + 54.0,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(112.0, 112.0)),
+                    ..Default::default()
+                },
+            );
+        }
         draw_text(kind_label, rect.x + 20.0, rect.y + 34.0, 24.0, GOLD);
-        draw_text(&character.name, rect.x + 20.0, rect.y + 84.0, 36.0, WHITE);
+        draw_text(&character.name, rect.x + 148.0, rect.y + 84.0, 36.0, WHITE);
         draw_text(
             &format!(
                 "Power {} / {} / {}",
                 character.base_power, character.transformed_power, character.final_power
             ),
-            rect.x + 20.0,
+            rect.x + 148.0,
             rect.y + 132.0,
             24.0,
             TEXT_MUTED,
@@ -2168,14 +2187,14 @@ impl DeckBuilderScreen {
                 "Thresholds {} / {}",
                 character.first_threshold, character.second_threshold
             ),
-            rect.x + 20.0,
+            rect.x + 148.0,
             rect.y + 168.0,
             24.0,
             TEXT_MUTED,
         );
         draw_text(
             &format!("Owned: {owned}"),
-            rect.x + 20.0,
+            rect.x + 148.0,
             rect.y + 220.0,
             24.0,
             WHITE,
@@ -2453,9 +2472,21 @@ impl DeckBuilderScreen {
                 rect.h,
                 if is_in_roster { SKYBLUE } else { GRAY },
             );
+            if let Some(texture) = state.assets.portrait(&character.id) {
+                draw_texture_ex(
+                    texture,
+                    rect.x + ui.w(6.0),
+                    rect.y + ui.h(6.0),
+                    WHITE,
+                    DrawTextureParams {
+                        dest_size: Some(vec2(ui.w(58.0), rect.h - ui.h(12.0))),
+                        ..Default::default()
+                    },
+                );
+            }
             draw_text(
                 &character.name,
-                rect.x + ui.w(14.0),
+                rect.x + ui.w(74.0),
                 rect.y + ui.h(32.0),
                 ui.font(20.0),
                 WHITE,
@@ -2465,7 +2496,7 @@ impl DeckBuilderScreen {
                     "{} / {} / {}",
                     character.base_power, character.transformed_power, character.final_power
                 ),
-                rect.x + ui.w(14.0),
+                rect.x + ui.w(74.0),
                 rect.y + ui.h(58.0),
                 ui.font(16.0),
                 TEXT_MUTED,
@@ -2485,6 +2516,7 @@ impl DeckBuilderScreen {
                 let rect = roster_pool_rect(true, index);
                 if point_in_rect(rect, mouse) {
                     self.draw_character_preview(
+                        state,
                         preview_rect,
                         state.ui_text.get("deck_builder_kind_magical_girl"),
                         character,
@@ -2505,6 +2537,7 @@ impl DeckBuilderScreen {
                         .find(|entry| &entry.id == character_id)
                     {
                         self.draw_character_preview(
+                            state,
                             preview_rect,
                             state.ui_text.get("deck_builder_kind_magical_girl"),
                             character,
@@ -2521,6 +2554,7 @@ impl DeckBuilderScreen {
                 let rect = roster_pool_rect(false, index);
                 if point_in_rect(rect, mouse) {
                     self.draw_character_preview(
+                        state,
                         preview_rect,
                         state.ui_text.get("deck_builder_kind_baddie"),
                         character,
@@ -2541,6 +2575,7 @@ impl DeckBuilderScreen {
                         .find(|entry| &entry.id == character_id)
                     {
                         self.draw_character_preview(
+                            state,
                             preview_rect,
                             state.ui_text.get("deck_builder_kind_baddie"),
                             character,

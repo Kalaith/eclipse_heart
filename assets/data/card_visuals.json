@@ -17,7 +17,13 @@
     {
       "id": "magical_girl",
       "display_name": "Magical Girl",
-      "asset_name": "card_template_magical_girl.png",
+      "asset_name": "generated/cards/card_template_magical_girl.png",
+      "background_asset": "generated/cards/template_magical_girl_background.png",
+      "frame_asset": "generated/cards/template_magical_girl_frame.png",
+      "ornament_asset": "generated/cards/template_magical_girl_ornament.png",
+      "textbox_asset": "generated/cards/template_magical_girl_textbox.png",
+      "art_mask_asset": "generated/cards/template_magical_girl_art_mask.png",
+      "gloss_asset": "generated/cards/template_magical_girl_gloss.png",
       "palette": ["#FFF8EF", "#9ED8FF", "#FF8CAB", "#F1C65D"],
       "motifs": ["crescent", "star", "ribbon", "stage_light"],
       "tone": "optimistic, luminous, graceful"
@@ -25,7 +31,13 @@
     {
       "id": "baddie",
       "display_name": "Baddie",
-      "asset_name": "card_template_baddie.png",
+      "asset_name": "generated/cards/card_template_baddie.png",
+      "background_asset": "generated/cards/template_baddie_background.png",
+      "frame_asset": "generated/cards/template_baddie_frame.png",
+      "ornament_asset": "generated/cards/template_baddie_ornament.png",
+      "textbox_asset": "generated/cards/template_baddie_textbox.png",
+      "art_mask_asset": "generated/cards/template_baddie_art_mask.png",
+      "gloss_asset": "generated/cards/template_baddie_gloss.png",
       "palette": ["#1F1824", "#8B1E3F", "#E53F8A", "#2AA6A4"],
       "motifs": ["thorn", "broken_glass", "curtain", "watchful_eye"],
       "tone": "theatrical, hostile, dramatic"
@@ -33,7 +45,13 @@
     {
       "id": "neutral",
       "display_name": "Neutral",
-      "asset_name": "card_template_neutral.png",
+      "asset_name": "generated/cards/card_template_neutral.png",
+      "background_asset": "generated/cards/template_neutral_background.png",
+      "frame_asset": "generated/cards/template_neutral_frame.png",
+      "ornament_asset": "generated/cards/template_neutral_ornament.png",
+      "textbox_asset": "generated/cards/template_neutral_textbox.png",
+      "art_mask_asset": "generated/cards/template_neutral_art_mask.png",
+      "gloss_asset": "generated/cards/template_neutral_gloss.png",
       "palette": ["#F2E8D2", "#9A7B49", "#59616A", "#A34D41"],
       "motifs": ["panel_line", "seal", "sigil", "tactical_grid"],
       "tone": "tactical, shared-system, restrained"
@@ -44,19 +62,25 @@
       "id": "daily_life",
       "short_label": "Daily",
       "accent_color": "#7FB7D9",
-      "badge_asset": "badge_daily_life.png"
+      "base_asset": "generated/cards/badge_daily_life_base.png",
+      "icon_asset": "generated/cards/badge_daily_life_icon.png",
+      "badge_asset": "generated/cards/badge_daily_life.png"
     },
     {
       "id": "reaction",
       "short_label": "React",
       "accent_color": "#F08A5D",
-      "badge_asset": "badge_reaction.png"
+      "base_asset": "generated/cards/badge_reaction_base.png",
+      "icon_asset": "generated/cards/badge_reaction_icon.png",
+      "badge_asset": "generated/cards/badge_reaction.png"
     },
     {
       "id": "encounter",
       "short_label": "Encounter",
       "accent_color": "#C94C4C",
-      "badge_asset": "badge_encounter.png"
+      "base_asset": "generated/cards/badge_encounter_base.png",
+      "icon_asset": "generated/cards/badge_encounter_icon.png",
+      "badge_asset": "generated/cards/badge_encounter.png"
     }
   ]
 }

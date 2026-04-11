@@ -405,7 +405,346 @@
       "battle_history": [],
       "created_at_unix": 1774441641,
       "updated_at_unix": 1774441663
+    },
+    {
+      "id": "campaign_run_7",
+      "name": "Bobs Deck Run",
+      "campaign_id": "magical_girl_rising",
+      "status": "InProgress",
+      "current_node_id": "opening_hunt",
+      "completed_node_ids": [],
+      "player_deck": {
+        "id": "deck_2",
+        "name": "Bobs Deck",
+        "source_template_id": null,
+        "notes": "",
+        "archetype_tags": [],
+        "story_cards": [
+          "break_the_formation",
+          "curtain_call_denied",
+          "expose_the_accomplice",
+          "identity_reveal",
+          "not_on_my_watch",
+          "whisper_campaign",
+          "synchronized_finish",
+          "sunrise_promise",
+          "shared_umbrella",
+          "snare_the_lead",
+          "spotlight_exchange",
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "crossfire_block",
+          "crossfire_block",
+          "crossfire_block"
+        ],
+        "magical_girl_roster": [
+          "yuki",
+          "hana",
+          "riri",
+          "momo",
+          "kiko"
+        ],
+        "baddie_roster": [
+          "noctra",
+          "velvet_hex",
+          "glass_crow",
+          "thorn_waltz",
+          "hollow_marionette"
+        ],
+        "created_at_unix": 1774328395,
+        "updated_at_unix": 1774328954,
+        "recent_story_cards": [
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "crossfire_block"
+        ]
+      },
+      "selected_magical_girl_support_ids": [],
+      "battle_history": [],
+      "created_at_unix": 1775823658,
+      "updated_at_unix": 1775823658
+    },
+    {
+      "id": "campaign_run_8",
+      "name": "Bobs Deck Run",
+      "campaign_id": "magical_girl_rising",
+      "status": "InProgress",
+      "current_node_id": "opening_hunt",
+      "completed_node_ids": [],
+      "player_deck": {
+        "id": "deck_2",
+        "name": "Bobs Deck",
+        "source_template_id": null,
+        "notes": "",
+        "archetype_tags": [],
+        "story_cards": [
+          "break_the_formation",
+          "curtain_call_denied",
+          "expose_the_accomplice",
+          "identity_reveal",
+          "not_on_my_watch",
+          "whisper_campaign",
+          "synchronized_finish",
+          "sunrise_promise",
+          "shared_umbrella",
+          "snare_the_lead",
+          "spotlight_exchange",
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "crossfire_block",
+          "crossfire_block",
+          "crossfire_block"
+        ],
+        "magical_girl_roster": [
+          "yuki",
+          "hana",
+          "riri",
+          "momo",
+          "kiko"
+        ],
+        "baddie_roster": [
+          "noctra",
+          "velvet_hex",
+          "glass_crow",
+          "thorn_waltz",
+          "hollow_marionette"
+        ],
+        "created_at_unix": 1774328395,
+        "updated_at_unix": 1774328954,
+        "recent_story_cards": [
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "crossfire_block"
+        ]
+      },
+      "selected_magical_girl_support_ids": [],
+      "battle_history": [],
+      "created_at_unix": 1775827463,
+      "updated_at_unix": 1775827463
+    },
+    {
+      "id": "campaign_run_9",
+      "name": "Bobs Deck Run",
+      "campaign_id": "magical_girl_rising",
+      "status": "InProgress",
+      "current_node_id": "opening_hunt",
+      "completed_node_ids": [],
+      "player_deck": {
+        "id": "deck_2",
+        "name": "Bobs Deck",
+        "source_template_id": null,
+        "notes": "",
+        "archetype_tags": [],
+        "story_cards": [
+          "break_the_formation",
+          "curtain_call_denied",
+          "expose_the_accomplice",
+          "identity_reveal",
+          "not_on_my_watch",
+          "whisper_campaign",
+          "synchronized_finish",
+          "sunrise_promise",
+          "shared_umbrella",
+          "snare_the_lead",
+          "spotlight_exchange",
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "crossfire_block",
+          "crossfire_block",
+          "crossfire_block"
+        ],
+        "magical_girl_roster": [
+          "yuki",
+          "hana",
+          "riri",
+          "momo",
+          "kiko"
+        ],
+        "baddie_roster": [
+          "noctra",
+          "velvet_hex",
+          "glass_crow",
+          "thorn_waltz",
+          "hollow_marionette"
+        ],
+        "created_at_unix": 1774328395,
+        "updated_at_unix": 1774328954,
+        "recent_story_cards": [
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "crossfire_block"
+        ]
+      },
+      "selected_magical_girl_support_ids": [
+        "riri",
+        "momo"
+      ],
+      "battle_history": [],
+      "created_at_unix": 1775828416,
+      "updated_at_unix": 1775828421
+    },
+    {
+      "id": "campaign_run_10",
+      "name": "Bobs Deck Run",
+      "campaign_id": "magical_girl_rising",
+      "status": "InProgress",
+      "current_node_id": "opening_hunt",
+      "completed_node_ids": [],
+      "player_deck": {
+        "id": "deck_2",
+        "name": "Bobs Deck",
+        "source_template_id": null,
+        "notes": "",
+        "archetype_tags": [],
+        "story_cards": [
+          "break_the_formation",
+          "curtain_call_denied",
+          "expose_the_accomplice",
+          "identity_reveal",
+          "not_on_my_watch",
+          "whisper_campaign",
+          "synchronized_finish",
+          "sunrise_promise",
+          "shared_umbrella",
+          "snare_the_lead",
+          "spotlight_exchange",
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "crossfire_block",
+          "crossfire_block",
+          "crossfire_block"
+        ],
+        "magical_girl_roster": [
+          "yuki",
+          "hana",
+          "riri",
+          "momo",
+          "kiko"
+        ],
+        "baddie_roster": [
+          "noctra",
+          "velvet_hex",
+          "glass_crow",
+          "thorn_waltz",
+          "hollow_marionette"
+        ],
+        "created_at_unix": 1774328395,
+        "updated_at_unix": 1774328954,
+        "recent_story_cards": [
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "crossfire_block"
+        ]
+      },
+      "selected_magical_girl_support_ids": [
+        "riri",
+        "momo"
+      ],
+      "battle_history": [],
+      "created_at_unix": 1775867057,
+      "updated_at_unix": 1775867060
+    },
+    {
+      "id": "campaign_run_11",
+      "name": "Bobs Deck Run",
+      "campaign_id": "magical_girl_rising",
+      "status": "InProgress",
+      "current_node_id": "opening_hunt",
+      "completed_node_ids": [],
+      "player_deck": {
+        "id": "deck_2",
+        "name": "Bobs Deck",
+        "source_template_id": null,
+        "notes": "",
+        "archetype_tags": [],
+        "story_cards": [
+          "break_the_formation",
+          "curtain_call_denied",
+          "expose_the_accomplice",
+          "identity_reveal",
+          "not_on_my_watch",
+          "whisper_campaign",
+          "synchronized_finish",
+          "sunrise_promise",
+          "shared_umbrella",
+          "snare_the_lead",
+          "spotlight_exchange",
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "emergency_costume_repair",
+          "crossfire_block",
+          "crossfire_block",
+          "crossfire_block"
+        ],
+        "magical_girl_roster": [
+          "yuki",
+          "hana",
+          "riri",
+          "momo",
+          "kiko"
+        ],
+        "baddie_roster": [
+          "noctra",
+          "velvet_hex",
+          "glass_crow",
+          "thorn_waltz",
+          "hollow_marionette"
+        ],
+        "created_at_unix": 1774328395,
+        "updated_at_unix": 1774328954,
+        "recent_story_cards": [
+          "stage_whisper",
+          "nightmare_spotlight",
+          "forbidden_bloom_of_calamity",
+          "emergency_costume_repair",
+          "crossfire_block"
+        ]
+      },
+      "selected_magical_girl_support_ids": [
+        "riri",
+        "momo"
+      ],
+      "battle_history": [],
+      "created_at_unix": 1775869970,
+      "updated_at_unix": 1775869972
     }
   ],
-  "selected_run_id": "campaign_run_6"
+  "selected_run_id": "campaign_run_11"
 }

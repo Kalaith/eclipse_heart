@@ -5,7 +5,7 @@ use macroquad::prelude::*;
 use crate::screens::ScreenAction;
 use crate::state::AppState;
 use crate::ui::card_widgets::action_button;
-use crate::ui::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_panel, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub struct MenuScreen;
@@ -52,6 +52,9 @@ impl MenuScreen {
         let ui = UiLayout::current();
         let title = state.ui_text.get("menu_title");
         let subtitle = state.ui_text.get("menu_subtitle");
+        if let Some(background) = state.assets.ui_background("menu") {
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.92));
+        }
         draw_panel(ui.x(80.0), ui.y(84.0), ui.w(2400.0), ui.h(560.0), SKYBLUE);
         draw_text(title, ui.x(140.0), ui.y(210.0), ui.font(106.0), WHITE);
         draw_text(

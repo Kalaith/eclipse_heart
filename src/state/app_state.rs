@@ -1,6 +1,7 @@
 //! Top-level app state.
 
 use crate::data::{GameContent, UiText};
+use crate::ui::assets::UiAssets;
 
 use super::{CollectionCardKind, MatchSetup, MatchState, PersistenceBundle, PersistenceManager};
 
@@ -31,6 +32,7 @@ pub struct AppState {
     pub screen: AppScreen,
     pub ui_text: UiText,
     pub content: GameContent,
+    pub assets: UiAssets,
     pub setup: MatchSetup,
     pub match_state: Option<MatchState>,
     pub battle_context: BattleContext,
@@ -41,7 +43,8 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(ui_text: UiText, content: GameContent) -> Self {
+    pub async fn new(ui_text: UiText, content: GameContent) -> Self {
+        let assets = UiAssets::load(&content).await;
         let setup = MatchSetup::default_for_content(&content);
         let persistence = PersistenceManager::default_local();
         let mut saves = persistence.load_all().unwrap_or_default();
@@ -66,6 +69,7 @@ impl AppState {
             screen: AppScreen::Menu,
             ui_text,
             content,
+            assets,
             setup,
             match_state: None,
             battle_context: BattleContext::Skirmish,

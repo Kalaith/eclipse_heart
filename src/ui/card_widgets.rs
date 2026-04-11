@@ -1,14 +1,104 @@
 //! Shared card and panel widgets.
 
+use std::cell::RefCell;
+
 use macroquad::prelude::*;
-use macroquad_toolkit::ui::button;
 
 use crate::data::{CardAlignment, CardEffect, CardSpeed, StoryCardDefinition};
+use crate::state::AppState;
 
 use super::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
 
+#[derive(Clone)]
+struct ActionButtonVisual {
+    rect: Rect,
+    label: String,
+    hovered: bool,
+    pressed: bool,
+}
+
+thread_local! {
+    static PENDING_ACTION_BUTTONS: RefCell<Vec<ActionButtonVisual>> = const { RefCell::new(Vec::new()) };
+}
+
 pub fn action_button(rect: Rect, label: &str) -> bool {
-    button(rect.x, rect.y, rect.w, rect.h, label)
+    let hovered = point_in_rect(rect, mouse_position());
+    let pressed = hovered && is_mouse_button_down(MouseButton::Left);
+    let clicked = hovered && is_mouse_button_pressed(MouseButton::Left);
+
+    PENDING_ACTION_BUTTONS.with(|buttons| {
+        buttons.borrow_mut().push(ActionButtonVisual {
+            rect,
+            label: label.to_owned(),
+            hovered,
+            pressed,
+        });
+    });
+
+    clicked
+}
+
+pub fn render_action_buttons() {
+    let visuals = PENDING_ACTION_BUTTONS.with(|buttons| std::mem::take(&mut *buttons.borrow_mut()));
+    for visual in visuals {
+        draw_action_button_visual(&visual);
+    }
+}
+
+fn draw_action_button_visual(button: &ActionButtonVisual) {
+    let fill = if button.pressed {
+        Color::new(0.12, 0.16, 0.24, 0.96)
+    } else if button.hovered {
+        Color::new(0.16, 0.22, 0.30, 0.95)
+    } else {
+        Color::new(0.08, 0.10, 0.16, 0.94)
+    };
+    let outline = if button.hovered { GOLD } else { SKYBLUE };
+    let shadow = Color::new(0.02, 0.03, 0.06, 0.42);
+
+    draw_rectangle(
+        button.rect.x + 4.0,
+        button.rect.y + 6.0,
+        button.rect.w,
+        button.rect.h,
+        shadow,
+    );
+    draw_rectangle(
+        button.rect.x,
+        button.rect.y,
+        button.rect.w,
+        button.rect.h,
+        fill,
+    );
+    draw_rectangle_lines(
+        button.rect.x,
+        button.rect.y,
+        button.rect.w,
+        button.rect.h,
+        3.0,
+        outline,
+    );
+    draw_rectangle_lines(
+        button.rect.x + 6.0,
+        button.rect.y + 6.0,
+        button.rect.w - 12.0,
+        button.rect.h - 12.0,
+        1.0,
+        Color::new(1.0, 1.0, 1.0, 0.18),
+    );
+
+    let font_size = (button.rect.h * 0.36).clamp(18.0, 30.0);
+    let text_metrics = measure_text(&button.label, None, font_size as u16, 1.0);
+    let text_x = button.rect.x + (button.rect.w - text_metrics.width) * 0.5;
+    let text_y = button.rect.y + (button.rect.h + text_metrics.height) * 0.5 - 6.0;
+    draw_text(
+        &button.label,
+        text_x + 1.0,
+        text_y + 1.0,
+        font_size,
+        Color::new(0.0, 0.0, 0.0, 0.55),
+    );
+    draw_text(&button.label, text_x, text_y, font_size, WHITE);
 }
 
 pub fn disabled_card_button(rect: Rect, speed_label: &str, status_label: &str, card_name: &str) {
@@ -46,6 +136,7 @@ pub fn section_panel(rect: Rect, title: &str, outline: Color) {
 }
 
 pub fn draw_story_card_tile(
+    state: &AppState,
     rect: Rect,
     card: &StoryCardDefinition,
     subtitle: &str,
@@ -65,7 +156,51 @@ pub fn draw_story_card_tile(
         Color::new(0.11, 0.11, 0.18, 0.98)
     };
 
-    draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
+    if let Some(texture) = state.assets.template_for_alignment(card.alignment) {
+        draw_texture_ex(
+            texture,
+            rect.x,
+            rect.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(rect.w, rect.h)),
+                ..Default::default()
+            },
+        );
+        draw_rectangle(
+            rect.x + 6.0,
+            rect.y + rect.h * 0.24,
+            rect.w - 12.0,
+            rect.h * 0.34,
+            Color::new(0.08, 0.09, 0.13, 0.88),
+        );
+        if let Some(art_texture) = state.assets.story_card_art(&card.id) {
+            draw_texture_ex(
+                art_texture,
+                rect.x + 8.0,
+                rect.y + rect.h * 0.245,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(rect.w - 16.0, rect.h * 0.33)),
+                    ..Default::default()
+                },
+            );
+        }
+        if let Some(badge_texture) = state.assets.badge_for_speed(card.speed) {
+            draw_texture_ex(
+                badge_texture,
+                rect.x + rect.w - 56.0,
+                rect.y + 8.0,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(48.0, 48.0)),
+                    ..Default::default()
+                },
+            );
+        }
+    } else {
+        draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
+    }
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
 
     draw_text(
@@ -99,16 +234,53 @@ pub fn draw_story_card_tile(
     );
 }
 
-pub fn draw_story_card_preview(rect: Rect, card: &StoryCardDefinition, footer_lines: &[String]) {
+pub fn draw_story_card_preview(
+    state: &AppState,
+    rect: Rect,
+    card: &StoryCardDefinition,
+    footer_lines: &[String],
+) {
     let accent = card_alignment_color(card.alignment);
-    draw_rectangle(
-        rect.x,
-        rect.y,
-        rect.w,
-        rect.h,
-        Color::new(0.10, 0.10, 0.16, 0.99),
-    );
+    if let Some(texture) = state.assets.template_for_alignment(card.alignment) {
+        draw_texture_ex(
+            texture,
+            rect.x,
+            rect.y,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(rect.w, rect.h)),
+                ..Default::default()
+            },
+        );
+    } else {
+        draw_rectangle(
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
+            Color::new(0.10, 0.10, 0.16, 0.99),
+        );
+    }
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 4.0, accent);
+    if let Some(art_texture) = state.assets.story_card_art(&card.id) {
+        draw_texture_ex(
+            art_texture,
+            rect.x + 18.0,
+            rect.y + 54.0,
+            WHITE,
+            DrawTextureParams {
+                dest_size: Some(vec2(rect.w - 36.0, 146.0)),
+                ..Default::default()
+            },
+        );
+        draw_rectangle(
+            rect.x + 18.0,
+            rect.y + 54.0,
+            rect.w - 36.0,
+            146.0,
+            Color::new(0.08, 0.09, 0.13, 0.14),
+        );
+    }
 
     draw_text(
         speed_label(card.speed),
@@ -126,7 +298,7 @@ pub fn draw_story_card_preview(rect: Rect, card: &StoryCardDefinition, footer_li
     );
 
     let title_lines = wrap_text_lines(&card.name, rect.w - 40.0, 38.0, 3);
-    let mut title_y = rect.y + 78.0;
+    let mut title_y = rect.y + 226.0;
     for line in title_lines {
         draw_text(&line, rect.x + 20.0, title_y, 38.0, WHITE);
         title_y += 36.0;
@@ -135,7 +307,7 @@ pub fn draw_story_card_preview(rect: Rect, card: &StoryCardDefinition, footer_li
     draw_text(
         &card.card_type,
         rect.x + 20.0,
-        rect.y + 176.0,
+        rect.y + 344.0,
         22.0,
         TEXT_MUTED,
     );
@@ -145,7 +317,7 @@ pub fn draw_story_card_preview(rect: Rect, card: &StoryCardDefinition, footer_li
         .iter()
         .flat_map(|effect| wrap_text_lines(&describe_effect(effect), rect.w - 40.0, 28.0, 3))
         .collect::<Vec<_>>();
-    let mut effect_y = rect.y + 226.0;
+    let mut effect_y = rect.y + 388.0;
     for line in effect_lines {
         draw_text(&line, rect.x + 20.0, effect_y, 28.0, WHITE);
         effect_y += 30.0;

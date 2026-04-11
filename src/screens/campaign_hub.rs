@@ -6,7 +6,7 @@ use crate::data::{CharacterDefinition, StoryCardDefinition};
 use crate::screens::ScreenAction;
 use crate::state::AppState;
 use crate::ui::card_widgets::{action_button, point_in_rect};
-use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub struct CampaignHubScreen;
@@ -48,6 +48,9 @@ impl CampaignHubScreen {
 
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
+        if let Some(background) = state.assets.ui_background("campaign") {
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.84));
+        }
         let Some(run) = state.saves.campaigns.selected_run() else {
             draw_text(
                 state.ui_text.get("campaign_no_active_run"),
@@ -264,10 +267,22 @@ impl CampaignHubScreen {
             SKYBLUE
         };
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
+        if let Some(texture) = state.assets.portrait(&character.id) {
+            draw_texture_ex(
+                texture,
+                rect.x + ui.w(6.0),
+                rect.y + ui.h(6.0),
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(ui.w(92.0), rect.h - ui.h(12.0))),
+                    ..Default::default()
+                },
+            );
+        }
         draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
         draw_text(
             &character.name,
-            rect.x + ui.w(14.0),
+            rect.x + ui.w(110.0),
             rect.y + ui.h(32.0),
             ui.font(22.0),
             WHITE,
@@ -277,7 +292,7 @@ impl CampaignHubScreen {
                 "{} / {} / {}",
                 character.base_power, character.transformed_power, character.final_power
             ),
-            rect.x + ui.w(14.0),
+            rect.x + ui.w(110.0),
             rect.y + ui.h(66.0),
             ui.font(18.0),
             TEXT_MUTED,
@@ -289,7 +304,7 @@ impl CampaignHubScreen {
                 character.first_threshold,
                 character.second_threshold
             ),
-            rect.x + ui.w(14.0),
+            rect.x + ui.w(110.0),
             rect.y + ui.h(96.0),
             ui.font(18.0),
             if selectable { TEXT_MUTED } else { GOLD },

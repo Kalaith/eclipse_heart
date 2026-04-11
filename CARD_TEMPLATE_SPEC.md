@@ -223,6 +223,24 @@ Use stable predictable names:
 - `badge_reaction.png`
 - `badge_encounter.png`
 
+Current procedural exports live under `assets/generated/cards/`.
+The source-of-truth layout and palette metadata stays in `assets/data/card_visuals.json`,
+and `tools/generate_card_assets.py` regenerates the shipped PNG files from that data.
+The procedural export now also includes layered pieces for each frame family:
+
+- background
+- frame
+- ornament
+- textbox
+- art mask
+- gloss
+
+Each speed badge also exports:
+
+- badge base
+- badge icon
+- combined labeled badge
+
 If exported as layered pieces:
 
 - `template_magical_girl_frame.png`

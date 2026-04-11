@@ -5,7 +5,7 @@ use macroquad::prelude::*;
 use crate::screens::ScreenAction;
 use crate::state::{AppState, CampaignRunSave, CampaignRunStatus};
 use crate::ui::card_widgets::{action_button, point_in_rect};
-use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub struct CampaignMenuScreen;
@@ -60,6 +60,9 @@ impl CampaignMenuScreen {
 
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
+        if let Some(background) = state.assets.ui_background("campaign") {
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.84));
+        }
         draw_text(
             state.ui_text.get("campaign_menu_title"),
             ui.x(80.0),
@@ -176,6 +179,24 @@ impl CampaignMenuScreen {
         };
 
         draw_soft_panel(slot.rect.x, slot.rect.y, slot.rect.w, slot.rect.h, DARKGRAY);
+        if let Some(texture) = slot
+            .run
+            .player_deck
+            .magical_girl_roster
+            .first()
+            .and_then(|character_id| state.assets.portrait(character_id))
+        {
+            draw_texture_ex(
+                texture,
+                slot.rect.x + ui.w(12.0),
+                slot.rect.y + ui.h(10.0),
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(ui.w(88.0), ui.h(84.0))),
+                    ..Default::default()
+                },
+            );
+        }
         draw_rectangle_lines(
             slot.rect.x,
             slot.rect.y,
@@ -186,7 +207,7 @@ impl CampaignMenuScreen {
         );
         draw_text(
             &slot.run.name,
-            slot.rect.x + ui.w(20.0),
+            slot.rect.x + ui.w(116.0),
             slot.rect.y + ui.h(36.0),
             ui.font(24.0),
             WHITE,
@@ -199,7 +220,7 @@ impl CampaignMenuScreen {
                 slot.run.completed_node_ids.len(),
                 state.content.campaign.nodes.len()
             ),
-            slot.rect.x + ui.w(20.0),
+            slot.rect.x + ui.w(116.0),
             slot.rect.y + ui.h(70.0),
             ui.font(18.0),
             TEXT_MUTED,

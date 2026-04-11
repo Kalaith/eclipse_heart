@@ -18,6 +18,7 @@ async fn main() {
     let mut game = Game::new().await;
 
     loop {
+        show_mouse(true);
         clear_background(ui::core::BACKGROUND);
         game.update();
         game.draw();

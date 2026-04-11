@@ -580,6 +580,7 @@ impl BattleScreen {
                 hovered_card = Some((card, enabled));
             }
             draw_story_card_tile(
+                state,
                 *rect,
                 card,
                 hand_card_status_label(state, enabled),
@@ -594,7 +595,7 @@ impl BattleScreen {
                 format!("{}: {}", state.ui_text.get("phase_label"), card.card_type),
                 hand_card_status_label(state, enabled).to_owned(),
             ];
-            draw_story_card_preview(preview_rect, card, &footer);
+            draw_story_card_preview(state, preview_rect, card, &footer);
         }
     }
 }

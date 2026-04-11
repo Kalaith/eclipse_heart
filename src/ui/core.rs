@@ -16,3 +16,16 @@ pub fn draw_soft_panel(x: f32, y: f32, width: f32, height: f32, outline: Color) 
     draw_rectangle(x, y, width, height, PANEL_SOFT);
     draw_rectangle_lines(x, y, width, height, 2.0, outline);
 }
+
+pub fn draw_background_texture(texture: &Texture2D, tint: Color) {
+    draw_texture_ex(
+        texture,
+        0.0,
+        0.0,
+        tint,
+        DrawTextureParams {
+            dest_size: Some(vec2(screen_width(), screen_height())),
+            ..Default::default()
+        },
+    );
+}

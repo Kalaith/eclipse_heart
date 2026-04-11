@@ -1,12 +1,13 @@
 //! JSON loading helpers.
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use serde::de::DeserializeOwned;
 use thiserror::Error;
 
 use crate::data::{
-    CampaignDefinition, CardVisualSpec, CharacterDefinition, DeckRules, MatchRules,
+    ArtCatalog, CampaignDefinition, CardVisualSpec, CharacterDefinition, DeckRules, MatchRules,
     ProgressionRules, StarterLoadout, StoryCardDefinition, UiText,
 };
 
@@ -29,6 +30,7 @@ pub struct GameContent {
     pub starter_loadouts: Vec<StarterLoadout>,
     pub campaign: CampaignDefinition,
     pub card_visuals: CardVisualSpec,
+    pub art_catalog: ArtCatalog,
 }
 
 impl Default for GameContent {
@@ -52,28 +54,35 @@ impl Default for GameContent {
                 template_families: Vec::new(),
                 speed_badges: Vec::new(),
             },
+            art_catalog: ArtCatalog::default(),
         }
     }
 }
 
 impl GameContent {
     pub fn load() -> Result<Self, LoadError> {
-        let magical_girls =
-            load_json::<Vec<CharacterDefinition>>("assets/data/magical_girls/prototype_set.json")?;
-        let baddies =
-            load_json::<Vec<CharacterDefinition>>("assets/data/baddies/prototype_set.json")?;
-        let story_cards =
-            load_json::<Vec<StoryCardDefinition>>("assets/data/story_cards/prototype_set.json")?;
-        let rules = load_json::<MatchRules>("assets/data/rules/match_rules.json")?;
-        let deck_rules = load_json::<DeckRules>("assets/data/rules/deck_rules.json")?;
+        let magical_girls = load_json::<Vec<CharacterDefinition>>(asset_path(
+            "assets/data/magical_girls/prototype_set.json",
+        ))?;
+        let baddies = load_json::<Vec<CharacterDefinition>>(asset_path(
+            "assets/data/baddies/prototype_set.json",
+        ))?;
+        let story_cards = load_json::<Vec<StoryCardDefinition>>(asset_path(
+            "assets/data/story_cards/prototype_set.json",
+        ))?;
+        let rules = load_json::<MatchRules>(asset_path("assets/data/rules/match_rules.json"))?;
+        let deck_rules = load_json::<DeckRules>(asset_path("assets/data/rules/deck_rules.json"))?;
         let progression_rules =
-            load_json::<ProgressionRules>("assets/data/rules/progression_rules.json")?;
-        let starter_loadouts = load_json::<Vec<StarterLoadout>>(
+            load_json::<ProgressionRules>(asset_path("assets/data/rules/progression_rules.json"))?;
+        let starter_loadouts = load_json::<Vec<StarterLoadout>>(asset_path(
             "assets/data/starter_loadouts/prototype_starters.json",
-        )?;
-        let campaign =
-            load_json::<CampaignDefinition>("assets/data/campaigns/magical_girl_campaign.json")?;
-        let card_visuals = load_json::<CardVisualSpec>("assets/data/card_visuals.json")?;
+        ))?;
+        let campaign = load_json::<CampaignDefinition>(asset_path(
+            "assets/data/campaigns/magical_girl_campaign.json",
+        ))?;
+        let card_visuals =
+            load_json::<CardVisualSpec>(asset_path("assets/data/card_visuals.json"))?;
+        let art_catalog = load_json::<ArtCatalog>(asset_path("assets/data/art_catalog.json"))?;
         Ok(Self {
             magical_girls,
             baddies,
@@ -84,24 +93,37 @@ impl GameContent {
             starter_loadouts,
             campaign,
             card_visuals,
+            art_catalog,
         })
     }
 }
 
 impl UiText {
     pub fn load() -> Result<Self, LoadError> {
-        let values = load_json::<HashMap<String, String>>("assets/data/ui_text.json")?;
+        let values = load_json::<HashMap<String, String>>(asset_path("assets/data/ui_text.json"))?;
         Ok(Self { values })
     }
 }
 
-fn load_json<T>(path: &str) -> Result<T, LoadError>
+fn load_json<T>(path: PathBuf) -> Result<T, LoadError>
 where
     T: DeserializeOwned,
 {
     let text = std::fs::read_to_string(path)?;
     let value = serde_json::from_str::<T>(&text)?;
     Ok(value)
+}
+
+fn asset_path(relative_path: &str) -> PathBuf {
+    #[cfg(target_arch = "wasm32")]
+    {
+        PathBuf::from(relative_path)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative_path)
+    }
 }
 
 #[cfg(test)]
@@ -133,6 +155,9 @@ mod tests {
         assert_eq!(content.card_visuals.canvas.width, 750);
         assert_eq!(content.card_visuals.template_families.len(), 3);
         assert_eq!(content.card_visuals.speed_badges.len(), 3);
+        assert_eq!(content.art_catalog.character_portraits.len(), 10);
+        assert_eq!(content.art_catalog.story_card_art.len(), 32);
+        assert_eq!(content.art_catalog.ui_backgrounds.len(), 3);
     }
 
     #[test]

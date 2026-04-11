@@ -1,5 +1,6 @@
 //! Top-level game coordinator.
 
+use macroquad::input::show_mouse;
 use macroquad::miniquad::window::quit;
 use macroquad::rand::gen_range;
 use macroquad::window::{request_new_screen_size, set_fullscreen};
@@ -14,6 +15,7 @@ use crate::state::{
     AppScreen, AppState, BattleContext, BoosterCardGrant, CollectionCardKind, DeckPreset,
     DecksSave, MatchPhase, MatchSetup, MatchState, PlayerId,
 };
+use crate::ui::card_widgets::render_action_buttons;
 
 pub struct Game {
     state: AppState,
@@ -27,10 +29,15 @@ pub struct Game {
 
 impl Game {
     pub async fn new() -> Self {
-        let ui_text = UiText::load().unwrap_or_default();
-        let content = GameContent::load().unwrap_or_default();
-        let state = AppState::new(ui_text, content);
+        let ui_text = UiText::load().unwrap_or_else(|error| {
+            panic!("failed to load UI text: {error}");
+        });
+        let content = GameContent::load().unwrap_or_else(|error| {
+            panic!("failed to load game content: {error}");
+        });
+        let state = AppState::new(ui_text, content).await;
         apply_window_settings(&state);
+        show_mouse(true);
 
         Self {
             state,
@@ -44,6 +51,7 @@ impl Game {
     }
 
     pub fn update(&mut self) {
+        show_mouse(true);
         let screen_action = self.current_screen_action();
         self.handle_screen_action(screen_action);
         self.run_battle_ai_turn();
@@ -58,6 +66,7 @@ impl Game {
             AppScreen::DeckBuilder => self.deck_builder_screen.draw(&self.state),
             AppScreen::Battle => self.battle_screen.draw(&self.state),
         }
+        render_action_buttons();
     }
 }
 

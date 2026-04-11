@@ -1,0 +1,532 @@
+{
+  "ui_backgrounds": [
+    {
+      "id": "menu",
+      "asset_name": "generated/ui/menu_background.png",
+      "tone": "hopeful intro screen",
+      "motifs": [
+        "ribbon",
+        "starfield",
+        "dawn"
+      ]
+    },
+    {
+      "id": "battle",
+      "asset_name": "generated/ui/battle_background.png",
+      "tone": "dramatic versus backdrop",
+      "motifs": [
+        "thorn",
+        "spotlight",
+        "clash"
+      ]
+    },
+    {
+      "id": "campaign",
+      "asset_name": "generated/ui/campaign_background.png",
+      "tone": "storybook progression map",
+      "motifs": [
+        "grid",
+        "seal",
+        "parchment"
+      ]
+    }
+  ],
+  "character_portraits": [
+    {
+      "id": "yuki",
+      "role": "magical_girl",
+      "asset_name": "generated/portraits/yuki.png",
+      "accent_color": "#FF8CAB",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "hana",
+      "role": "magical_girl",
+      "asset_name": "generated/portraits/hana.png",
+      "accent_color": "#FF8CAB",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "riri",
+      "role": "magical_girl",
+      "asset_name": "generated/portraits/riri.png",
+      "accent_color": "#FF8CAB",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "momo",
+      "role": "magical_girl",
+      "asset_name": "generated/portraits/momo.png",
+      "accent_color": "#FF8CAB",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "kiko",
+      "role": "magical_girl",
+      "asset_name": "generated/portraits/kiko.png",
+      "accent_color": "#FF8CAB",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "noctra",
+      "role": "baddie",
+      "asset_name": "generated/portraits/noctra.png",
+      "accent_color": "#E53F8A",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "velvet_hex",
+      "role": "baddie",
+      "asset_name": "generated/portraits/velvet_hex.png",
+      "accent_color": "#E53F8A",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "glass_crow",
+      "role": "baddie",
+      "asset_name": "generated/portraits/glass_crow.png",
+      "accent_color": "#E53F8A",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "thorn_waltz",
+      "role": "baddie",
+      "asset_name": "generated/portraits/thorn_waltz.png",
+      "accent_color": "#E53F8A",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    },
+    {
+      "id": "hollow_marionette",
+      "role": "baddie",
+      "asset_name": "generated/portraits/hollow_marionette.png",
+      "accent_color": "#E53F8A",
+      "motifs": [
+        "portrait",
+        "base_form",
+        "roster"
+      ]
+    }
+  ],
+  "story_card_art": [
+    {
+      "id": "identity_reveal",
+      "asset_name": "generated/story_cards/identity_reveal.png",
+      "alignment": "baddie",
+      "speed": "daily_life",
+      "card_type": "rumor",
+      "motifs": [
+        "baddie",
+        "daily_life",
+        "rumor"
+      ]
+    },
+    {
+      "id": "twisted_headline",
+      "asset_name": "generated/story_cards/twisted_headline.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "quiet_lunch_on_the_rooftop",
+      "asset_name": "generated/story_cards/quiet_lunch_on_the_rooftop.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "ominous_graffiti",
+      "asset_name": "generated/story_cards/ominous_graffiti.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "scheme",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "scheme"
+      ]
+    },
+    {
+      "id": "false_sense_of_calm",
+      "asset_name": "generated/story_cards/false_sense_of_calm.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "whisper_campaign",
+      "asset_name": "generated/story_cards/whisper_campaign.png",
+      "alignment": "baddie",
+      "speed": "daily_life",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "daily_life",
+        "scheme"
+      ]
+    },
+    {
+      "id": "secret_rehearsal",
+      "asset_name": "generated/story_cards/secret_rehearsal.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "not_on_my_watch",
+      "asset_name": "generated/story_cards/not_on_my_watch.png",
+      "alignment": "magical_girl",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "magical_girl",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "expose_the_accomplice",
+      "asset_name": "generated/story_cards/expose_the_accomplice.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "scheme"
+      ]
+    },
+    {
+      "id": "curtain_call_denied",
+      "asset_name": "generated/story_cards/curtain_call_denied.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "last_minute_cover_story",
+      "asset_name": "generated/story_cards/last_minute_cover_story.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "shared_umbrella",
+      "asset_name": "generated/story_cards/shared_umbrella.png",
+      "alignment": "magical_girl",
+      "speed": "reaction",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "reaction",
+        "bond"
+      ]
+    },
+    {
+      "id": "panic_spiral",
+      "asset_name": "generated/story_cards/panic_spiral.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "scheme"
+      ]
+    },
+    {
+      "id": "emergency_costume_repair",
+      "asset_name": "generated/story_cards/emergency_costume_repair.png",
+      "alignment": "magical_girl",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "magical_girl",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "crescent_counterpose",
+      "asset_name": "generated/story_cards/crescent_counterpose.png",
+      "alignment": "magical_girl",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "magical_girl",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "synchronized_finish",
+      "asset_name": "generated/story_cards/synchronized_finish.png",
+      "alignment": "magical_girl",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "magical_girl",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "panic_in_the_parade_route",
+      "asset_name": "generated/story_cards/panic_in_the_parade_route.png",
+      "alignment": "baddie",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "baddie",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "forbidden_bloom_of_calamity",
+      "asset_name": "generated/story_cards/forbidden_bloom_of_calamity.png",
+      "alignment": "baddie",
+      "speed": "encounter",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "encounter",
+        "scheme"
+      ]
+    },
+    {
+      "id": "moonlit_rescue_chain",
+      "asset_name": "generated/story_cards/moonlit_rescue_chain.png",
+      "alignment": "magical_girl",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "magical_girl",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "sunrise_promise",
+      "asset_name": "generated/story_cards/sunrise_promise.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "ribbon_signal",
+      "asset_name": "generated/story_cards/ribbon_signal.png",
+      "alignment": "magical_girl",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "magical_girl",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "spotlight_exchange",
+      "asset_name": "generated/story_cards/spotlight_exchange.png",
+      "alignment": "magical_girl",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "magical_girl",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "stage_whisper",
+      "asset_name": "generated/story_cards/stage_whisper.png",
+      "alignment": "magical_girl",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "magical_girl",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "false_applause",
+      "asset_name": "generated/story_cards/false_applause.png",
+      "alignment": "baddie",
+      "speed": "daily_life",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "daily_life",
+        "scheme"
+      ]
+    },
+    {
+      "id": "snare_the_lead",
+      "asset_name": "generated/story_cards/snare_the_lead.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "curtain_of_fear",
+      "asset_name": "generated/story_cards/curtain_of_fear.png",
+      "alignment": "baddie",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "baddie",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "shadow_prompt",
+      "asset_name": "generated/story_cards/shadow_prompt.png",
+      "alignment": "baddie",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "baddie",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "dramatic_entrance",
+      "asset_name": "generated/story_cards/dramatic_entrance.png",
+      "alignment": "neutral",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "neutral",
+        "encounter",
+        "tactic"
+      ]
+    },
+    {
+      "id": "changing_rooms",
+      "asset_name": "generated/story_cards/changing_rooms.png",
+      "alignment": "neutral",
+      "speed": "daily_life",
+      "card_type": "bond",
+      "motifs": [
+        "neutral",
+        "daily_life",
+        "bond"
+      ]
+    },
+    {
+      "id": "crossfire_block",
+      "asset_name": "generated/story_cards/crossfire_block.png",
+      "alignment": "neutral",
+      "speed": "reaction",
+      "card_type": "reaction",
+      "motifs": [
+        "neutral",
+        "reaction",
+        "reaction"
+      ]
+    },
+    {
+      "id": "nightmare_spotlight",
+      "asset_name": "generated/story_cards/nightmare_spotlight.png",
+      "alignment": "baddie",
+      "speed": "encounter",
+      "card_type": "scheme",
+      "motifs": [
+        "baddie",
+        "encounter",
+        "scheme"
+      ]
+    },
+    {
+      "id": "break_the_formation",
+      "asset_name": "generated/story_cards/break_the_formation.png",
+      "alignment": "neutral",
+      "speed": "encounter",
+      "card_type": "tactic",
+      "motifs": [
+        "neutral",
+        "encounter",
+        "tactic"
+      ]
+    }
+  ]
+}
