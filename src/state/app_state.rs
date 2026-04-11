@@ -30,6 +30,7 @@ pub enum BattleContext {
 
 pub struct AppState {
     pub screen: AppScreen,
+    pub escape_menu_open: bool,
     pub ui_text: UiText,
     pub content: GameContent,
     pub assets: UiAssets,
@@ -67,6 +68,7 @@ impl AppState {
             .ensure_valid_support_decks(&magical_girl_ids, &baddie_ids);
         Self {
             screen: AppScreen::Menu,
+            escape_menu_open: false,
             ui_text,
             content,
             assets,

@@ -45,6 +45,12 @@ pub fn render_action_buttons() {
     }
 }
 
+pub fn clear_action_buttons() {
+    PENDING_ACTION_BUTTONS.with(|buttons| {
+        buttons.borrow_mut().clear();
+    });
+}
+
 fn draw_action_button_visual(button: &ActionButtonVisual) {
     let fill = if button.pressed {
         Color::new(0.12, 0.16, 0.24, 0.96)
@@ -151,10 +157,18 @@ pub fn draw_story_card_tile(
         GRAY
     };
     let fill = if enabled {
-        Color::new(0.15, 0.15, 0.24, 0.98)
+        Color::new(0.10, 0.11, 0.18, 0.98)
     } else {
-        Color::new(0.11, 0.11, 0.18, 0.98)
+        Color::new(0.08, 0.09, 0.14, 0.98)
     };
+    let top_bar_height = rect.h * 0.26;
+    let art_rect = Rect::new(
+        rect.x + 10.0,
+        rect.y + top_bar_height + 6.0,
+        rect.w - 20.0,
+        rect.h * 0.34,
+    );
+    let bottom_bar_height = 44.0;
 
     if let Some(texture) = state.assets.template_for_alignment(card.alignment) {
         draw_texture_ex(
@@ -168,24 +182,39 @@ pub fn draw_story_card_tile(
             },
         );
         draw_rectangle(
-            rect.x + 6.0,
-            rect.y + rect.h * 0.24,
-            rect.w - 12.0,
-            rect.h * 0.34,
-            Color::new(0.08, 0.09, 0.13, 0.88),
+            rect.x + 8.0,
+            rect.y + 8.0,
+            rect.w - 16.0,
+            top_bar_height - 12.0,
+            Color::new(0.05, 0.06, 0.10, 0.82),
         );
         if let Some(art_texture) = state.assets.story_card_art(&card.id) {
             draw_texture_ex(
                 art_texture,
-                rect.x + 8.0,
-                rect.y + rect.h * 0.245,
+                art_rect.x,
+                art_rect.y,
                 WHITE,
                 DrawTextureParams {
-                    dest_size: Some(vec2(rect.w - 16.0, rect.h * 0.33)),
+                    dest_size: Some(vec2(art_rect.w, art_rect.h)),
                     ..Default::default()
                 },
             );
         }
+        draw_rectangle(
+            art_rect.x,
+            art_rect.y,
+            art_rect.w,
+            art_rect.h,
+            Color::new(0.08, 0.09, 0.13, 0.18),
+        );
+        draw_rectangle_lines(
+            art_rect.x,
+            art_rect.y,
+            art_rect.w,
+            art_rect.h,
+            2.0,
+            Color::new(1.0, 1.0, 1.0, 0.12),
+        );
         if let Some(badge_texture) = state.assets.badge_for_speed(card.speed) {
             draw_texture_ex(
                 badge_texture,
@@ -201,35 +230,43 @@ pub fn draw_story_card_tile(
     } else {
         draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
     }
+    if !enabled {
+        draw_rectangle(
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
+            Color::new(0.02, 0.03, 0.06, 0.22),
+        );
+    }
     draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
 
-    draw_text(
+    let speed_line = format!(
+        "{}   {}",
         speed_label(card.speed),
-        rect.x + 14.0,
-        rect.y + 26.0,
-        22.0,
-        outline,
+        alignment_label(card.alignment)
     );
-    draw_text(
-        alignment_label(card.alignment),
-        rect.x + rect.w - 112.0,
-        rect.y + 26.0,
-        20.0,
-        TEXT_MUTED,
-    );
+    draw_text(&speed_line, rect.x + 14.0, rect.y + 24.0, 18.0, outline);
 
-    let title_lines = wrap_text_lines(&card.name, rect.w - 28.0, 28.0, 2);
-    let mut title_y = rect.y + 58.0;
+    let title_lines = wrap_text_lines(&card.name, rect.w - 84.0, 26.0, 2);
+    let mut title_y = rect.y + 52.0;
     for line in title_lines {
         draw_text(&line, rect.x + 14.0, title_y, 28.0, WHITE);
         title_y += 26.0;
     }
 
+    draw_rectangle(
+        rect.x + 8.0,
+        rect.y + rect.h - bottom_bar_height - 8.0,
+        rect.w - 16.0,
+        bottom_bar_height,
+        Color::new(0.05, 0.06, 0.10, 0.82),
+    );
     draw_text(
-        &format!("{} | {}", card.card_type, subtitle),
+        &format!("{}  |  {}", title_case_text(&card.card_type), subtitle),
         rect.x + 14.0,
-        rect.y + rect.h - 16.0,
-        18.0,
+        rect.y + rect.h - 18.0,
+        16.0,
         TEXT_MUTED,
     );
 }
@@ -282,19 +319,23 @@ pub fn draw_story_card_preview(
         );
     }
 
-    draw_text(
-        speed_label(card.speed),
-        rect.x + 20.0,
-        rect.y + 34.0,
-        26.0,
-        accent,
+    draw_rectangle(
+        rect.x + 18.0,
+        rect.y + 16.0,
+        rect.w - 36.0,
+        34.0,
+        Color::new(0.05, 0.06, 0.10, 0.78),
     );
     draw_text(
-        alignment_label(card.alignment),
-        rect.x + rect.w - 130.0,
-        rect.y + 34.0,
+        &format!(
+            "{}   {}",
+            speed_label(card.speed),
+            alignment_label(card.alignment)
+        ),
+        rect.x + 28.0,
+        rect.y + 40.0,
         22.0,
-        TEXT_MUTED,
+        accent,
     );
 
     let title_lines = wrap_text_lines(&card.name, rect.w - 40.0, 38.0, 3);
@@ -304,11 +345,18 @@ pub fn draw_story_card_preview(
         title_y += 36.0;
     }
 
+    draw_rectangle(
+        rect.x + 18.0,
+        rect.y + 320.0,
+        rect.w - 36.0,
+        34.0,
+        Color::new(0.05, 0.06, 0.10, 0.78),
+    );
     draw_text(
-        &card.card_type,
-        rect.x + 20.0,
+        &title_case_text(&card.card_type),
+        rect.x + 28.0,
         rect.y + 344.0,
-        22.0,
+        20.0,
         TEXT_MUTED,
     );
 
@@ -317,6 +365,13 @@ pub fn draw_story_card_preview(
         .iter()
         .flat_map(|effect| wrap_text_lines(&describe_effect(effect), rect.w - 40.0, 28.0, 3))
         .collect::<Vec<_>>();
+    draw_rectangle(
+        rect.x + 18.0,
+        rect.y + 364.0,
+        rect.w - 36.0,
+        132.0,
+        Color::new(0.05, 0.06, 0.10, 0.72),
+    );
     let mut effect_y = rect.y + 388.0;
     for line in effect_lines {
         draw_text(&line, rect.x + 20.0, effect_y, 28.0, WHITE);
@@ -431,4 +486,18 @@ fn wrap_text_lines(text: &str, max_width: f32, font_size: f32, max_lines: usize)
     }
 
     wrapped
+}
+
+fn title_case_text(value: &str) -> String {
+    value
+        .split('_')
+        .map(|part| {
+            let mut chars = part.chars();
+            match chars.next() {
+                Some(first) => format!("{}{}", first.to_ascii_uppercase(), chars.as_str()),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }

@@ -11,7 +11,7 @@ use crate::state::{
 use crate::ui::card_widgets::{
     action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
 };
-use crate::ui::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_panel, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub struct BattleScreen;
@@ -156,10 +156,19 @@ impl BattleScreen {
             return;
         };
 
+        if let Some(background) = state.assets.ui_background("battle") {
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.34));
+        }
+
         section_panel(
             ui.rect(40.0, 36.0, 430.0, 744.0),
             state.ui_text.get("battle_event_log"),
             GRAY,
+        );
+        section_panel(
+            ui.rect(40.0, 800.0, 430.0, 596.0),
+            state.ui_text.get("battle_actions_label"),
+            SKYBLUE,
         );
         draw_panel(ui.x(500.0), ui.y(36.0), ui.w(2020.0), ui.h(836.0), SKYBLUE);
         section_panel(
@@ -174,47 +183,15 @@ impl BattleScreen {
             self.draw_skirmish_battle(state, match_state);
         }
 
-        let phase_line = format!(
-            "{}: {}",
-            state.ui_text.get("phase_label"),
-            match_state.current_phase_label()
-        );
-        draw_text(&phase_line, ui.x(540.0), ui.y(700.0), ui.font(30.0), WHITE);
-
-        let turn_line = format!(
-            "{}: {:?}",
-            state.ui_text.get("controller_label"),
-            match_state
-                .reaction_priority_player()
-                .unwrap_or(match_state.active_player)
-        );
-        draw_text(
-            &turn_line,
-            ui.x(540.0),
-            ui.y(744.0),
-            ui.font(30.0),
-            TEXT_MUTED,
-        );
-
-        let timing_line = if match_state.reaction_state.is_some() {
-            state.ui_text.get("battle_reaction_window_open")
-        } else {
-            state.ui_text.get("battle_reaction_window_closed")
-        };
-        draw_text(
-            timing_line,
-            ui.x(540.0),
-            ui.y(788.0),
-            ui.font(30.0),
-            SKYBLUE,
-        );
+        self.draw_status_strip(state, match_state);
 
         let action_hint = battle_action_hint(state, match_state, PlayerId::PlayerA);
+        draw_soft_panel(ui.x(540.0), ui.y(792.0), ui.w(820.0), ui.h(52.0), SKYBLUE);
         draw_text(
             action_hint,
-            ui.x(540.0),
-            ui.y(832.0),
-            ui.font(28.0),
+            ui.x(562.0),
+            ui.y(826.0),
+            ui.font(24.0),
             TEXT_MUTED,
         );
 
@@ -240,11 +217,12 @@ impl BattleScreen {
 
         if let Some(card_name) = &match_state.last_played_card_name {
             let played_line = format!("{}: {}", state.ui_text.get("last_card_label"), card_name);
+            draw_soft_panel(ui.x(1706.0), ui.y(792.0), ui.w(774.0), ui.h(52.0), PINK);
             draw_text(
                 &played_line,
-                ui.x(1820.0),
-                ui.y(832.0),
-                ui.font(28.0),
+                ui.x(1730.0),
+                ui.y(826.0),
+                ui.font(22.0),
                 TEXT_MUTED,
             );
         }
@@ -319,8 +297,8 @@ impl BattleScreen {
         draw_text(
             state.ui_text.get("campaign_battle_title"),
             ui.x(540.0),
-            ui.y(86.0),
-            ui.font(58.0),
+            ui.y(88.0),
+            ui.font(54.0),
             WHITE,
         );
 
@@ -329,7 +307,7 @@ impl BattleScreen {
             &encounter_name,
             ui.x(540.0),
             ui.y(128.0),
-            ui.font(32.0),
+            ui.font(30.0),
             GOLD,
         );
 
@@ -338,7 +316,7 @@ impl BattleScreen {
         } else {
             state.ui_text.get("campaign_battle_lane_enemy_attack")
         };
-        draw_text(lane_line, ui.x(540.0), ui.y(170.0), ui.font(28.0), ORANGE);
+        draw_text(lane_line, ui.x(540.0), ui.y(166.0), ui.font(24.0), ORANGE);
 
         if match_state.phase == MatchPhase::Finished {
             let winner_line = format!(
@@ -349,7 +327,7 @@ impl BattleScreen {
             draw_text(
                 &winner_line,
                 ui.x(540.0),
-                ui.y(206.0),
+                ui.y(198.0),
                 ui.font(28.0),
                 ORANGE,
             );
@@ -358,9 +336,9 @@ impl BattleScreen {
         self.draw_side_box(
             state,
             ui.x(540.0),
-            ui.y(232.0),
-            ui.w(860.0),
-            ui.h(180.0),
+            ui.y(210.0),
+            ui.w(900.0),
+            ui.h(224.0),
             state.ui_text.get("campaign_battle_player_mg_label"),
             &match_state.player_a.magical_girls,
             true,
@@ -368,49 +346,48 @@ impl BattleScreen {
         );
         self.draw_side_box(
             state,
-            ui.x(1500.0),
-            ui.y(232.0),
-            ui.w(860.0),
-            ui.h(180.0),
+            ui.x(1540.0),
+            ui.y(210.0),
+            ui.w(900.0),
+            ui.h(224.0),
             state.ui_text.get("campaign_battle_enemy_baddie_label"),
             &match_state.player_b.baddies,
             false,
             match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
         );
 
+        draw_soft_panel(ui.x(540.0), ui.y(462.0), ui.w(1900.0), ui.h(58.0), GRAY);
         draw_text(
             state.ui_text.get("campaign_battle_focus_note"),
-            ui.x(540.0),
-            ui.y(462.0),
-            ui.font(24.0),
+            ui.x(564.0),
+            ui.y(498.0),
+            ui.font(22.0),
             TEXT_MUTED,
         );
 
-        draw_text(
-            &format!(
-                "{} {}  {} {}",
-                state.ui_text.get("battle_hand_count_label"),
-                match_state.player_a.hand.len(),
-                state.ui_text.get("battle_draw_pile_label"),
-                match_state.player_a.deck.len()
-            ),
-            ui.x(540.0),
-            ui.y(512.0),
-            ui.font(24.0),
-            TEXT_MUTED,
+        draw_stat_chip(
+            ui.rect(540.0, 542.0, 220.0, 52.0),
+            state.ui_text.get("battle_hand_count_label"),
+            &match_state.player_a.hand.len().to_string(),
+            SKYBLUE,
         );
-        draw_text(
-            &format!(
-                "{} {}  {} {}",
-                state.ui_text.get("campaign_battle_enemy_hand_label"),
-                match_state.player_b.hand.len(),
-                state.ui_text.get("battle_draw_pile_label"),
-                match_state.player_b.deck.len()
-            ),
-            ui.x(1500.0),
-            ui.y(512.0),
-            ui.font(24.0),
-            TEXT_MUTED,
+        draw_stat_chip(
+            ui.rect(776.0, 542.0, 220.0, 52.0),
+            state.ui_text.get("battle_draw_pile_label"),
+            &match_state.player_a.deck.len().to_string(),
+            SKYBLUE,
+        );
+        draw_stat_chip(
+            ui.rect(1540.0, 542.0, 220.0, 52.0),
+            state.ui_text.get("campaign_battle_enemy_hand_label"),
+            &match_state.player_b.hand.len().to_string(),
+            PINK,
+        );
+        draw_stat_chip(
+            ui.rect(1776.0, 542.0, 220.0, 52.0),
+            state.ui_text.get("battle_draw_pile_label"),
+            &match_state.player_b.deck.len().to_string(),
+            PINK,
         );
     }
 
@@ -512,13 +489,25 @@ impl BattleScreen {
         if prime_defeated {
             draw_text(
                 state.ui_text.get("battle_prime_defeated_label"),
-                x + ui.w(520.0),
+                x + ui.w(640.0),
                 y + ui.h(34.0),
                 ui.font(18.0),
                 RED,
             );
         }
 
+        if let Some(texture) = state.assets.portrait(&side.main_character_id) {
+            draw_texture_ex(
+                texture,
+                x + ui.w(18.0),
+                y + ui.h(54.0),
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(ui.w(132.0), ui.h(132.0))),
+                    ..Default::default()
+                },
+            );
+        }
         let growth = if is_magical_girl_side {
             side.main.radiance
         } else {
@@ -526,39 +515,84 @@ impl BattleScreen {
         };
         draw_text(
             &side.main.name,
-            x + ui.w(20.0),
-            y + ui.h(82.0),
-            ui.font(30.0),
-            SKYBLUE,
+            x + ui.w(170.0),
+            y + ui.h(84.0),
+            ui.font(28.0),
+            outline,
         );
-        draw_text(
-            &format!(
-                "{} {:?}  {} {}  {} {}  {} {}",
-                state.ui_text.get("battle_stage_label"),
-                side.main.stage,
-                state.ui_text.get("battle_main_power_label"),
-                side.main.current_power(),
-                state.ui_text.get("battle_total_power_label"),
-                side.total_power(),
-                state.ui_text.get("battle_growth_label"),
-                growth
-            ),
-            x + ui.w(20.0),
-            y + ui.h(122.0),
-            ui.font(20.0),
-            TEXT_MUTED,
+        draw_stat_chip(
+            Rect::new(x + ui.w(170.0), y + ui.h(104.0), ui.w(170.0), ui.h(38.0)),
+            state.ui_text.get("battle_stage_label"),
+            &format!("{:?}", side.main.stage),
+            outline,
+        );
+        draw_stat_chip(
+            Rect::new(x + ui.w(356.0), y + ui.h(104.0), ui.w(150.0), ui.h(38.0)),
+            state.ui_text.get("battle_main_power_label"),
+            &side.main.current_power().to_string(),
+            outline,
+        );
+        draw_stat_chip(
+            Rect::new(x + ui.w(522.0), y + ui.h(104.0), ui.w(156.0), ui.h(38.0)),
+            state.ui_text.get("battle_total_power_label"),
+            &side.total_power().to_string(),
+            outline,
+        );
+        draw_stat_chip(
+            Rect::new(x + ui.w(694.0), y + ui.h(104.0), ui.w(170.0), ui.h(38.0)),
+            state.ui_text.get("battle_growth_label"),
+            &growth.to_string(),
+            outline,
+        );
+        draw_soft_panel(
+            x + ui.w(170.0),
+            y + ui.h(154.0),
+            ui.w(694.0),
+            ui.h(42.0),
+            outline,
         );
         draw_text(
             &format_supports(state, &side.supports),
-            x + ui.w(20.0),
-            y + ui.h(154.0),
-            ui.font(18.0),
+            x + ui.w(186.0),
+            y + ui.h(182.0),
+            ui.font(17.0),
             TEXT_MUTED,
         );
     }
 }
 
 impl BattleScreen {
+    fn draw_status_strip(&self, state: &AppState, match_state: &MatchState) {
+        let ui = UiLayout::current();
+        draw_stat_chip(
+            ui.rect(540.0, 688.0, 250.0, 56.0),
+            state.ui_text.get("phase_label"),
+            match_state.current_phase_label(),
+            SKYBLUE,
+        );
+        draw_stat_chip(
+            ui.rect(808.0, 688.0, 296.0, 56.0),
+            state.ui_text.get("controller_label"),
+            &format!(
+                "{:?}",
+                match_state
+                    .reaction_priority_player()
+                    .unwrap_or(match_state.active_player)
+            ),
+            GOLD,
+        );
+        draw_stat_chip(
+            ui.rect(1122.0, 688.0, 352.0, 56.0),
+            state.ui_text.get("battle_reaction_window_label"),
+            if match_state.reaction_state.is_some() {
+                state.ui_text.get("battle_open_short")
+            } else {
+                state.ui_text.get("battle_closed_short")
+            },
+            PINK,
+        );
+    }
+
     fn draw_hand_cards(&self, state: &AppState, match_state: &MatchState, player: PlayerId) {
         let ui = UiLayout::current();
         let mouse = mouse_position();
@@ -737,12 +771,12 @@ fn wrap_event_lines(events: &[String], max_width: f32, font_size: f32) -> Vec<St
 
 fn hand_card_rects(card_count: usize) -> Vec<Rect> {
     let ui = UiLayout::current();
-    let start_x = ui.x(540.0);
-    let y = ui.y(968.0);
-    let card_width = ui.w(228.0);
-    let card_height = ui.h(314.0);
-    let preferred_gap = ui.w(22.0);
-    let available_width = ui.w(1940.0);
+    let start_x = ui.x(548.0);
+    let y = ui.y(986.0);
+    let card_width = ui.w(250.0);
+    let card_height = ui.h(352.0);
+    let preferred_gap = ui.w(18.0);
+    let available_width = ui.w(1920.0);
 
     if card_count == 0 {
         return Vec::new();
@@ -763,4 +797,10 @@ fn hand_card_rects(card_count: usize) -> Vec<Rect> {
     (0..card_count)
         .map(|index| Rect::new(start_x + index as f32 * step, y, card_width, card_height))
         .collect()
+}
+
+fn draw_stat_chip(rect: Rect, label: &str, value: &str, accent: Color) {
+    draw_soft_panel(rect.x, rect.y, rect.w, rect.h, accent);
+    draw_text(label, rect.x + 14.0, rect.y + 20.0, 16.0, TEXT_MUTED);
+    draw_text(value, rect.x + 14.0, rect.y + 42.0, 22.0, WHITE);
 }

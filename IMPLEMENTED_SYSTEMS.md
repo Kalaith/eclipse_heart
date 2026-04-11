@@ -22,7 +22,7 @@
 - The menu now links to a deck builder shell as well as match setup.
 - The repo now ships procedural card-frame and speed-badge PNG assets under `assets/generated/cards/`, including layered frame pieces, art masks, gloss overlays, badge bases, and badge icons generated from `assets/data/card_visuals.json`.
 - The repo now also generates procedural roster portraits, story-card illustration placeholders, and widescreen UI backdrops under `assets/generated/`, with a machine-readable catalog in `assets/data/art_catalog.json`.
-- Current UI flows are mouse-driven; the prototype does not require keyboard input to navigate menu, setup, deck builder, or battle actions.
+- Current UI flows remain primarily mouse-driven, and pressing `Esc` now opens a pause menu with `Save Game`, `Exit To Main Menu`, and `Exit Game` actions.
 - The battle screen is now player-centric instead of faction-centric.
 - The prototype shows `You` and `Enemy` columns with each player's Magical Girl side and Baddie side.
 - The active lane is called out explicitly so it is clear whose Magical Girls are attacking whose Baddies.
@@ -40,6 +40,7 @@
 - Finishing a match updates the local profile match and win counters and writes the save bundle back to disk.
 - Collection ownership now stores counted inventory and still accepts the older array-shaped save format on load.
 - The deck builder edits the active local support deck preset and saves changes immediately.
+- The new `Esc` pause menu can also manually write the current save bundle without leaving the active screen.
 - Local persistence now also stores `campaigns.json`, including active or completed campaign runs, their deck snapshot, encounter progress, and battle history.
 - Campaign persistence now supports multiple saved run slots and keeps a selected campaign slot so the player can swap between in-progress, won, or lost runs from the campaign menu.
 

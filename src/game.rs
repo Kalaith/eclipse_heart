@@ -1,7 +1,10 @@
 //! Top-level game coordinator.
 
-use macroquad::input::show_mouse;
+use macroquad::input::{
+    is_key_pressed, is_mouse_button_pressed, mouse_position, show_mouse, KeyCode, MouseButton,
+};
 use macroquad::miniquad::window::quit;
+use macroquad::prelude::{draw_rectangle, draw_text, measure_text, Color, Rect, WHITE};
 use macroquad::rand::gen_range;
 use macroquad::window::{request_new_screen_size, set_fullscreen};
 
@@ -15,7 +18,11 @@ use crate::state::{
     AppScreen, AppState, BattleContext, BoosterCardGrant, CollectionCardKind, DeckPreset,
     DecksSave, MatchPhase, MatchSetup, MatchState, PlayerId,
 };
-use crate::ui::card_widgets::render_action_buttons;
+use crate::ui::card_widgets::{
+    action_button, clear_action_buttons, point_in_rect, render_action_buttons,
+};
+use crate::ui::core::draw_soft_panel;
+use crate::ui::layout::UiLayout;
 
 pub struct Game {
     state: AppState,
@@ -52,6 +59,15 @@ impl Game {
 
     pub fn update(&mut self) {
         show_mouse(true);
+        if is_key_pressed(KeyCode::Escape) {
+            self.state.escape_menu_open = !self.state.escape_menu_open;
+            return;
+        }
+        if self.state.escape_menu_open {
+            let screen_action = self.escape_menu_action();
+            self.handle_screen_action(screen_action);
+            return;
+        }
         let screen_action = self.current_screen_action();
         self.handle_screen_action(screen_action);
         self.run_battle_ai_turn();
@@ -65,6 +81,10 @@ impl Game {
             AppScreen::Setup => self.setup_screen.draw(&self.state),
             AppScreen::DeckBuilder => self.deck_builder_screen.draw(&self.state),
             AppScreen::Battle => self.battle_screen.draw(&self.state),
+        }
+        if self.state.escape_menu_open {
+            clear_action_buttons();
+            self.draw_escape_menu();
         }
         render_action_buttons();
     }
@@ -88,6 +108,9 @@ impl Game {
             ScreenAction::OpenCampaignMenu
             | ScreenAction::OpenSetup
             | ScreenAction::OpenDeckBuilder
+            | ScreenAction::ToggleEscapeMenu
+            | ScreenAction::EscapeMenuSave
+            | ScreenAction::EscapeMenuExitToMainMenu
             | ScreenAction::BackToMenu
             | ScreenAction::ToggleWindowedMode
             | ScreenAction::ExitGame => {
@@ -136,10 +159,23 @@ impl Game {
 
     fn handle_navigation_action(&mut self, action: ScreenAction) {
         match action {
+            ScreenAction::ToggleEscapeMenu => {
+                self.state.escape_menu_open = !self.state.escape_menu_open;
+            }
+            ScreenAction::EscapeMenuSave => {
+                let _ = self.state.persistence.save_all(&self.state.saves);
+                self.state.escape_menu_open = false;
+            }
+            ScreenAction::EscapeMenuExitToMainMenu => {
+                self.state.escape_menu_open = false;
+                self.handle_navigation_action(ScreenAction::BackToMenu);
+            }
             ScreenAction::OpenCampaignMenu => {
+                self.state.escape_menu_open = false;
                 self.state.screen = AppScreen::CampaignMenu;
             }
             ScreenAction::OpenSetup => {
+                self.state.escape_menu_open = false;
                 let available_deck_ids = self
                     .state
                     .saves
@@ -154,6 +190,7 @@ impl Game {
                 self.state.screen = AppScreen::Setup;
             }
             ScreenAction::OpenDeckBuilder => {
+                self.state.escape_menu_open = false;
                 let magical_girl_ids = self
                     .state
                     .content
@@ -175,6 +212,7 @@ impl Game {
                 self.state.screen = AppScreen::DeckBuilder;
             }
             ScreenAction::BackToMenu => {
+                self.state.escape_menu_open = false;
                 if self.state.screen == AppScreen::Battle
                     && matches!(self.state.battle_context, BattleContext::Campaign { .. })
                 {
@@ -189,6 +227,7 @@ impl Game {
                 let _ = self.state.persistence.save_all(&self.state.saves);
             }
             ScreenAction::ExitGame => {
+                self.state.escape_menu_open = false;
                 quit();
             }
             _ => {}
@@ -696,6 +735,80 @@ impl Game {
         self.state.match_state = None;
         self.state.battle_context = BattleContext::Skirmish;
         self.state.screen = AppScreen::CampaignMenu;
+    }
+
+    fn escape_menu_action(&self) -> ScreenAction {
+        let mouse = mouse_position();
+        for (rect, action) in self.escape_menu_buttons() {
+            if point_in_rect(rect, mouse) && is_mouse_button_pressed(MouseButton::Left) {
+                return action;
+            }
+        }
+        ScreenAction::None
+    }
+
+    fn draw_escape_menu(&self) {
+        let ui = UiLayout::current();
+        let backdrop = Color::new(0.02, 0.03, 0.06, 0.74);
+        let panel_rect = ui.rect(916.0, 300.0, 728.0, 772.0);
+
+        draw_rectangle(0.0, 0.0, ui.w(2560.0), ui.h(1440.0), backdrop);
+        draw_soft_panel(
+            panel_rect.x,
+            panel_rect.y,
+            panel_rect.w,
+            panel_rect.h,
+            WHITE,
+        );
+        draw_rectangle(
+            panel_rect.x + 18.0,
+            panel_rect.y + 18.0,
+            panel_rect.w - 36.0,
+            ui.h(108.0),
+            Color::new(0.05, 0.06, 0.11, 0.84),
+        );
+
+        let title = self.state.ui_text.get("escape_menu_title");
+        let title_metrics = measure_text(title, None, ui.font(46.0) as u16, 1.0);
+        draw_text(
+            title,
+            panel_rect.x + (panel_rect.w - title_metrics.width) * 0.5,
+            panel_rect.y + ui.h(84.0),
+            ui.font(46.0),
+            WHITE,
+        );
+
+        for (rect, action) in self.escape_menu_buttons() {
+            let label = match action {
+                ScreenAction::EscapeMenuSave => self.state.ui_text.get("escape_menu_save"),
+                ScreenAction::EscapeMenuExitToMainMenu => {
+                    self.state.ui_text.get("escape_menu_exit_to_menu")
+                }
+                ScreenAction::ToggleEscapeMenu => self.state.ui_text.get("escape_menu_resume"),
+                ScreenAction::ExitGame => self.state.ui_text.get("menu_exit_game"),
+                _ => continue,
+            };
+            action_button(rect, label);
+        }
+    }
+
+    fn escape_menu_buttons(&self) -> [(Rect, ScreenAction); 4] {
+        let ui = UiLayout::current();
+        [
+            (
+                ui.rect(986.0, 468.0, 588.0, 96.0),
+                ScreenAction::EscapeMenuSave,
+            ),
+            (
+                ui.rect(986.0, 596.0, 588.0, 96.0),
+                ScreenAction::EscapeMenuExitToMainMenu,
+            ),
+            (
+                ui.rect(986.0, 724.0, 588.0, 96.0),
+                ScreenAction::ToggleEscapeMenu,
+            ),
+            (ui.rect(986.0, 852.0, 588.0, 96.0), ScreenAction::ExitGame),
+        ]
     }
 
     fn campaign_seed_deck(&self) -> Option<DeckPreset> {
