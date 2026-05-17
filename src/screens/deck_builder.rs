@@ -3653,85 +3653,12 @@ fn wrap_preview_text(text: &str, max_width: f32, font_size: f32, max_lines: usiz
 }
 
 fn wrap_text_block(text: &str, max_width: f32, font_size: f32, max_lines: usize) -> Vec<String> {
-    let mut wrapped = Vec::new();
-    let mut current = String::new();
-
-    for raw_line in text.lines() {
-        if raw_line.is_empty() {
-            wrapped.push(String::new());
-            if wrapped.len() >= max_lines {
-                break;
-            }
-            continue;
-        }
-
-        for word in raw_line.split_whitespace() {
-            let candidate = if current.is_empty() {
-                word.to_owned()
-            } else {
-                format!("{current} {word}")
-            };
-
-            if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
-                current = candidate;
-                continue;
-            }
-
-            if current.is_empty() {
-                for chunk in break_long_token(word, max_width, font_size) {
-                    wrapped.push(chunk);
-                    if wrapped.len() >= max_lines {
-                        return wrapped;
-                    }
-                }
-            } else {
-                wrapped.push(current);
-                if wrapped.len() >= max_lines {
-                    return wrapped;
-                }
-                current = word.to_owned();
-            }
-        }
-
-        if !current.is_empty() {
-            wrapped.push(current);
-            if wrapped.len() >= max_lines {
-                return wrapped;
-            }
-            current = String::new();
-        }
-    }
-
+    let mut wrapped = macroquad_toolkit::ui::wrap_text(text, max_width, font_size);
     if wrapped.is_empty() {
         wrapped.push(String::new());
     }
-
     wrapped.truncate(max_lines);
     wrapped
-}
-
-fn break_long_token(token: &str, max_width: f32, font_size: f32) -> Vec<String> {
-    let mut chunks = Vec::new();
-    let mut current = String::new();
-
-    for character in token.chars() {
-        let candidate = format!("{current}{character}");
-        if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
-            current = candidate;
-            continue;
-        }
-
-        if !current.is_empty() {
-            chunks.push(current);
-        }
-        current = character.to_string();
-    }
-
-    if !current.is_empty() {
-        chunks.push(current);
-    }
-
-    chunks
 }
 
 fn copy_to_clipboard(text: &str) -> Result<(), ()> {

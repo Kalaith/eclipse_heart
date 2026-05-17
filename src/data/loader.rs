@@ -122,7 +122,10 @@ fn asset_path(relative_path: &str) -> PathBuf {
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative_path)
+        macroquad_toolkit::data_loader::manifest_relative_path(
+            env!("CARGO_MANIFEST_DIR"),
+            relative_path,
+        )
     }
 }
 

@@ -3,6 +3,8 @@
 use std::cell::RefCell;
 
 use macroquad::prelude::*;
+use macroquad_toolkit::input::rect_contains_point;
+use macroquad_toolkit::ui::wrap_text;
 
 use crate::data::{CardAlignment, CardEffect, CardSpeed, StoryCardDefinition};
 use crate::state::AppState;
@@ -386,10 +388,7 @@ pub fn draw_story_card_preview(
 }
 
 pub fn point_in_rect(rect: Rect, point: (f32, f32)) -> bool {
-    point.0 >= rect.x
-        && point.0 <= rect.x + rect.w
-        && point.1 >= rect.y
-        && point.1 <= rect.y + rect.h
+    rect_contains_point(rect, vec2(point.0, point.1))
 }
 
 fn speed_label(speed: CardSpeed) -> &'static str {
@@ -458,34 +457,10 @@ fn describe_effect(effect: &CardEffect) -> String {
 }
 
 fn wrap_text_lines(text: &str, max_width: f32, font_size: f32, max_lines: usize) -> Vec<String> {
-    let mut wrapped = Vec::new();
-    let mut current = String::new();
-
-    for word in text.split_whitespace() {
-        let candidate = if current.is_empty() {
-            word.to_owned()
-        } else {
-            format!("{current} {word}")
-        };
-
-        if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
-            current = candidate;
-        } else {
-            if !current.is_empty() {
-                wrapped.push(current);
-            }
-            current = word.to_owned();
-            if wrapped.len() + 1 == max_lines {
-                break;
-            }
-        }
-    }
-
-    if !current.is_empty() && wrapped.len() < max_lines {
-        wrapped.push(current);
-    }
-
-    wrapped
+    wrap_text(text, max_width, font_size)
+        .into_iter()
+        .take(max_lines)
+        .collect()
 }
 
 fn title_case_text(value: &str) -> String {
