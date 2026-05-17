@@ -3661,14 +3661,26 @@ fn wrap_text_block(text: &str, max_width: f32, font_size: f32, max_lines: usize)
     wrapped
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn copy_to_clipboard(text: &str) -> Result<(), ()> {
     let mut clipboard = arboard::Clipboard::new().map_err(|_| ())?;
     clipboard.set_text(text.to_owned()).map_err(|_| ())
 }
 
+#[cfg(target_arch = "wasm32")]
+fn copy_to_clipboard(_text: &str) -> Result<(), ()> {
+    Err(())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 fn read_from_clipboard() -> Result<String, ()> {
     let mut clipboard = arboard::Clipboard::new().map_err(|_| ())?;
     clipboard.get_text().map_err(|_| ())
+}
+
+#[cfg(target_arch = "wasm32")]
+fn read_from_clipboard() -> Result<String, ()> {
+    Err(())
 }
 
 fn split_tag_text(text: &str) -> Vec<String> {

@@ -1,5 +1,6 @@
 //! Shared texture loading for generated UI and card art.
 
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
 
 use std::collections::HashMap;
