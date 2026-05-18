@@ -1,13 +1,11 @@
 //! Local save loading and writing.
 
-use std::fs;
 use std::path::PathBuf;
 
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 use thiserror::Error;
 
 use super::{CampaignSaveBundle, CollectionSave, DecksSave, ProfileSave, SettingsSave};
+use macroquad_toolkit::persistence::SaveRoot;
 
 const PROFILE_FILE: &str = "profile.json";
 const COLLECTION_FILE: &str = "collection.json";
@@ -30,16 +28,20 @@ pub enum PersistenceError {
     Io(#[from] std::io::Error),
     #[error("failed to parse save json: {0}")]
     Json(#[from] serde_json::Error),
+    #[error("failed to access save bundle: {0}")]
+    Storage(String),
 }
 
 #[derive(Clone, Debug)]
 pub struct PersistenceManager {
-    root: PathBuf,
+    root: SaveRoot,
 }
 
 impl PersistenceManager {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: root.into() }
+        Self {
+            root: SaveRoot::new("eclipse_heart", root.into()),
+        }
     }
 
     pub fn default_local() -> Self {
@@ -47,48 +49,48 @@ impl PersistenceManager {
     }
 
     pub fn load_all(&self) -> Result<PersistenceBundle, PersistenceError> {
-        fs::create_dir_all(&self.root)?;
-
         Ok(PersistenceBundle {
-            profile: load_or_default(self.root.join(PROFILE_FILE))?,
-            collection: load_or_default(self.root.join(COLLECTION_FILE))?,
-            decks: load_or_default(self.root.join(DECKS_FILE))?,
-            campaigns: load_or_default(self.root.join(CAMPAIGNS_FILE))?,
-            settings: load_or_default(self.root.join(SETTINGS_FILE))?,
+            profile: self
+                .root
+                .load_json_or_default(PROFILE_FILE)
+                .map_err(PersistenceError::Storage)?,
+            collection: self
+                .root
+                .load_json_or_default(COLLECTION_FILE)
+                .map_err(PersistenceError::Storage)?,
+            decks: self
+                .root
+                .load_json_or_default(DECKS_FILE)
+                .map_err(PersistenceError::Storage)?,
+            campaigns: self
+                .root
+                .load_json_or_default(CAMPAIGNS_FILE)
+                .map_err(PersistenceError::Storage)?,
+            settings: self
+                .root
+                .load_json_or_default(SETTINGS_FILE)
+                .map_err(PersistenceError::Storage)?,
         })
     }
 
     pub fn save_all(&self, bundle: &PersistenceBundle) -> Result<(), PersistenceError> {
-        fs::create_dir_all(&self.root)?;
-
-        save_json(self.root.join(PROFILE_FILE), &bundle.profile)?;
-        save_json(self.root.join(COLLECTION_FILE), &bundle.collection)?;
-        save_json(self.root.join(DECKS_FILE), &bundle.decks)?;
-        save_json(self.root.join(CAMPAIGNS_FILE), &bundle.campaigns)?;
-        save_json(self.root.join(SETTINGS_FILE), &bundle.settings)?;
+        self.root
+            .save_json(PROFILE_FILE, &bundle.profile)
+            .map_err(PersistenceError::Storage)?;
+        self.root
+            .save_json(COLLECTION_FILE, &bundle.collection)
+            .map_err(PersistenceError::Storage)?;
+        self.root
+            .save_json(DECKS_FILE, &bundle.decks)
+            .map_err(PersistenceError::Storage)?;
+        self.root
+            .save_json(CAMPAIGNS_FILE, &bundle.campaigns)
+            .map_err(PersistenceError::Storage)?;
+        self.root
+            .save_json(SETTINGS_FILE, &bundle.settings)
+            .map_err(PersistenceError::Storage)?;
         Ok(())
     }
-}
-
-fn load_or_default<T>(path: PathBuf) -> Result<T, PersistenceError>
-where
-    T: DeserializeOwned + Default,
-{
-    if !path.exists() {
-        return Ok(T::default());
-    }
-
-    let text = fs::read_to_string(path)?;
-    Ok(serde_json::from_str(&text)?)
-}
-
-fn save_json<T>(path: PathBuf, value: &T) -> Result<(), PersistenceError>
-where
-    T: Serialize,
-{
-    let text = serde_json::to_string_pretty(value)?;
-    fs::write(path, text)?;
-    Ok(())
 }
 
 #[cfg(test)]
