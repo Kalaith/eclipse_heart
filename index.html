@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280, height=720, initial-scale=1.0">
-    <title>Game Title | Web Hatchery Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse Heart | Web Hatchery Games</title>
     <link rel="stylesheet" href="../shared.css">
     <style>
         .game-container canvas {
@@ -17,7 +17,7 @@
 <body>
     <div class="game-page">
         <header class="game-header">
-            <h1>🎮 Game Title</h1>
+            <h1>Eclipse Heart</h1>
             <a href="../" class="back-link">← All Games</a>
         </header>
 
@@ -44,15 +44,17 @@
                 <section class="info-section">
                     <h2>About This Game</h2>
                     <p>
-                        A brief description of the game.
+                        Build support decks, manage magical-girl and baddie rosters, and
+                        fight campaign or skirmish battles around hidden supports and Final Climax timing.
                     </p>
                 </section>
 
                 <section class="info-section" style="margin-top: 1rem;">
                     <h2>Controls</h2>
                     <ul class="controls-list">
-                        <li><kbd>WASD</kbd><span>Move</span></li>
-                        <li><kbd>Space</kbd><span>Action</span></li>
+                        <li><kbd>Mouse</kbd><span>Select cards, menus, and battle actions</span></li>
+                        <li><kbd>Esc</kbd><span>Pause, back, or close dialogs</span></li>
+                        <li><kbd>Enter</kbd><span>Confirm text entry where available</span></li>
                     </ul>
                 </section>
             </div>
@@ -66,12 +68,19 @@
                 <div class="sidebar-section">
                     <h3>Details</h3>
                     <ul class="meta-list">
-                        <li><span class="label">Genre</span><span class="value">Genre</span></li>
+                        <li><span class="label">Genre</span><span class="value">Card Battler / Deck Builder</span></li>
                         <li><span class="label">Engine</span><span class="value">Macroquad</span></li>
                         <li><span class="label">Platform</span><span class="value">Browser, Windows</span></li>
                     </ul>
                 </div>
-            </aside>
+
+                <div class="sidebar-section">
+                    <h3>Downloads</h3>
+                    <a href="dist/eclipse_heart_windows.zip" class="btn btn-secondary"
+                        style="width: 100%; justify-content: center;" download>
+                        📥 Windows Build
+                    </a>
+                </div>            </aside>
         </div>
 
         <footer class="game-footer">
@@ -84,8 +93,7 @@
     <script>
         document.getElementById('loading').style.display = 'none';
         
-        // TODO: Replace with your actual WASM filename
-        load("game_title.wasm");
+        load("eclipse_heart.wasm");
 
         function toggleFullscreen() {
             const container = document.getElementById('game-container');
@@ -103,3 +111,4 @@
 </body>
 
 </html>
+
