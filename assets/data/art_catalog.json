@@ -2,12 +2,12 @@
   "ui_backgrounds": [
     {
       "id": "menu",
-      "asset_name": "generated/ui/menu_background.png",
-      "tone": "hopeful intro screen",
+      "asset_name": "generated/ui/eclipse_heart_title.png",
+      "tone": "eclipse title screen",
       "motifs": [
-        "ribbon",
+        "eclipse",
         "starfield",
-        "dawn"
+        "ribbon"
       ]
     },
     {

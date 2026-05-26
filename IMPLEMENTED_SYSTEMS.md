@@ -4,7 +4,8 @@
 
 - Main menu now separates `Single-Player Campaign`, `Configure Match`, and `Open Deck Builder` so the campaign sits alongside the existing skirmish shell instead of replacing it.
 - Main menu opens a dedicated match setup screen instead of jumping straight into a hardcoded battle.
-- The game now boots fullscreen by default and the main menu includes a saved `Windowed Mode` checkbox that persists through local settings.
+- The title screen now uses the Eclipse Heart key art as its full-screen backdrop and only overlays the menu/settings controls.
+- The game now boots fullscreen by default and the main menu includes a full-screen `Settings` view with a saved `Full Screen` toggle that persists through local settings.
 - The main menu also includes a direct `Exit Game` action.
 - Match setup lets the prototype configure both `Player A` and `Player B`.
 - Match setup now shows direct clickable main-character cards and support-pair choices for each roster instead of only cycling through hidden selections.

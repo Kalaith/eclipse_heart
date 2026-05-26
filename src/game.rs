@@ -36,10 +36,10 @@ pub struct Game {
 
 impl Game {
     pub async fn new() -> Self {
-        let ui_text = UiText::load().unwrap_or_else(|error| {
+        let ui_text = UiText::load_async().await.unwrap_or_else(|error| {
             panic!("failed to load UI text: {error}");
         });
-        let content = GameContent::load().unwrap_or_else(|error| {
+        let content = GameContent::load_async().await.unwrap_or_else(|error| {
             panic!("failed to load game content: {error}");
         });
         let state = AppState::new(ui_text, content).await;
@@ -112,7 +112,7 @@ impl Game {
             | ScreenAction::EscapeMenuSave
             | ScreenAction::EscapeMenuExitToMainMenu
             | ScreenAction::BackToMenu
-            | ScreenAction::ToggleWindowedMode
+            | ScreenAction::ToggleFullscreenMode
             | ScreenAction::ExitGame => {
                 self.handle_navigation_action(action);
             }
@@ -221,7 +221,7 @@ impl Game {
                 }
                 self.state.screen = AppScreen::Menu;
             }
-            ScreenAction::ToggleWindowedMode => {
+            ScreenAction::ToggleFullscreenMode => {
                 self.state.saves.settings.fullscreen = !self.state.saves.settings.fullscreen;
                 apply_window_settings(&self.state);
                 let _ = self.state.persistence.save_all(&self.state.saves);

@@ -26,7 +26,7 @@ pub enum ScreenAction {
     ToggleEscapeMenu,
     EscapeMenuSave,
     EscapeMenuExitToMainMenu,
-    ToggleWindowedMode,
+    ToggleFullscreenMode,
     ExitGame,
     DeckBuilderOpenBooster,
     DeckBuilderCreateEmptyDeck,
