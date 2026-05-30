@@ -5,7 +5,10 @@ use macroquad::prelude::*;
 use crate::screens::ScreenAction;
 use crate::state::{AppState, CampaignRunSave, CampaignRunStatus};
 use crate::ui::card_widgets::{action_button, point_in_rect};
-use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{
+    draw_background_texture, draw_focus_panel, draw_screen_scrim, draw_soft_panel, MG_BLUE,
+    PRIORITY_GOLD, TEXT_MUTED,
+};
 use crate::ui::layout::UiLayout;
 
 pub struct CampaignMenuScreen;
@@ -61,8 +64,12 @@ impl CampaignMenuScreen {
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
         if let Some(background) = state.assets.ui_background("campaign") {
-            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.84));
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.30));
         }
+        draw_screen_scrim(0.52);
+        draw_focus_panel(ui.rect(56.0, 56.0, 1700.0, 1240.0), MG_BLUE);
+        draw_focus_panel(ui.rect(1830.0, 690.0, 620.0, 530.0), PRIORITY_GOLD);
+
         draw_text(
             state.ui_text.get("campaign_menu_title"),
             ui.x(80.0),
@@ -94,7 +101,7 @@ impl CampaignMenuScreen {
         );
 
         if state.saves.campaigns.runs.is_empty() {
-            draw_soft_panel(ui.x(80.0), ui.y(356.0), ui.w(1600.0), ui.h(104.0), DARKGRAY);
+            draw_soft_panel(ui.x(80.0), ui.y(356.0), ui.w(1600.0), ui.h(104.0), MG_BLUE);
             draw_text(
                 state.ui_text.get("campaign_slot_empty"),
                 ui.x(116.0),
@@ -171,7 +178,7 @@ impl CampaignMenuScreen {
     fn draw_slot(&self, state: &AppState, slot: &CampaignSlotTarget<'_>) {
         let ui = UiLayout::current();
         let outline = if slot.selected {
-            GOLD
+            PRIORITY_GOLD
         } else if slot.hovered {
             WHITE
         } else {

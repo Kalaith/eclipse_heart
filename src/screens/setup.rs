@@ -6,7 +6,10 @@ use crate::data::CharacterDefinition;
 use crate::screens::ScreenAction;
 use crate::state::{AppState, PlayerId};
 use crate::ui::card_widgets::{action_button, point_in_rect, section_panel};
-use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{
+    draw_background_texture, draw_screen_scrim, draw_soft_panel, BADDIE_PINK, MG_BLUE,
+    PRIORITY_GOLD, TEXT_MUTED,
+};
 use crate::ui::layout::UiLayout;
 
 pub struct SetupScreen;
@@ -102,8 +105,9 @@ impl SetupScreen {
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
         if let Some(background) = state.assets.ui_background("campaign") {
-            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.82));
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.26));
         }
+        draw_screen_scrim(0.62);
 
         draw_text(
             state.ui_text.get("setup_title"),
@@ -193,13 +197,13 @@ impl SetupScreen {
     ) {
         let ui = UiLayout::current();
         let outline = if selected {
-            GOLD
+            PRIORITY_GOLD
         } else if hovered {
             WHITE
         } else if is_magical_girl_side {
-            SKYBLUE
+            MG_BLUE
         } else {
-            PINK
+            BADDIE_PINK
         };
 
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);

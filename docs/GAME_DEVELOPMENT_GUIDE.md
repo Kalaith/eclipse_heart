@@ -70,7 +70,8 @@ rand = "0.8"
 ```
 game_name/
 ├── Cargo.toml
-├── CODE_STANDARDS.md       # Coding standards
+├── docs/
+│   └── CODE_STANDARDS.md   # Coding standards
 ├── publish.ps1             # Build & deploy script
 ├── index.html              # WebGL host page
 ├── src/

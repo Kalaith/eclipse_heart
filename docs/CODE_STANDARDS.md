@@ -81,7 +81,8 @@ Each module/subdirectory owns a single conceptual domain:
 ```
 game_name/
 ├── Cargo.toml              # Project manifest
-├── CODE_STANDARDS.md       # This file
+├── docs/
+│   └── CODE_STANDARDS.md   # This file
 ├── src/
 │   ├── main.rs             # Entry point, game loop, screen rendering
 │   ├── data/               # Data types and loading

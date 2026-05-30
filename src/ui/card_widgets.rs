@@ -9,7 +9,11 @@ use macroquad_toolkit::ui::wrap_text;
 use crate::data::{CardAlignment, CardEffect, CardSpeed, StoryCardDefinition};
 use crate::state::AppState;
 
-use super::core::{draw_panel, draw_soft_panel, TEXT_MUTED};
+use super::core::{
+    draw_button_frame, draw_focus_panel, draw_soft_panel, BADDIE_PINK, MG_BLUE, PRIORITY_GOLD,
+    TEXT_MUTED,
+};
+use super::layout::UiLayout;
 
 #[derive(Clone)]
 struct ActionButtonVisual {
@@ -55,45 +59,19 @@ pub fn clear_action_buttons() {
 
 fn draw_action_button_visual(button: &ActionButtonVisual) {
     let fill = if button.pressed {
-        Color::new(0.12, 0.16, 0.24, 0.96)
+        Color::new(0.07, 0.08, 0.16, 0.98)
     } else if button.hovered {
-        Color::new(0.16, 0.22, 0.30, 0.95)
+        Color::new(0.10, 0.14, 0.24, 0.98)
     } else {
-        Color::new(0.08, 0.10, 0.16, 0.94)
+        Color::new(0.04, 0.05, 0.11, 0.96)
     };
-    let outline = if button.hovered { GOLD } else { SKYBLUE };
-    let shadow = Color::new(0.02, 0.03, 0.06, 0.42);
-
-    draw_rectangle(
-        button.rect.x + 4.0,
-        button.rect.y + 6.0,
-        button.rect.w,
-        button.rect.h,
-        shadow,
-    );
-    draw_rectangle(
-        button.rect.x,
-        button.rect.y,
-        button.rect.w,
-        button.rect.h,
-        fill,
-    );
-    draw_rectangle_lines(
-        button.rect.x,
-        button.rect.y,
-        button.rect.w,
-        button.rect.h,
-        3.0,
-        outline,
-    );
-    draw_rectangle_lines(
-        button.rect.x + 6.0,
-        button.rect.y + 6.0,
-        button.rect.w - 12.0,
-        button.rect.h - 12.0,
-        1.0,
-        Color::new(1.0, 1.0, 1.0, 0.18),
-    );
+    let outline = if button.hovered {
+        PRIORITY_GOLD
+    } else {
+        MG_BLUE
+    };
+    let accent = if button.hovered { BADDIE_PINK } else { MG_BLUE };
+    draw_button_frame(button.rect, fill, outline, accent);
 
     let font_size = (button.rect.h * 0.36).clamp(18.0, 30.0);
     let text_metrics = measure_text(&button.label, None, font_size as u16, 1.0);
@@ -139,8 +117,15 @@ pub fn card_button(
 }
 
 pub fn section_panel(rect: Rect, title: &str, outline: Color) {
-    draw_panel(rect.x, rect.y, rect.w, rect.h, outline);
-    draw_text(title, rect.x + 20.0, rect.y + 34.0, 30.0, WHITE);
+    let ui = UiLayout::current();
+    draw_focus_panel(rect, outline);
+    draw_text(
+        title,
+        rect.x + ui.w(20.0),
+        rect.y + ui.h(36.0),
+        ui.font(30.0),
+        WHITE,
+    );
 }
 
 pub fn draw_story_card_tile(
@@ -151,6 +136,7 @@ pub fn draw_story_card_tile(
     enabled: bool,
     hovered: bool,
 ) {
+    let ui = UiLayout::current();
     let outline = if hovered {
         GOLD
     } else if enabled {
@@ -165,12 +151,12 @@ pub fn draw_story_card_tile(
     };
     let top_bar_height = rect.h * 0.26;
     let art_rect = Rect::new(
-        rect.x + 10.0,
-        rect.y + top_bar_height + 6.0,
-        rect.w - 20.0,
+        rect.x + ui.w(10.0),
+        rect.y + top_bar_height + ui.h(6.0),
+        rect.w - ui.w(20.0),
         rect.h * 0.34,
     );
-    let bottom_bar_height = 44.0;
+    let bottom_bar_height = ui.h(44.0);
 
     if let Some(texture) = state.assets.template_for_alignment(card.alignment) {
         draw_texture_ex(
@@ -184,10 +170,10 @@ pub fn draw_story_card_tile(
             },
         );
         draw_rectangle(
-            rect.x + 8.0,
-            rect.y + 8.0,
-            rect.w - 16.0,
-            top_bar_height - 12.0,
+            rect.x + ui.w(8.0),
+            rect.y + ui.h(8.0),
+            rect.w - ui.w(16.0),
+            top_bar_height - ui.h(12.0),
             Color::new(0.05, 0.06, 0.10, 0.82),
         );
         if let Some(art_texture) = state.assets.story_card_art(&card.id) {
@@ -220,11 +206,11 @@ pub fn draw_story_card_tile(
         if let Some(badge_texture) = state.assets.badge_for_speed(card.speed) {
             draw_texture_ex(
                 badge_texture,
-                rect.x + rect.w - 56.0,
-                rect.y + 8.0,
+                rect.x + rect.w - ui.w(56.0),
+                rect.y + ui.h(8.0),
                 WHITE,
                 DrawTextureParams {
-                    dest_size: Some(vec2(48.0, 48.0)),
+                    dest_size: Some(vec2(ui.w(48.0), ui.h(48.0))),
                     ..Default::default()
                 },
             );
@@ -248,27 +234,33 @@ pub fn draw_story_card_tile(
         speed_label(card.speed),
         alignment_label(card.alignment)
     );
-    draw_text(&speed_line, rect.x + 14.0, rect.y + 24.0, 18.0, outline);
+    draw_text(
+        &speed_line,
+        rect.x + ui.w(14.0),
+        rect.y + ui.h(24.0),
+        ui.font(18.0),
+        outline,
+    );
 
-    let title_lines = wrap_text_lines(&card.name, rect.w - 84.0, 26.0, 2);
-    let mut title_y = rect.y + 52.0;
+    let title_lines = wrap_text_lines(&card.name, rect.w - ui.w(84.0), ui.font(26.0), 2);
+    let mut title_y = rect.y + ui.h(52.0);
     for line in title_lines {
-        draw_text(&line, rect.x + 14.0, title_y, 28.0, WHITE);
-        title_y += 26.0;
+        draw_text(&line, rect.x + ui.w(14.0), title_y, ui.font(28.0), WHITE);
+        title_y += ui.h(26.0);
     }
 
     draw_rectangle(
-        rect.x + 8.0,
-        rect.y + rect.h - bottom_bar_height - 8.0,
-        rect.w - 16.0,
+        rect.x + ui.w(8.0),
+        rect.y + rect.h - bottom_bar_height - ui.h(8.0),
+        rect.w - ui.w(16.0),
         bottom_bar_height,
         Color::new(0.05, 0.06, 0.10, 0.82),
     );
     draw_text(
         &format!("{}  |  {}", title_case_text(&card.card_type), subtitle),
-        rect.x + 14.0,
-        rect.y + rect.h - 18.0,
-        16.0,
+        rect.x + ui.w(14.0),
+        rect.y + rect.h - ui.h(18.0),
+        ui.font(16.0),
         TEXT_MUTED,
     );
 }
@@ -409,9 +401,9 @@ fn alignment_label(alignment: CardAlignment) -> &'static str {
 
 fn card_alignment_color(alignment: CardAlignment) -> Color {
     match alignment {
-        CardAlignment::MagicalGirl => SKYBLUE,
-        CardAlignment::Baddie => PINK,
-        CardAlignment::Neutral => GOLD,
+        CardAlignment::MagicalGirl => MG_BLUE,
+        CardAlignment::Baddie => BADDIE_PINK,
+        CardAlignment::Neutral => PRIORITY_GOLD,
     }
 }
 

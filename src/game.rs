@@ -1,6 +1,7 @@
 //! Top-level game coordinator.
 
 mod booster;
+mod capture;
 mod escape_menu;
 
 use macroquad::input::{is_key_pressed, show_mouse, KeyCode};
@@ -765,9 +766,25 @@ impl Game {
 }
 
 fn apply_window_settings(state: &AppState) {
+    if capture_mode_enabled() {
+        set_fullscreen(false);
+        return;
+    }
     let settings = &state.saves.settings;
     set_fullscreen(settings.fullscreen);
     if !settings.fullscreen {
         request_new_screen_size(settings.window_width as f32, settings.window_height as f32);
+    }
+}
+
+fn capture_mode_enabled() -> bool {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::env::var("ECLIPSE_HEART_CAPTURE_SCREEN").is_ok()
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        false
     }
 }

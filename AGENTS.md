@@ -33,13 +33,13 @@ This project uses the shared RustGames agent instructions in [`../AGENTS.md`](..
 At the start of a task:
 - Read this file before making changes.
 - Check whether the task affects player-facing behavior, controls, systems, or workflow.
-- Identify which docs need to stay aligned, especially `IMPLEMENTED_SYSTEMS.md`, `polish_backlog.md`, and `tasks.md`.
+- Identify which docs need to stay aligned, especially `docs/IMPLEMENTED_SYSTEMS.md`, `docs/polish_backlog.md`, and `docs/tasks.md`.
 
 During implementation:
 - If new user-facing text is needed, add it to `assets/data/ui_text.json`.
 - Keep code comments minimal and only where they clarify non-obvious logic.
 
 Once the task is complete:
-- Update `IMPLEMENTED_SYSTEMS.md` if shipped behavior changed.
-- Update `polish_backlog.md` when a backlog item is completed or its status changes.
-- Keep `tasks.md` focused on product/design follow-ups rather than implementation status.
+- Update `docs/IMPLEMENTED_SYSTEMS.md` if shipped behavior changed.
+- Update `docs/polish_backlog.md` when a backlog item is completed or its status changes.
+- Keep `docs/tasks.md` focused on product/design follow-ups rather than implementation status.

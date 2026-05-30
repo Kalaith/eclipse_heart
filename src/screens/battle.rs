@@ -13,7 +13,10 @@ use crate::state::{
 use crate::ui::card_widgets::{
     action_button, draw_story_card_preview, draw_story_card_tile, point_in_rect, section_panel,
 };
-use crate::ui::core::{draw_background_texture, draw_panel, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{
+    draw_background_texture, draw_focus_panel, draw_screen_scrim, draw_soft_panel, BADDIE_PINK,
+    MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
+};
 use crate::ui::layout::UiLayout;
 
 pub struct BattleScreen;
@@ -159,8 +162,9 @@ impl BattleScreen {
         };
 
         if let Some(background) = state.assets.ui_background("battle") {
-            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.34));
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.20));
         }
+        draw_screen_scrim(0.58);
 
         section_panel(
             ui.rect(40.0, 36.0, 430.0, 744.0),
@@ -170,17 +174,28 @@ impl BattleScreen {
         section_panel(
             ui.rect(40.0, 800.0, 430.0, 596.0),
             state.ui_text.get("battle_actions_label"),
-            SKYBLUE,
+            MG_BLUE,
         );
-        draw_panel(ui.x(500.0), ui.y(36.0), ui.w(2020.0), ui.h(836.0), SKYBLUE);
-        section_panel(
-            ui.rect(500.0, 890.0, 2020.0, 506.0),
-            state.ui_text.get("battle_your_hand_label"),
-            SKYBLUE,
-        );
+        if matches!(state.battle_context, BattleContext::Campaign { .. }) {
+            draw_focus_panel(ui.rect(500.0, 36.0, 1586.0, 836.0), MG_BLUE);
+            draw_focus_panel(ui.rect(2126.0, 190.0, 394.0, 1206.0), BADDIE_PINK);
+            section_panel(
+                ui.rect(500.0, 890.0, 1586.0, 506.0),
+                state.ui_text.get("battle_your_hand_label"),
+                MG_BLUE,
+            );
+        } else {
+            draw_focus_panel(ui.rect(500.0, 36.0, 2020.0, 836.0), MG_BLUE);
+            section_panel(
+                ui.rect(500.0, 890.0, 2020.0, 506.0),
+                state.ui_text.get("battle_your_hand_label"),
+                MG_BLUE,
+            );
+        }
 
         if matches!(state.battle_context, BattleContext::Campaign { .. }) {
             self.draw_campaign_battle(state, match_state);
+            self.draw_campaign_intel_rail(state);
         } else {
             self.draw_skirmish_battle(state, match_state);
         }
@@ -188,7 +203,7 @@ impl BattleScreen {
         self.draw_status_strip(state, match_state);
 
         let action_hint = battle_action_hint(state, match_state, PlayerId::PlayerA);
-        draw_soft_panel(ui.x(540.0), ui.y(792.0), ui.w(820.0), ui.h(52.0), SKYBLUE);
+        draw_soft_panel(ui.x(540.0), ui.y(792.0), ui.w(820.0), ui.h(52.0), MG_BLUE);
         draw_text(
             action_hint,
             ui.x(562.0),
@@ -219,7 +234,13 @@ impl BattleScreen {
 
         if let Some(card_name) = &match_state.last_played_card_name {
             let played_line = format!("{}: {}", state.ui_text.get("last_card_label"), card_name);
-            draw_soft_panel(ui.x(1706.0), ui.y(792.0), ui.w(774.0), ui.h(52.0), PINK);
+            draw_soft_panel(
+                ui.x(1706.0),
+                ui.y(792.0),
+                ui.w(774.0),
+                ui.h(52.0),
+                BADDIE_PINK,
+            );
             draw_text(
                 &played_line,
                 ui.x(1730.0),
@@ -339,8 +360,8 @@ impl BattleScreen {
             state,
             ui.x(540.0),
             ui.y(210.0),
-            ui.w(900.0),
-            ui.h(224.0),
+            ui.w(690.0),
+            ui.h(260.0),
             state.ui_text.get("campaign_battle_player_mg_label"),
             &match_state.player_a.magical_girls,
             true,
@@ -348,49 +369,124 @@ impl BattleScreen {
         );
         self.draw_side_box(
             state,
-            ui.x(1540.0),
+            ui.x(1356.0),
             ui.y(210.0),
-            ui.w(900.0),
-            ui.h(224.0),
+            ui.w(690.0),
+            ui.h(260.0),
             state.ui_text.get("campaign_battle_enemy_baddie_label"),
             &match_state.player_b.baddies,
             false,
             match_state.defeated_prime_owner == Some(PlayerId::PlayerB),
         );
+        self.draw_vs_marker(ui.x(1284.0), ui.y(340.0));
 
-        draw_soft_panel(ui.x(540.0), ui.y(462.0), ui.w(1900.0), ui.h(58.0), GRAY);
+        draw_soft_panel(ui.x(540.0), ui.y(498.0), ui.w(1466.0), ui.h(58.0), GRAY);
         draw_text(
             state.ui_text.get("campaign_battle_focus_note"),
             ui.x(564.0),
-            ui.y(498.0),
+            ui.y(534.0),
             ui.font(22.0),
             TEXT_MUTED,
         );
 
         draw_stat_chip(
-            ui.rect(540.0, 542.0, 220.0, 52.0),
+            ui.rect(540.0, 596.0, 220.0, 52.0),
             state.ui_text.get("battle_hand_count_label"),
             &match_state.player_a.hand.len().to_string(),
-            SKYBLUE,
+            MG_BLUE,
         );
         draw_stat_chip(
-            ui.rect(776.0, 542.0, 220.0, 52.0),
+            ui.rect(776.0, 596.0, 220.0, 52.0),
             state.ui_text.get("battle_draw_pile_label"),
             &match_state.player_a.deck.len().to_string(),
-            SKYBLUE,
+            MG_BLUE,
         );
         draw_stat_chip(
-            ui.rect(1540.0, 542.0, 220.0, 52.0),
+            ui.rect(1356.0, 596.0, 220.0, 52.0),
             state.ui_text.get("campaign_battle_enemy_hand_label"),
             &match_state.player_b.hand.len().to_string(),
-            PINK,
+            BADDIE_PINK,
         );
         draw_stat_chip(
-            ui.rect(1776.0, 542.0, 220.0, 52.0),
+            ui.rect(1592.0, 596.0, 220.0, 52.0),
             state.ui_text.get("battle_draw_pile_label"),
             &match_state.player_b.deck.len().to_string(),
-            PINK,
+            BADDIE_PINK,
         );
+    }
+
+    fn draw_campaign_intel_rail(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        let rail = ui.rect(2126.0, 190.0, 394.0, 1206.0);
+        draw_text(
+            state.ui_text.get("battle_encounter_intel_label"),
+            rail.x + ui.w(34.0),
+            rail.y + ui.h(62.0),
+            ui.font(28.0),
+            BADDIE_PINK,
+        );
+
+        let cards = [
+            (
+                112.0,
+                208.0,
+                state.ui_text.get("battle_objective_label"),
+                state.ui_text.get("battle_objective_body"),
+                PRIORITY_GOLD,
+            ),
+            (
+                352.0,
+                208.0,
+                state.ui_text.get("battle_enemy_effect_label"),
+                state.ui_text.get("battle_enemy_effect_body"),
+                BADDIE_PINK,
+            ),
+            (
+                592.0,
+                180.0,
+                state.ui_text.get("battle_reward_panel_label"),
+                state.ui_text.get("battle_reward_body"),
+                PRIORITY_GOLD,
+            ),
+            (
+                800.0,
+                190.0,
+                state.ui_text.get("battle_notes_label"),
+                state.ui_text.get("battle_notes_body"),
+                MG_BLUE,
+            ),
+            (
+                1018.0,
+                150.0,
+                state.ui_text.get("battle_final_climax_locked"),
+                state.ui_text.get("battle_final_climax_unlock"),
+                MG_BLUE,
+            ),
+        ];
+
+        for (offset_y, height, title, body, accent) in cards {
+            let rect = ui.rect(2160.0, 190.0 + offset_y, 328.0, height);
+            draw_soft_panel(rect.x, rect.y, rect.w, rect.h, accent);
+            draw_text(
+                title,
+                rect.x + ui.w(24.0),
+                rect.y + ui.h(48.0),
+                ui.font(24.0),
+                accent,
+            );
+            let lines = wrap_event_lines(&[body.to_owned()], rect.w - ui.w(48.0), ui.font(21.0));
+            let mut text_y = rect.y + ui.h(92.0);
+            for line in lines.into_iter().take(4) {
+                draw_text(
+                    &line,
+                    rect.x + ui.w(24.0),
+                    text_y,
+                    ui.font(21.0),
+                    TEXT_MUTED,
+                );
+                text_y += ui.h(32.0);
+            }
+        }
     }
 
     fn draw_player_column(
@@ -482,9 +578,9 @@ impl BattleScreen {
         let outline = if prime_defeated {
             RED
         } else if is_magical_girl_side {
-            SKYBLUE
+            MG_BLUE
         } else {
-            PINK
+            BADDIE_PINK
         };
         let ui = UiLayout::current();
         section_panel(Rect::new(x, y, width, height), label, outline);
@@ -566,14 +662,20 @@ impl BattleScreen {
 impl BattleScreen {
     fn draw_status_strip(&self, state: &AppState, match_state: &MatchState) {
         let ui = UiLayout::current();
+        let campaign = matches!(state.battle_context, BattleContext::Campaign { .. });
+        let (x, y) = if campaign {
+            (ui.x(1502.0), ui.y(92.0))
+        } else {
+            (ui.x(540.0), ui.y(688.0))
+        };
         draw_stat_chip(
-            ui.rect(540.0, 688.0, 250.0, 56.0),
+            Rect::new(x, y, ui.w(250.0), ui.h(56.0)),
             state.ui_text.get("phase_label"),
             match_state.current_phase_label(),
-            SKYBLUE,
+            MG_BLUE,
         );
         draw_stat_chip(
-            ui.rect(808.0, 688.0, 296.0, 56.0),
+            Rect::new(x + ui.w(268.0), y, ui.w(296.0), ui.h(56.0)),
             state.ui_text.get("controller_label"),
             &format!(
                 "{:?}",
@@ -581,18 +683,46 @@ impl BattleScreen {
                     .reaction_priority_player()
                     .unwrap_or(match_state.active_player)
             ),
-            GOLD,
+            PRIORITY_GOLD,
         );
         draw_stat_chip(
-            ui.rect(1122.0, 688.0, 352.0, 56.0),
+            Rect::new(x + ui.w(582.0), y, ui.w(352.0), ui.h(56.0)),
             state.ui_text.get("battle_reaction_window_label"),
             if match_state.reaction_state.is_some() {
                 state.ui_text.get("battle_open_short")
             } else {
                 state.ui_text.get("battle_closed_short")
             },
-            PINK,
+            BADDIE_PINK,
         );
+    }
+
+    fn draw_vs_marker(&self, x: f32, y: f32) {
+        let ui = UiLayout::current();
+        draw_circle_lines(
+            x,
+            y,
+            ui.w(68.0),
+            ui.w(2.0),
+            Color::new(0.28, 0.78, 1.0, 0.28),
+        );
+        draw_circle_lines(
+            x,
+            y,
+            ui.w(94.0),
+            ui.w(1.0),
+            Color::new(1.0, 0.24, 0.66, 0.22),
+        );
+        draw_line(x - ui.w(110.0), y, x - ui.w(28.0), y, ui.w(2.0), MG_BLUE);
+        draw_line(
+            x + ui.w(28.0),
+            y,
+            x + ui.w(110.0),
+            y,
+            ui.w(2.0),
+            BADDIE_PINK,
+        );
+        draw_text("VS", x - ui.w(28.0), y + ui.h(16.0), ui.font(46.0), WHITE);
     }
 
     fn draw_hand_cards(&self, state: &AppState, match_state: &MatchState, player: PlayerId) {

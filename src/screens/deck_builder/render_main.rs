@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 use crate::state::AppState;
 use crate::ui::card_widgets::{point_in_rect, section_panel};
-use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_background_texture, draw_screen_scrim, draw_soft_panel, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 use super::controls::*;
@@ -14,8 +14,9 @@ impl DeckBuilderScreen {
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
         if let Some(background) = state.assets.ui_background("menu") {
-            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.78));
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.10));
         }
+        draw_screen_scrim(0.76);
         let active_deck = state.saves.decks.selected_support_deck();
         let deck_name = active_deck
             .map(|deck| deck.name.as_str())

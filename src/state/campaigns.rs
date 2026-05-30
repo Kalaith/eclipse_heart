@@ -1,12 +1,10 @@
 //! Persistent campaign run data.
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use serde::{Deserialize, Serialize};
 
 use crate::data::CampaignDefinition;
 
-use super::DeckPreset;
+use super::{timestamp::current_unix_timestamp, DeckPreset};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum CampaignRunStatus {
@@ -258,13 +256,6 @@ impl CampaignSaveBundle {
         run.updated_at_unix = current_unix_timestamp();
         true
     }
-}
-
-fn current_unix_timestamp() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_secs() as i64)
-        .unwrap_or(0)
 }
 
 #[cfg(test)]

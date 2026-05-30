@@ -25,3 +25,7 @@ Win battles by reading the board, choosing the right support at the right time, 
 ## Current Scope
 
 Playable card-battle foundation with campaign and skirmish flow, support decks, rosters, and tactical battle choices.
+
+## Documentation
+
+Project notes, plans, rules references, and implementation records live in [`docs/`](docs/).

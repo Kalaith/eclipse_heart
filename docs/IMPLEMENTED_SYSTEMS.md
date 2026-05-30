@@ -6,6 +6,7 @@
 - Main menu opens a dedicated match setup screen instead of jumping straight into a hardcoded battle.
 - The title screen now uses the Eclipse Heart key art as its full-screen backdrop and only overlays the menu/settings controls.
 - The game now boots fullscreen by default and the main menu includes a full-screen `Settings` view with a saved `Full Screen` toggle that persists through local settings.
+- The `Settings` view uses the same full-screen neon HUD frame as the rest of the app, with a clearer Display section, fullscreen row, and explicit on/off state.
 - The main menu also includes a direct `Exit Game` action.
 - Match setup lets the prototype configure both `Player A` and `Player B`.
 - Match setup now shows direct clickable main-character cards and support-pair choices for each roster instead of only cycling through hidden selections.
@@ -19,6 +20,7 @@
 ## Battle UI
 
 - Shared UI helpers now live under `src/ui/` for colors, 1440p-first layout scaling, and reusable card/panel widgets.
+- Shared UI styling now uses darker chamfered HUD panels, thin neon borders, purple accent rules, consistent blue/pink/gold semantic roles, and stronger grid scrims to move screens toward the provided visual mockup.
 - The prototype window now targets a `2560 x 1440` baseline and the main screens scale from that layout space.
 - The menu now links to a deck builder shell as well as match setup.
 - The repo now ships procedural card-frame and speed-badge PNG assets under `assets/generated/cards/`, including layered frame pieces, art masks, gloss overlays, badge bases, and badge icons generated from `assets/data/card_visuals.json`.
@@ -33,6 +35,8 @@
 - The defending player's Prime Baddie is marked when defeated and the finished state shows the winner.
 - Campaign battles now use a separate presentation layer that frames the match as `you vs enemy`, and the visible combat panels only show the player's Magical Girls against the AI's Baddies.
 - Campaign battles now also hide player-facing Baddie-support reveal controls, so the visible actions stay aligned with the single-player Magical Girl framing.
+- Campaign battles now include a right-side encounter intel rail, top status chips, and a central versus marker to better match the angular neon HUD mockup.
+- Native screenshot capture can be driven through `ECLIPSE_HEART_CAPTURE_SCREEN` and `ECLIPSE_HEART_CAPTURE_PATH`, allowing current screenshots to be regenerated directly from the Rust renderer without browser automation.
 
 ## Persistence
 
@@ -44,6 +48,7 @@
 - The new `Esc` pause menu can also manually write the current save bundle without leaving the active screen.
 - Local persistence now also stores `campaigns.json`, including active or completed campaign runs, their deck snapshot, encounter progress, and battle history.
 - Campaign persistence now supports multiple saved run slots and keeps a selected campaign slot so the player can swap between in-progress, won, or lost runs from the campaign menu.
+- Save timestamps now use the runtime clock shared by native and WebGL builds so deck creation and campaign run creation work in browser builds.
 
 ## Single-player campaign
 
@@ -54,6 +59,7 @@
 - The campaign menu now shows explicit save slots for every stored run, lets the player select which slot to inspect or continue, and starts new runs without overwriting older slots.
 - The campaign hub shows the current encounter, run deck, roster snapshot, recent reward cards, and progression before launching the next battle.
 - The campaign hub now also lets the player explicitly choose exactly two Magical Girls from the roster as that run's current supports before an encounter can begin.
+- The campaign menu and hub now sit on darker focus panels with a distinct encounter card, reducing the noisy technical-grid backdrop during campaign flow.
 - Winning an encounter advances the run to the next node, adds the encounter's first configured reward card directly to the run deck snapshot, and preserves that upgraded deck for later battles in the same run.
 - Winning the final encounter marks the run as cleared and returns the player to the campaign menu with a completion notice.
 - Losing a campaign battle marks that run slot as lost and returns the player to the campaign menu without affecting the existing skirmish setup flow.

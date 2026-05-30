@@ -4,7 +4,10 @@ use macroquad::prelude::*;
 
 use crate::screens::ScreenAction;
 use crate::state::AppState;
-use crate::ui::core::draw_background_texture;
+use crate::ui::core::{
+    draw_background_texture, draw_button_frame, draw_focus_panel, draw_screen_scrim, with_alpha,
+    BADDIE_PINK, MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
+};
 use crate::ui::layout::UiLayout;
 
 pub struct MenuScreen {
@@ -25,6 +28,10 @@ impl MenuScreen {
         Self {
             settings_open: false,
         }
+    }
+
+    pub fn set_settings_open(&mut self, open: bool) {
+        self.settings_open = open;
     }
 
     pub fn update(&mut self, _state: &AppState) -> ScreenAction {
@@ -55,6 +62,7 @@ impl MenuScreen {
         if self.settings_open {
             self.draw_settings_screen(state);
         } else {
+            draw_screen_scrim(0.12);
             self.draw_button_column(state);
         }
     }
@@ -73,6 +81,8 @@ impl MenuScreen {
     }
 
     fn draw_button_column(&self, state: &AppState) {
+        let ui = UiLayout::current();
+        draw_focus_panel(ui.rect(1684.0, 586.0, 670.0, 604.0), BADDIE_PINK);
         for (rect, command) in self.menu_buttons() {
             self.draw_menu_button(rect, self.menu_label(command, state));
         }
@@ -93,33 +103,7 @@ impl MenuScreen {
         } else {
             Color::new(0.60, 0.68, 1.00, 0.76)
         };
-        let glow = Color::new(0.75, 0.16, 0.52, if hovered { 0.34 } else { 0.20 });
-
-        draw_rectangle(
-            rect.x + 8.0,
-            rect.y + 10.0,
-            rect.w,
-            rect.h,
-            Color::new(0.01, 0.01, 0.04, 0.48),
-        );
-        draw_rectangle(rect.x - 2.0, rect.y - 2.0, rect.w + 4.0, rect.h + 4.0, glow);
-        draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
-        draw_rectangle(
-            rect.x,
-            rect.y,
-            6.0,
-            rect.h,
-            Color::new(0.93, 0.18, 0.58, 0.86),
-        );
-        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, border);
-        draw_rectangle_lines(
-            rect.x + 10.0,
-            rect.y + 10.0,
-            rect.w - 20.0,
-            rect.h - 20.0,
-            1.0,
-            Color::new(1.0, 1.0, 1.0, 0.18),
-        );
+        draw_button_frame(rect, fill, border, BADDIE_PINK);
 
         let ui = UiLayout::current();
         let font_size = ui.font(32.0);
@@ -146,82 +130,39 @@ impl MenuScreen {
         let ui = UiLayout::current();
         let back_rect = self.settings_back_rect();
         let toggle_rect = self.fullscreen_toggle_rect();
+        let panel_rect = self.settings_panel_rect();
 
-        draw_rectangle(
-            0.0,
-            0.0,
-            screen_width(),
-            screen_height(),
-            Color::new(0.01, 0.01, 0.05, 0.78),
-        );
-        draw_rectangle(
-            0.0,
-            0.0,
-            screen_width(),
-            ui.h(164.0),
-            Color::new(0.03, 0.04, 0.12, 0.92),
-        );
-        draw_rectangle(
-            0.0,
-            ui.h(158.0),
-            screen_width(),
-            ui.h(6.0),
-            Color::new(0.93, 0.18, 0.58, 0.92),
-        );
+        draw_screen_scrim(0.78);
+        draw_focus_panel(panel_rect, BADDIE_PINK);
 
         draw_text(
             state.ui_text.get("menu_settings_label"),
-            ui.x(220.0),
-            ui.y(104.0),
-            ui.font(58.0),
+            panel_rect.x + ui.w(64.0),
+            panel_rect.y + ui.h(112.0),
+            ui.font(60.0),
             WHITE,
         );
+        draw_text(
+            state.ui_text.get("menu_settings_display_label"),
+            panel_rect.x + ui.w(70.0),
+            panel_rect.y + ui.h(222.0),
+            ui.font(28.0),
+            PRIORITY_GOLD,
+        );
+
         self.draw_menu_button(back_rect, state.ui_text.get("menu_settings_back"));
-        self.draw_settings_section_backdrop();
         self.draw_fullscreen_toggle(toggle_rect, state.saves.settings.fullscreen, state);
-    }
-
-    fn draw_settings_section_backdrop(&self) {
-        let ui = UiLayout::current();
-        let content_y = ui.y(246.0);
-
-        draw_rectangle(
-            0.0,
-            content_y,
-            screen_width(),
-            screen_height() - content_y,
-            Color::new(0.02, 0.03, 0.10, 0.52),
-        );
-        draw_rectangle(
-            ui.x(220.0),
-            content_y,
-            ui.w(8.0),
-            screen_height() - content_y,
-            Color::new(0.93, 0.18, 0.58, 0.78),
-        );
-        draw_line(
-            0.0,
-            content_y,
-            screen_width(),
-            content_y,
-            2.0,
-            Color::new(0.52, 0.58, 0.96, 0.36),
-        );
     }
 
     fn draw_fullscreen_toggle(&self, rect: Rect, fullscreen: bool, state: &AppState) {
         let ui = UiLayout::current();
         let hovered = point_in_rect(rect, mouse_position());
         let fill = if hovered {
-            Color::new(0.11, 0.08, 0.22, 0.92)
+            Color::new(0.08, 0.10, 0.20, 0.96)
         } else {
-            Color::new(0.05, 0.06, 0.14, 0.88)
+            Color::new(0.055, 0.066, 0.14, 0.94)
         };
-        let border = if hovered {
-            Color::new(1.00, 0.48, 0.82, 0.98)
-        } else {
-            Color::new(0.52, 0.58, 0.96, 0.66)
-        };
+        let border = if hovered { PRIORITY_GOLD } else { MG_BLUE };
         let track_width = ui.w(126.0);
         let track_height = ui.h(54.0);
         let track_x = rect.x + rect.w - track_width - ui.w(30.0);
@@ -234,14 +175,25 @@ impl MenuScreen {
         };
         let knob_y = track_y + track_height * 0.5;
 
-        draw_rectangle(rect.x, rect.y, rect.w, rect.h, fill);
-        draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, border);
+        draw_button_frame(
+            rect,
+            fill,
+            border,
+            if fullscreen { MG_BLUE } else { BADDIE_PINK },
+        );
         draw_text(
             state.ui_text.get("menu_fullscreen_mode"),
             rect.x + ui.w(28.0),
-            rect.y + ui.h(54.0),
+            rect.y + ui.h(48.0),
             ui.font(32.0),
             Color::new(0.94, 0.94, 1.0, 1.0),
+        );
+        draw_text(
+            state.ui_text.get("menu_fullscreen_description"),
+            rect.x + ui.w(28.0),
+            rect.y + ui.h(84.0),
+            ui.font(20.0),
+            TEXT_MUTED,
         );
         draw_rectangle(
             track_x,
@@ -249,7 +201,7 @@ impl MenuScreen {
             track_width,
             track_height,
             if fullscreen {
-                Color::new(0.58, 0.14, 0.56, 0.96)
+                with_alpha(MG_BLUE, 0.70)
             } else {
                 Color::new(0.02, 0.03, 0.08, 0.94)
             },
@@ -259,14 +211,27 @@ impl MenuScreen {
             track_y,
             track_width,
             track_height,
-            2.0,
-            Color::new(0.88, 0.84, 1.0, 0.76),
+            1.0,
+            Color::new(0.88, 0.84, 1.0, 0.58),
         );
         draw_circle(
             knob_x,
             knob_y,
             knob_radius,
             Color::new(0.96, 0.92, 1.0, 1.0),
+        );
+        let state_label = if fullscreen {
+            state.ui_text.get("menu_toggle_on")
+        } else {
+            state.ui_text.get("menu_toggle_off")
+        };
+        let state_metrics = measure_text(state_label, None, ui.font(18.0) as u16, 1.0);
+        draw_text(
+            state_label,
+            track_x + (track_width - state_metrics.width) * 0.5,
+            track_y + track_height + ui.h(26.0),
+            ui.font(18.0),
+            if fullscreen { MG_BLUE } else { TEXT_MUTED },
         );
     }
 
@@ -301,11 +266,15 @@ impl MenuScreen {
     }
 
     fn settings_back_rect(&self) -> Rect {
-        UiLayout::current().rect(1964.0, 46.0, 340.0, 76.0)
+        UiLayout::current().rect(2072.0, 132.0, 310.0, 76.0)
+    }
+
+    fn settings_panel_rect(&self) -> Rect {
+        UiLayout::current().rect(96.0, 96.0, 2368.0, 1196.0)
     }
 
     fn fullscreen_toggle_rect(&self) -> Rect {
-        UiLayout::current().rect(300.0, 330.0, 1960.0, 112.0)
+        UiLayout::current().rect(230.0, 360.0, 1460.0, 150.0)
     }
 }
 

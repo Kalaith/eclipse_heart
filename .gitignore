@@ -2,12 +2,16 @@
 # will have compiled files and executables
 debug/
 target/
+target-codex/
 
 # These are standard cargo-generated files
 **/*.rs.bk
 
 # MSC
 dist/
+artifacts/
+simulation_report.json
+Screenshot *.png
 *.pdb
 *.history
 .vscode

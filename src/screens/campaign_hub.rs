@@ -2,11 +2,14 @@
 
 use macroquad::prelude::*;
 
-use crate::data::{CharacterDefinition, StoryCardDefinition};
+use crate::data::{CampaignEncounterDefinition, CharacterDefinition, StoryCardDefinition};
 use crate::screens::ScreenAction;
 use crate::state::AppState;
 use crate::ui::card_widgets::{action_button, point_in_rect};
-use crate::ui::core::{draw_background_texture, draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{
+    draw_background_texture, draw_focus_panel, draw_screen_scrim, draw_soft_panel, BADDIE_PINK,
+    MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
+};
 use crate::ui::layout::UiLayout;
 
 pub struct CampaignHubScreen;
@@ -49,8 +52,9 @@ impl CampaignHubScreen {
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
         if let Some(background) = state.assets.ui_background("campaign") {
-            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.84));
+            draw_background_texture(background, Color::new(1.0, 1.0, 1.0, 0.22));
         }
+        draw_screen_scrim(0.58);
         let Some(run) = state.saves.campaigns.selected_run() else {
             draw_text(
                 state.ui_text.get("campaign_no_active_run"),
@@ -81,6 +85,11 @@ impl CampaignHubScreen {
             );
             return;
         };
+
+        draw_focus_panel(ui.rect(56.0, 58.0, 1210.0, 430.0), MG_BLUE);
+        draw_focus_panel(ui.rect(56.0, 500.0, 1470.0, 580.0), PRIORITY_GOLD);
+        draw_focus_panel(ui.rect(1580.0, 220.0, 850.0, 360.0), BADDIE_PINK);
+        self.draw_encounter_card(state, encounter, ui.rect(1580.0, 220.0, 850.0, 360.0));
 
         draw_text(
             state.ui_text.get("campaign_hub_title"),
@@ -260,11 +269,11 @@ impl CampaignHubScreen {
     ) {
         let ui = UiLayout::current();
         let outline = if selected {
-            GOLD
+            PRIORITY_GOLD
         } else if hovered {
             WHITE
         } else {
-            SKYBLUE
+            MG_BLUE
         };
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
         if let Some(texture) = state.assets.portrait(&character.id) {
@@ -321,6 +330,62 @@ impl CampaignHubScreen {
             rect.y + ui.h(58.0),
             ui.font(20.0),
             TEXT_MUTED,
+        );
+    }
+
+    fn draw_encounter_card(
+        &self,
+        state: &AppState,
+        encounter: &CampaignEncounterDefinition,
+        rect: Rect,
+    ) {
+        let ui = UiLayout::current();
+        draw_text(
+            state.ui_text.get("campaign_current_encounter_label"),
+            rect.x + ui.w(42.0),
+            rect.y + ui.h(62.0),
+            ui.font(26.0),
+            TEXT_MUTED,
+        );
+        draw_text(
+            &encounter.name,
+            rect.x + ui.w(42.0),
+            rect.y + ui.h(118.0),
+            ui.font(56.0),
+            WHITE,
+        );
+        for (index, line) in wrap_line(&encounter.intro_text, 74)
+            .into_iter()
+            .take(2)
+            .enumerate()
+        {
+            draw_text(
+                &line,
+                rect.x + ui.w(42.0),
+                rect.y + ui.h(172.0 + index as f32 * 34.0),
+                ui.font(24.0),
+                TEXT_MUTED,
+            );
+        }
+        let reward_names =
+            format_story_cards(&encounter.reward_story_card_ids, &state.content.story_cards);
+        draw_text(
+            state.ui_text.get("campaign_reward_label"),
+            rect.x + ui.w(42.0),
+            rect.y + ui.h(268.0),
+            ui.font(22.0),
+            PRIORITY_GOLD,
+        );
+        draw_text(
+            if reward_names.is_empty() {
+                state.ui_text.get("campaign_no_reward_label")
+            } else {
+                &reward_names
+            },
+            rect.x + ui.w(42.0),
+            rect.y + ui.h(304.0),
+            ui.font(22.0),
+            WHITE,
         );
     }
 }
@@ -401,4 +466,28 @@ fn format_story_cards(card_ids: &[String], definitions: &[StoryCardDefinition]) 
         })
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+fn wrap_line(text: &str, max_chars: usize) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut current = String::new();
+    for word in text.split_whitespace() {
+        let candidate = if current.is_empty() {
+            word.to_owned()
+        } else {
+            format!("{current} {word}")
+        };
+        if candidate.chars().count() <= max_chars {
+            current = candidate;
+        } else {
+            if !current.is_empty() {
+                lines.push(current);
+            }
+            current = word.to_owned();
+        }
+    }
+    if !current.is_empty() {
+        lines.push(current);
+    }
+    lines
 }

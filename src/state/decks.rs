@@ -1,12 +1,10 @@
 //! Versioned deck and roster preset save data.
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use serde::{Deserialize, Serialize};
 
 use crate::data::{DeckRules, StarterLoadout};
 
-use super::{CollectionSave, ImportedDeck};
+use super::{timestamp::current_unix_timestamp, CollectionSave, ImportedDeck};
 
 #[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct DeckPreset {
@@ -524,13 +522,6 @@ fn fill_missing_roster(roster: &mut Vec<String>, fallback: &[String]) {
     }
 
     *roster = fallback.to_vec();
-}
-
-fn current_unix_timestamp() -> i64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_secs() as i64)
-        .unwrap_or(0)
 }
 
 fn touch_deck(deck: &mut DeckPreset) {

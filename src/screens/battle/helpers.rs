@@ -3,7 +3,7 @@ use macroquad::prelude::*;
 use crate::state::{
     opposing, AppState, BattleContext, MatchPhase, MatchState, PlayerId, SupportState,
 };
-use crate::ui::core::{draw_soft_panel, TEXT_MUTED};
+use crate::ui::core::{draw_button_frame, with_alpha, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
 
 pub(super) fn can_reveal_side(
@@ -176,7 +176,25 @@ pub(super) fn hand_card_rects(card_count: usize) -> Vec<Rect> {
 }
 
 pub(super) fn draw_stat_chip(rect: Rect, label: &str, value: &str, accent: Color) {
-    draw_soft_panel(rect.x, rect.y, rect.w, rect.h, accent);
-    draw_text(label, rect.x + 14.0, rect.y + 20.0, 16.0, TEXT_MUTED);
-    draw_text(value, rect.x + 14.0, rect.y + 42.0, 22.0, WHITE);
+    let ui = UiLayout::current();
+    draw_button_frame(
+        rect,
+        Color::new(0.016, 0.024, 0.066, 0.92),
+        with_alpha(accent, 0.72),
+        accent,
+    );
+    draw_text(
+        label,
+        rect.x + ui.w(14.0),
+        rect.y + ui.h(20.0),
+        ui.font(16.0),
+        TEXT_MUTED,
+    );
+    draw_text(
+        value,
+        rect.x + ui.w(14.0),
+        rect.y + ui.h(43.0),
+        ui.font(23.0),
+        WHITE,
+    );
 }

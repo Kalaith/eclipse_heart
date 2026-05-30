@@ -14,6 +14,7 @@ mod match_state;
 mod persistence;
 mod profile;
 mod settings;
+mod timestamp;
 
 pub use app_state::{AppScreen, AppState, BattleContext, BoosterCardGrant};
 pub use campaigns::{CampaignRunSave, CampaignRunStatus, CampaignSaveBundle};
