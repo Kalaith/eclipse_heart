@@ -1,45 +1,39 @@
-## Workspace Instructions
+# RustGames Agent Instructions
 
-This project uses the shared RustGames agent instructions in [`../AGENTS.md`](../AGENTS.md). Codex should read and apply that file when working here.
+These instructions apply to all Rust game projects in this workspace.
 
-## Working Rules
+## Project Standards
 
-- Finish all requests with `meow`.
-- Prefer data-driven implementation over hardcoded behavior where practical.
-- Keep user-facing English copy in `assets/data/ui_text.json` rather than embedding new text in Rust files.
-- Favor clean code with small focused functions and single-responsibility changes.
-- Keep documentation concise, current, and aligned with shipped behavior.
+- Build games with Rust, `macroquad`, and the shared `macroquad-toolkit` by default.
+- Treat missing runtime, rendering, input, asset, or platform behavior as potential `macroquad-toolkit` upgrades before creating project-local alternatives.
+- Only diverge from the shared toolkit when an existing project has a clear, established alternative or the need is genuinely game-specific.
+- Keep source files under 800 lines. Split large files by responsibility before they become difficult to scan or test.
+- Prefer small modules with explicit ownership of input, update logic, rendering, assets, and game state.
+- Use Rust's named module source filenames (`foo.rs`, `foo/bar.rs`) instead of `foo/mod.rs`. Do not create new `mod.rs` files.
+- Keep gameplay logic deterministic where practical. Isolate randomness behind small helper functions or state-owned RNG.
+- Avoid broad refactors while making focused changes. Match the style, naming, and structure already present in each project.
+- Use clear error handling for asset loading, save/load, publishing, and platform integration.
+- Do not introduce new dependencies unless they remove real complexity or match an established project pattern.
 
-## Rust Clean Code Tips
+## Macroquad Conventions
 
-- Prefer descriptive names that explain domain intent, especially for match flow, timing, and state transitions.
-- Keep functions narrow in scope. If a function is doing setup, validation, resolution, and logging, split it.
-- Prefer structs and enums that model game concepts directly over loosely related primitives and boolean combinations.
-- Let the type system carry meaning. Use enums for phases, ownership, targets, and outcomes instead of magic strings or integers.
-- Pass slices and references when ownership is not required. Avoid cloning just to satisfy a short-lived read path.
-- Keep borrowing simple. Favor short mutable borrows, collect log data first when needed, then emit UI or event updates after mutation.
-- Use helper functions to isolate repetitive state updates like growth changes, reveal handling, and encounter cleanup.
-- Keep branching readable. If a `match` arm or `if` block becomes dense, move the logic into a named helper with a clear purpose.
-- Prefer explicit state transitions over hidden side effects. When a turn, reaction window, or encounter state changes, make that transition obvious in code.
-- Avoid panic-driven control flow. Use `Option` and `Result` for recoverable paths, and reserve `expect` for invariant checks that truly indicate a bug.
-- Write comments sparingly and only to explain non-obvious intent, rules assumptions, or why a workaround exists.
-- Keep UI code focused on presentation and input capture. Rule enforcement and game resolution should stay in engine or state helpers.
-- When adding data fields, prefer ones that represent real game concepts and remove stale fields/helpers once they stop serving the model.
-- Add or update focused tests alongside behavior changes, especially for timing order, progression thresholds, hidden information, and turn-state bugs.
-- Run `cargo fmt` and relevant tests after Rust changes so the repo stays consistent and regressions are caught early.
+- Use `macroquad` for the runtime loop, input, drawing, textures, audio, and timing.
+- Keep drawing code separate from state mutation where possible.
+- Treat screen size, scaling, and camera transforms as first-class concerns. Games should remain playable at common desktop browser sizes.
+- Avoid hard-coded absolute positions unless they are intentionally tied to a fixed virtual resolution.
+- Load assets through project-local asset paths and keep missing asset behavior obvious during publishing.
 
-## Documentation Workflow
+## Testing And Validation
 
-At the start of a task:
-- Read this file before making changes.
-- Check whether the task affects player-facing behavior, controls, systems, or workflow.
-- Identify which docs need to stay aligned, especially `docs/IMPLEMENTED_SYSTEMS.md`, `docs/polish_backlog.md`, and `docs/tasks.md`.
+- Use each project's `publish.ps1` script as the validation path.
+- Do not treat running a local instance or local dev server as the required test path unless the user explicitly asks for it.
+- After meaningful changes, run `.\publish.ps1` with no parameters from the affected project directory and report whether it passes.
+- If `publish.ps1` is missing, blocked, or fails for an unrelated environment reason, report that clearly instead of substituting an unrequested local run.
 
-During implementation:
-- If new user-facing text is needed, add it to `assets/data/ui_text.json`.
-- Keep code comments minimal and only where they clarify non-obvious logic.
+## File Size Rule
 
-Once the task is complete:
-- Update `docs/IMPLEMENTED_SYSTEMS.md` if shipped behavior changed.
-- Update `docs/polish_backlog.md` when a backlog item is completed or its status changes.
-- Keep `docs/tasks.md` focused on product/design follow-ups rather than implementation status.
+- Keep every `.rs` file below 800 lines.
+- Treat a file reaching or approaching 800 lines as a restructure signal, not as a formatting target.
+- Do not preserve the limit by stripping useful spacing, compressing formatting, moving a single small function, or making other cosmetic line-count changes.
+- If a meaningful change would push a file over the limit, extract a cohesive responsibility into one or more nearby modules before or alongside the change.
+- If a touched file is already over 800 lines, make the restructure part of the current task, or queue it as the next work item before considering the task complete.
