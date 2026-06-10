@@ -1,4 +1,4 @@
-use macroquad::rand::gen_range;
+use macroquad_toolkit::rng;
 
 use crate::data::GameContent;
 use crate::state::{BoosterCardGrant, CollectionCardKind};
@@ -32,7 +32,7 @@ pub(super) fn open_booster(content: &GameContent) -> Vec<BoosterCardGrant> {
 
     let mut results = Vec::new();
     for _ in 0..10 {
-        let index = gen_range(0, pool.len() as i32) as usize;
+        let index = rng::gen_range(0, pool.len());
         results.push(pool[index].clone());
     }
     results
