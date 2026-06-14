@@ -1,5 +1,5 @@
 use macroquad::input::{is_mouse_button_pressed, mouse_position, MouseButton};
-use macroquad::prelude::{draw_rectangle, draw_text, measure_text, Color, Rect, WHITE};
+use macroquad::prelude::{draw_rectangle, Color, Rect, WHITE};
 
 use crate::screens::ScreenAction;
 use crate::ui::card_widgets::{action_button, point_in_rect};
@@ -7,6 +7,7 @@ use crate::ui::core::draw_soft_panel;
 use crate::ui::layout::UiLayout;
 
 use super::Game;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 impl Game {
     pub(super) fn escape_menu_action(&self) -> ScreenAction {
@@ -41,8 +42,8 @@ impl Game {
         );
 
         let title = self.state.ui_text.get("escape_menu_title");
-        let title_metrics = measure_text(title, None, ui.font(46.0) as u16, 1.0);
-        draw_text(
+        let title_metrics = measure_ui_text(title, None, ui.font(46.0) as u16, 1.0);
+        draw_ui_text(
             title,
             panel_rect.x + (panel_rect.w - title_metrics.width) * 0.5,
             panel_rect.y + ui.h(84.0),

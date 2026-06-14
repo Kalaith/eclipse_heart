@@ -5,6 +5,7 @@ use crate::state::{
 };
 use crate::ui::core::{draw_button_frame, with_alpha, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub(super) fn can_reveal_side(
     match_state: &MatchState,
@@ -128,7 +129,7 @@ pub(super) fn wrap_event_lines(events: &[String], max_width: f32, font_size: f32
             } else {
                 format!("{current} {word}")
             };
-            if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
+            if measure_ui_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
                 current = candidate;
             } else {
                 if !current.is_empty() {
@@ -183,14 +184,14 @@ pub(super) fn draw_stat_chip(rect: Rect, label: &str, value: &str, accent: Color
         with_alpha(accent, 0.72),
         accent,
     );
-    draw_text(
+    draw_ui_text(
         label,
         rect.x + ui.w(14.0),
         rect.y + ui.h(20.0),
         ui.font(16.0),
         TEXT_MUTED,
     );
-    draw_text(
+    draw_ui_text(
         value,
         rect.x + ui.w(14.0),
         rect.y + ui.h(43.0),

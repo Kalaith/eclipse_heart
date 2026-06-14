@@ -11,6 +11,7 @@ use crate::ui::core::{
     MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
 };
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct CampaignHubScreen;
 
@@ -56,7 +57,7 @@ impl CampaignHubScreen {
         }
         draw_screen_scrim(0.58);
         let Some(run) = state.saves.campaigns.selected_run() else {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("campaign_no_active_run"),
                 ui.x(80.0),
                 ui.y(110.0),
@@ -66,7 +67,7 @@ impl CampaignHubScreen {
             return;
         };
         let Some(node) = state.content.campaign.node(&run.current_node_id) else {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("campaign_missing_node"),
                 ui.x(80.0),
                 ui.y(110.0),
@@ -76,7 +77,7 @@ impl CampaignHubScreen {
             return;
         };
         let Some(encounter) = state.content.campaign.encounter(&node.encounter_id) else {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("campaign_missing_encounter"),
                 ui.x(80.0),
                 ui.y(110.0),
@@ -91,14 +92,14 @@ impl CampaignHubScreen {
         draw_focus_panel(ui.rect(1580.0, 220.0, 850.0, 360.0), BADDIE_PINK);
         self.draw_encounter_card(state, encounter, ui.rect(1580.0, 220.0, 850.0, 360.0));
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_hub_title"),
             ui.x(80.0),
             ui.y(110.0),
             ui.font(72.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_selected_slot_label"),
@@ -109,7 +110,7 @@ impl CampaignHubScreen {
             ui.font(28.0),
             GOLD,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_current_encounter_label"),
@@ -120,14 +121,14 @@ impl CampaignHubScreen {
             ui.font(32.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &encounter.intro_text,
             ui.x(80.0),
             ui.y(266.0),
             ui.font(24.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}/{}",
                 state.ui_text.get("campaign_progress_label"),
@@ -139,7 +140,7 @@ impl CampaignHubScreen {
             ui.font(24.0),
             SKYBLUE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_deck_label"),
@@ -150,7 +151,7 @@ impl CampaignHubScreen {
             ui.font(28.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} {}",
                 state.ui_text.get("campaign_deck_cards_label"),
@@ -162,7 +163,7 @@ impl CampaignHubScreen {
             TEXT_MUTED,
         );
         if !run.player_deck.recent_story_cards.is_empty() {
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("campaign_recent_rewards_label"),
@@ -178,14 +179,14 @@ impl CampaignHubScreen {
             );
         }
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_support_pair_label"),
             ui.x(80.0),
             ui.y(520.0),
             ui.font(24.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_support_pair_help"),
             ui.x(80.0),
             ui.y(554.0),
@@ -230,7 +231,7 @@ impl CampaignHubScreen {
             );
         }
 
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_run_roster_label"),
@@ -245,7 +246,7 @@ impl CampaignHubScreen {
             TEXT_MUTED,
         );
         if !state.saves.campaigns.selected_run_has_valid_support_pair() {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("campaign_support_pair_required"),
                 ui.x(80.0),
                 ui.y(1076.0),
@@ -254,7 +255,7 @@ impl CampaignHubScreen {
             );
         }
         if let Some(message) = &state.campaign_notice {
-            draw_text(message, ui.x(80.0), ui.y(1112.0), ui.font(24.0), GOLD);
+            draw_ui_text(message, ui.x(80.0), ui.y(1112.0), ui.font(24.0), GOLD);
         }
     }
 
@@ -289,14 +290,14 @@ impl CampaignHubScreen {
             );
         }
         draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
-        draw_text(
+        draw_ui_text(
             &character.name,
             rect.x + ui.w(110.0),
             rect.y + ui.h(32.0),
             ui.font(22.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} / {} / {}",
                 character.base_power, character.transformed_power, character.final_power
@@ -306,7 +307,7 @@ impl CampaignHubScreen {
             ui.font(18.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} {} / {}",
                 state.ui_text.get("battle_growth_label"),
@@ -324,7 +325,7 @@ impl CampaignHubScreen {
         let ui = UiLayout::current();
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
         draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, GRAY);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_support_slot_empty"),
             rect.x + ui.w(14.0),
             rect.y + ui.h(58.0),
@@ -340,14 +341,14 @@ impl CampaignHubScreen {
         rect: Rect,
     ) {
         let ui = UiLayout::current();
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_current_encounter_label"),
             rect.x + ui.w(42.0),
             rect.y + ui.h(62.0),
             ui.font(26.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &encounter.name,
             rect.x + ui.w(42.0),
             rect.y + ui.h(118.0),
@@ -359,7 +360,7 @@ impl CampaignHubScreen {
             .take(2)
             .enumerate()
         {
-            draw_text(
+            draw_ui_text(
                 &line,
                 rect.x + ui.w(42.0),
                 rect.y + ui.h(172.0 + index as f32 * 34.0),
@@ -369,14 +370,14 @@ impl CampaignHubScreen {
         }
         let reward_names =
             format_story_cards(&encounter.reward_story_card_ids, &state.content.story_cards);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_reward_label"),
             rect.x + ui.w(42.0),
             rect.y + ui.h(268.0),
             ui.font(22.0),
             PRIORITY_GOLD,
         );
-        draw_text(
+        draw_ui_text(
             if reward_names.is_empty() {
                 state.ui_text.get("campaign_no_reward_label")
             } else {

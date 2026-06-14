@@ -9,6 +9,7 @@ use super::layout::*;
 use super::types::*;
 use super::utils::*;
 use super::*;
+use macroquad_toolkit::ui::draw_ui_text;
 
 impl DeckBuilderScreen {
     pub(super) fn draw_layer_tabs(&self, state: &AppState) {
@@ -30,7 +31,7 @@ impl DeckBuilderScreen {
                     DARKGRAY
                 },
             );
-            draw_text(
+            draw_ui_text(
                 match tab {
                     DeckBuilderTab::SupportCards => {
                         state.ui_text.get("deck_builder_tab_support_cards")
@@ -50,7 +51,7 @@ impl DeckBuilderScreen {
 
     pub(super) fn draw_roster_pool(&self, state: &AppState, is_magical_girl_side: bool) {
         let ui = UiLayout::current();
-        draw_text(
+        draw_ui_text(
             if is_magical_girl_side {
                 state.ui_text.get("deck_builder_magical_girl_roster_help")
             } else {
@@ -100,14 +101,14 @@ impl DeckBuilderScreen {
                     },
                 );
             }
-            draw_text(
+            draw_ui_text(
                 &character.name,
                 rect.x + ui.w(74.0),
                 rect.y + ui.h(32.0),
                 ui.font(20.0),
                 WHITE,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{} / {} / {}",
                     character.base_power, character.transformed_power, character.final_power
@@ -217,7 +218,7 @@ impl DeckBuilderScreen {
             Color::new(0.03, 0.04, 0.08, 0.75),
         );
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_rename_prompt"),
             rect.x + ui.w(24.0),
             rect.y + ui.h(42.0),
@@ -233,7 +234,7 @@ impl DeckBuilderScreen {
             input_rect.h,
             BLACK,
         );
-        draw_text(
+        draw_ui_text(
             if dialog.value.is_empty() {
                 state.ui_text.get("deck_builder_rename_placeholder")
             } else {
@@ -247,7 +248,7 @@ impl DeckBuilderScreen {
 
         let save_rect = rename_dialog_save_rect();
         draw_soft_panel(save_rect.x, save_rect.y, save_rect.w, save_rect.h, SKYBLUE);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_confirm_rename"),
             save_rect.x + ui.w(14.0),
             save_rect.y + ui.h(30.0),
@@ -263,7 +264,7 @@ impl DeckBuilderScreen {
             cancel_rect.h,
             PINK,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_cancel_rename"),
             cancel_rect.x + ui.w(14.0),
             cancel_rect.y + ui.h(30.0),
@@ -288,7 +289,7 @@ impl DeckBuilderScreen {
         );
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
 
-        draw_text(
+        draw_ui_text(
             match dialog.mode {
                 DeckImportExportMode::Export => {
                     state.ui_text.get("deck_builder_export_dialog_title")
@@ -302,7 +303,7 @@ impl DeckBuilderScreen {
             ui.font(28.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             match dialog.mode {
                 DeckImportExportMode::Export => {
                     state.ui_text.get("deck_builder_export_dialog_body")
@@ -342,7 +343,7 @@ impl DeckBuilderScreen {
         );
         let mut y = text_rect.y + ui.h(26.0);
         for line in body_lines {
-            draw_text(&line, text_rect.x + ui.w(12.0), y, ui.font(16.0), WHITE);
+            draw_ui_text(&line, text_rect.x + ui.w(12.0), y, ui.font(16.0), WHITE);
             y += ui.h(20.0);
         }
 
@@ -350,7 +351,7 @@ impl DeckBuilderScreen {
             let status_lines = wrap_text_block(status, rect.w - ui.w(48.0), ui.font(18.0), 3);
             let mut status_y = rect.y + ui.h(548.0);
             for line in status_lines {
-                draw_text(&line, rect.x + ui.w(24.0), status_y, ui.font(18.0), GOLD);
+                draw_ui_text(&line, rect.x + ui.w(24.0), status_y, ui.font(18.0), GOLD);
                 status_y += ui.h(22.0);
             }
         }
@@ -363,7 +364,7 @@ impl DeckBuilderScreen {
             primary_rect.h,
             SKYBLUE,
         );
-        draw_text(
+        draw_ui_text(
             match dialog.mode {
                 DeckImportExportMode::Export => state.ui_text.get("deck_builder_copy_code"),
                 DeckImportExportMode::Import => state.ui_text.get("deck_builder_import_button"),
@@ -386,7 +387,7 @@ impl DeckBuilderScreen {
                 DARKGRAY
             },
         );
-        draw_text(
+        draw_ui_text(
             match dialog.mode {
                 DeckImportExportMode::Export => state.ui_text.get("deck_builder_close_dialog"),
                 DeckImportExportMode::Import => state.ui_text.get("deck_builder_paste_code"),
@@ -399,7 +400,7 @@ impl DeckBuilderScreen {
 
         let close_rect = import_export_close_rect();
         draw_soft_panel(close_rect.x, close_rect.y, close_rect.w, close_rect.h, PINK);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_close_dialog"),
             close_rect.x + ui.w(18.0),
             close_rect.y + ui.h(32.0),
@@ -419,21 +420,21 @@ impl DeckBuilderScreen {
             Color::new(0.03, 0.04, 0.08, 0.78),
         );
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_metadata_title"),
             rect.x + ui.w(24.0),
             rect.y + ui.h(42.0),
             ui.font(28.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_metadata_tags_label"),
             rect.x + ui.w(24.0),
             rect.y + ui.h(92.0),
             ui.font(20.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_metadata_notes_label"),
             rect.x + ui.w(24.0),
             rect.y + ui.h(164.0),
@@ -453,7 +454,7 @@ impl DeckBuilderScreen {
                 DARKPURPLE
             },
         );
-        draw_text(
+        draw_ui_text(
             if dialog.tags.is_empty() {
                 state.ui_text.get("deck_builder_metadata_tags_placeholder")
             } else {
@@ -488,7 +489,7 @@ impl DeckBuilderScreen {
             ui.font(18.0),
             10,
         ) {
-            draw_text(
+            draw_ui_text(
                 &line,
                 notes_rect.x + ui.w(12.0),
                 notes_y,
@@ -500,7 +501,7 @@ impl DeckBuilderScreen {
 
         let save_rect = metadata_save_rect();
         draw_soft_panel(save_rect.x, save_rect.y, save_rect.w, save_rect.h, SKYBLUE);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_metadata_save"),
             save_rect.x + ui.w(18.0),
             save_rect.y + ui.h(32.0),
@@ -516,7 +517,7 @@ impl DeckBuilderScreen {
             cancel_rect.h,
             PINK,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_metadata_cancel"),
             cancel_rect.x + ui.w(18.0),
             cancel_rect.y + ui.h(32.0),

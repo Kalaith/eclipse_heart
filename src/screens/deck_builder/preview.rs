@@ -13,6 +13,7 @@ use super::layout::*;
 use super::types::*;
 use super::utils::*;
 use super::*;
+use macroquad_toolkit::ui::draw_ui_text;
 
 impl DeckBuilderScreen {
     pub(super) fn draw_preview_panel(&self, state: &AppState) {
@@ -111,7 +112,7 @@ impl DeckBuilderScreen {
             *counts.entry(card_id.clone()).or_insert(0) += 1;
         }
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_contents_help"),
             rect.x,
             rect.y,
@@ -119,7 +120,7 @@ impl DeckBuilderScreen {
             TEXT_MUTED,
         );
         if !deck.recent_story_cards.is_empty() {
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_recent_cards_label"),
@@ -136,7 +137,7 @@ impl DeckBuilderScreen {
             );
         }
         if !deck.notes.is_empty() {
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_notes_label"),
@@ -164,7 +165,7 @@ impl DeckBuilderScreen {
                 .find(|entry| entry.id == card_id)
                 .map(|entry| entry.name.as_str())
                 .unwrap_or(card_id.as_str());
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{count}x {name}{}",
                     if missing_count > 0 {
@@ -191,7 +192,7 @@ impl DeckBuilderScreen {
         let suggestions = self.replacement_suggestion_lines(state);
         if !suggestions.is_empty() {
             let base_y = rect.y + rect.h - ui.h(80.0);
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_replacements_label"),
                 rect.x,
                 base_y,
@@ -200,7 +201,7 @@ impl DeckBuilderScreen {
             );
             let mut suggestion_y = base_y + ui.h(20.0);
             for line in suggestions.into_iter().take(2) {
-                draw_text(&line, rect.x, suggestion_y, ui.font(15.0), TEXT_MUTED);
+                draw_ui_text(&line, rect.x, suggestion_y, ui.font(15.0), TEXT_MUTED);
                 suggestion_y += ui.h(18.0);
             }
         }
@@ -228,7 +229,7 @@ impl DeckBuilderScreen {
             self.selected_baddie_slot
         };
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_roster_panel_help"),
             rect.x,
             rect.y,
@@ -262,7 +263,7 @@ impl DeckBuilderScreen {
                 },
                 character_id,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{} {}{}",
                     slot_index + 1,
@@ -547,9 +548,9 @@ impl DeckBuilderScreen {
                 },
             );
         }
-        draw_text(kind_label, rect.x + 20.0, rect.y + 34.0, 24.0, GOLD);
-        draw_text(&character.name, rect.x + 148.0, rect.y + 84.0, 36.0, WHITE);
-        draw_text(
+        draw_ui_text(kind_label, rect.x + 20.0, rect.y + 34.0, 24.0, GOLD);
+        draw_ui_text(&character.name, rect.x + 148.0, rect.y + 84.0, 36.0, WHITE);
+        draw_ui_text(
             &format!(
                 "Power {} / {} / {}",
                 character.base_power, character.transformed_power, character.final_power
@@ -559,7 +560,7 @@ impl DeckBuilderScreen {
             24.0,
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "Thresholds {} / {}",
                 character.first_threshold, character.second_threshold
@@ -569,7 +570,7 @@ impl DeckBuilderScreen {
             24.0,
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!("Owned: {owned}"),
             rect.x + 148.0,
             rect.y + 220.0,
@@ -587,8 +588,8 @@ impl DeckBuilderScreen {
     ) {
         let rect = preview_panel_content_rect();
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, GOLD);
-        draw_text(title, rect.x + 18.0, rect.y + 42.0, 28.0, WHITE);
-        draw_text(subtitle, rect.x + 18.0, rect.y + 74.0, 20.0, TEXT_MUTED);
+        draw_ui_text(title, rect.x + 18.0, rect.y + 42.0, 28.0, WHITE);
+        draw_ui_text(subtitle, rect.x + 18.0, rect.y + 74.0, 20.0, TEXT_MUTED);
 
         let mut counts = std::collections::BTreeMap::<String, usize>::new();
         for card_id in story_cards {
@@ -604,7 +605,7 @@ impl DeckBuilderScreen {
                 .find(|entry| entry.id == card_id)
                 .map(|entry| entry.name.as_str())
                 .unwrap_or(card_id.as_str());
-            draw_text(&format!("{count}x {name}"), rect.x + 18.0, y, 20.0, WHITE);
+            draw_ui_text(&format!("{count}x {name}"), rect.x + 18.0, y, 20.0, WHITE);
             y += 24.0;
             if y > rect.y + rect.h - 24.0 {
                 break;
@@ -620,21 +621,21 @@ impl DeckBuilderScreen {
         let ui = UiLayout::current();
         let rect = preview_panel_content_rect();
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, GOLD);
-        draw_text(
+        draw_ui_text(
             &starter.name,
             rect.x + ui.w(18.0),
             rect.y + ui.h(34.0),
             ui.font(26.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_previewing_template"),
             rect.x + ui.w(18.0),
             rect.y + ui.h(60.0),
             ui.font(18.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("deck_builder_template_playstyle_label"),
@@ -649,7 +650,7 @@ impl DeckBuilderScreen {
         let description_lines =
             wrap_preview_text(&starter.description, rect.w - ui.w(36.0), ui.font(16.0), 3);
         let mut y = rect.y + ui.h(114.0);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_template_description_label"),
             rect.x + ui.w(18.0),
             y,
@@ -659,11 +660,11 @@ impl DeckBuilderScreen {
         y += ui.h(18.0);
         for line in description_lines {
             y += ui.h(18.0);
-            draw_text(&line, rect.x + ui.w(18.0), y, ui.font(16.0), TEXT_MUTED);
+            draw_ui_text(&line, rect.x + ui.w(18.0), y, ui.font(16.0), TEXT_MUTED);
         }
 
         y += ui.h(24.0);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_template_roster_seed_label"),
             rect.x + ui.w(18.0),
             y,
@@ -672,12 +673,12 @@ impl DeckBuilderScreen {
         );
         y += ui.h(20.0);
         for line in self.template_roster_lines(state, starter) {
-            draw_text(&line, rect.x + ui.w(18.0), y, ui.font(16.0), TEXT_MUTED);
+            draw_ui_text(&line, rect.x + ui.w(18.0), y, ui.font(16.0), TEXT_MUTED);
             y += ui.h(18.0);
         }
 
         y += ui.h(8.0);
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} ({}/{})",
                 state
@@ -693,7 +694,7 @@ impl DeckBuilderScreen {
         );
         y += ui.h(20.0);
         for line in self.template_support_seed_lines(state, starter) {
-            draw_text(&line, rect.x + ui.w(18.0), y, ui.font(15.0), TEXT_MUTED);
+            draw_ui_text(&line, rect.x + ui.w(18.0), y, ui.font(15.0), TEXT_MUTED);
             y += ui.h(17.0);
             if y > rect.y + rect.h - ui.h(12.0) {
                 break;
@@ -705,14 +706,14 @@ impl DeckBuilderScreen {
         let ui = UiLayout::current();
         let rect = preview_panel_content_rect();
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_empty_preview_title"),
             rect.x + ui.w(18.0),
             rect.y + ui.h(42.0),
             ui.font(28.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_empty_preview_body"),
             rect.x + ui.w(18.0),
             rect.y + ui.h(92.0),

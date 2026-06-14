@@ -12,6 +12,7 @@ use super::controls::*;
 use super::layout::*;
 use super::types::*;
 use super::*;
+use macroquad_toolkit::ui::draw_ui_text;
 
 impl DeckBuilderScreen {
     pub(super) fn filter_buttons(&self, state: &AppState) -> Vec<FilterButton> {
@@ -323,7 +324,7 @@ impl DeckBuilderScreen {
                 GOLD
             };
 
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_status_label"),
@@ -338,7 +339,7 @@ impl DeckBuilderScreen {
                 ui.font(24.0),
                 legal_color,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_collection_label"),
@@ -353,7 +354,7 @@ impl DeckBuilderScreen {
                 ui.font(20.0),
                 collection_color,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_missing_count_label"),
@@ -368,7 +369,7 @@ impl DeckBuilderScreen {
                     GOLD
                 },
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}/{}",
                     state.ui_text.get("deck_builder_support_summary_label"),
@@ -384,7 +385,7 @@ impl DeckBuilderScreen {
                     GOLD
                 },
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}/{}",
                     state.ui_text.get("deck_builder_magical_girl_summary_label"),
@@ -400,7 +401,7 @@ impl DeckBuilderScreen {
                     GOLD
                 },
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}/{}",
                     state.ui_text.get("deck_builder_baddie_summary_label"),
@@ -418,7 +419,7 @@ impl DeckBuilderScreen {
             );
 
             let issues = self.validation_issue_lines(state, &validation);
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_warnings_label"),
                 rect.x,
                 rect.y + ui.h(176.0),
@@ -427,7 +428,7 @@ impl DeckBuilderScreen {
             );
 
             if issues.is_empty() {
-                draw_text(
+                draw_ui_text(
                     state.ui_text.get("deck_builder_no_warnings"),
                     rect.x,
                     rect.y + ui.h(206.0),
@@ -439,18 +440,18 @@ impl DeckBuilderScreen {
 
             let mut issue_y = rect.y + ui.h(206.0);
             for issue in issues.into_iter().take(4) {
-                draw_text(&issue, rect.x, issue_y, ui.font(16.0), TEXT_MUTED);
+                draw_ui_text(&issue, rect.x, issue_y, ui.font(16.0), TEXT_MUTED);
                 issue_y += ui.h(24.0);
             }
         } else {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_missing_deck"),
                 rect.x,
                 rect.y,
                 ui.font(24.0),
                 TEXT_MUTED,
             );
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_summary_empty_body"),
                 rect.x,
                 rect.y + ui.h(34.0),
@@ -471,7 +472,7 @@ impl DeckBuilderScreen {
             match item {
                 BrowserLayoutItem::GroupHeader { label, rect } => {
                     draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-                    draw_text(
+                    draw_ui_text(
                         &label,
                         rect.x + ui.w(12.0),
                         rect.y + ui.h(20.0),
@@ -520,7 +521,7 @@ impl DeckBuilderScreen {
                             ui.w(4.0),
                             GOLD,
                         );
-                        draw_text(
+                        draw_ui_text(
                             state.ui_text.get("deck_builder_missing_short"),
                             card_layout.rect.x + ui.w(12.0),
                             card_layout.rect.y + ui.h(24.0),
@@ -540,7 +541,7 @@ impl DeckBuilderScreen {
                             DARKGRAY
                         },
                     );
-                    draw_text(
+                    draw_ui_text(
                         if available > 0 && has_active_deck {
                             state.ui_text.get("deck_builder_add_card")
                         } else {
@@ -559,7 +560,7 @@ impl DeckBuilderScreen {
                         card_layout.remove_rect.h,
                         if copies > 0 { PINK } else { DARKGRAY },
                     );
-                    draw_text(
+                    draw_ui_text(
                         if copies > 0 {
                             state.ui_text.get("deck_builder_remove_card")
                         } else {

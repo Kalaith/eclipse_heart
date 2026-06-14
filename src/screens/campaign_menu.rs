@@ -10,6 +10,7 @@ use crate::ui::core::{
     PRIORITY_GOLD, TEXT_MUTED,
 };
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct CampaignMenuScreen;
 
@@ -70,21 +71,21 @@ impl CampaignMenuScreen {
         draw_focus_panel(ui.rect(56.0, 56.0, 1700.0, 1240.0), MG_BLUE);
         draw_focus_panel(ui.rect(1830.0, 690.0, 620.0, 530.0), PRIORITY_GOLD);
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_menu_title"),
             ui.x(80.0),
             ui.y(110.0),
             ui.font(72.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_menu_subtitle"),
             ui.x(80.0),
             ui.y(164.0),
             ui.font(30.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &state.content.campaign.description,
             ui.x(80.0),
             ui.y(220.0),
@@ -92,7 +93,7 @@ impl CampaignMenuScreen {
             GOLD,
         );
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_slots_label"),
             ui.x(80.0),
             ui.y(320.0),
@@ -102,7 +103,7 @@ impl CampaignMenuScreen {
 
         if state.saves.campaigns.runs.is_empty() {
             draw_soft_panel(ui.x(80.0), ui.y(356.0), ui.w(1600.0), ui.h(104.0), MG_BLUE);
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("campaign_slot_empty"),
                 ui.x(116.0),
                 ui.y(420.0),
@@ -116,7 +117,7 @@ impl CampaignMenuScreen {
         }
 
         if let Some(run) = state.saves.campaigns.selected_run() {
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("campaign_selected_slot_label"),
@@ -127,7 +128,7 @@ impl CampaignMenuScreen {
                 ui.font(28.0),
                 WHITE,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("campaign_status_label"),
@@ -138,7 +139,7 @@ impl CampaignMenuScreen {
                 ui.font(24.0),
                 TEXT_MUTED,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("campaign_current_node_label"),
@@ -152,7 +153,7 @@ impl CampaignMenuScreen {
         }
 
         if let Some(message) = &state.campaign_notice {
-            draw_text(message, ui.x(80.0), ui.y(1260.0), ui.font(24.0), SKYBLUE);
+            draw_ui_text(message, ui.x(80.0), ui.y(1260.0), ui.font(24.0), SKYBLUE);
         }
 
         let completed_runs = state
@@ -162,7 +163,7 @@ impl CampaignMenuScreen {
             .iter()
             .filter(|run| run.status == CampaignRunStatus::Won)
             .count();
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_completed_runs_label"),
@@ -212,14 +213,14 @@ impl CampaignMenuScreen {
             3.0,
             outline,
         );
-        draw_text(
+        draw_ui_text(
             &slot.run.name,
             slot.rect.x + ui.w(116.0),
             slot.rect.y + ui.h(36.0),
             ui.font(24.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}  {} {}/{}",
                 run_status_label(state, &slot.run.status),
@@ -232,7 +233,7 @@ impl CampaignMenuScreen {
             ui.font(18.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_deck_label"),
@@ -243,7 +244,7 @@ impl CampaignMenuScreen {
             ui.font(20.0),
             GOLD,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("campaign_current_node_label"),

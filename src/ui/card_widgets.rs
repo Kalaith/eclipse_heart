@@ -14,6 +14,7 @@ use super::core::{
     TEXT_MUTED,
 };
 use super::layout::UiLayout;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 #[derive(Clone)]
 struct ActionButtonVisual {
@@ -74,24 +75,24 @@ fn draw_action_button_visual(button: &ActionButtonVisual) {
     draw_button_frame(button.rect, fill, outline, accent);
 
     let font_size = (button.rect.h * 0.36).clamp(18.0, 30.0);
-    let text_metrics = measure_text(&button.label, None, font_size as u16, 1.0);
+    let text_metrics = measure_ui_text(&button.label, None, font_size as u16, 1.0);
     let text_x = button.rect.x + (button.rect.w - text_metrics.width) * 0.5;
     let text_y = button.rect.y + (button.rect.h + text_metrics.height) * 0.5 - 6.0;
-    draw_text(
+    draw_ui_text(
         &button.label,
         text_x + 1.0,
         text_y + 1.0,
         font_size,
         Color::new(0.0, 0.0, 0.0, 0.55),
     );
-    draw_text(&button.label, text_x, text_y, font_size, WHITE);
+    draw_ui_text(&button.label, text_x, text_y, font_size, WHITE);
 }
 
 pub fn disabled_card_button(rect: Rect, speed_label: &str, status_label: &str, card_name: &str) {
     draw_soft_panel(rect.x, rect.y, rect.w, rect.h, GRAY);
-    draw_text(speed_label, rect.x + 18.0, rect.y + 28.0, 22.0, GOLD);
-    draw_text(card_name, rect.x + 18.0, rect.y + 57.0, 24.0, WHITE);
-    draw_text(
+    draw_ui_text(speed_label, rect.x + 18.0, rect.y + 28.0, 22.0, GOLD);
+    draw_ui_text(card_name, rect.x + 18.0, rect.y + 57.0, 24.0, WHITE);
+    draw_ui_text(
         status_label,
         rect.x + rect.w - 102.0,
         rect.y + 42.0,
@@ -119,7 +120,7 @@ pub fn card_button(
 pub fn section_panel(rect: Rect, title: &str, outline: Color) {
     let ui = UiLayout::current();
     draw_focus_panel(rect, outline);
-    draw_text(
+    draw_ui_text(
         title,
         rect.x + ui.w(20.0),
         rect.y + ui.h(36.0),
@@ -234,7 +235,7 @@ pub fn draw_story_card_tile(
         speed_label(card.speed),
         alignment_label(card.alignment)
     );
-    draw_text(
+    draw_ui_text(
         &speed_line,
         rect.x + ui.w(14.0),
         rect.y + ui.h(24.0),
@@ -245,7 +246,7 @@ pub fn draw_story_card_tile(
     let title_lines = wrap_text_lines(&card.name, rect.w - ui.w(84.0), ui.font(26.0), 2);
     let mut title_y = rect.y + ui.h(52.0);
     for line in title_lines {
-        draw_text(&line, rect.x + ui.w(14.0), title_y, ui.font(28.0), WHITE);
+        draw_ui_text(&line, rect.x + ui.w(14.0), title_y, ui.font(28.0), WHITE);
         title_y += ui.h(26.0);
     }
 
@@ -256,7 +257,7 @@ pub fn draw_story_card_tile(
         bottom_bar_height,
         Color::new(0.05, 0.06, 0.10, 0.82),
     );
-    draw_text(
+    draw_ui_text(
         &format!("{}  |  {}", title_case_text(&card.card_type), subtitle),
         rect.x + ui.w(14.0),
         rect.y + rect.h - ui.h(18.0),
@@ -320,7 +321,7 @@ pub fn draw_story_card_preview(
         34.0,
         Color::new(0.05, 0.06, 0.10, 0.78),
     );
-    draw_text(
+    draw_ui_text(
         &format!(
             "{}   {}",
             speed_label(card.speed),
@@ -335,7 +336,7 @@ pub fn draw_story_card_preview(
     let title_lines = wrap_text_lines(&card.name, rect.w - 40.0, 38.0, 3);
     let mut title_y = rect.y + 226.0;
     for line in title_lines {
-        draw_text(&line, rect.x + 20.0, title_y, 38.0, WHITE);
+        draw_ui_text(&line, rect.x + 20.0, title_y, 38.0, WHITE);
         title_y += 36.0;
     }
 
@@ -346,7 +347,7 @@ pub fn draw_story_card_preview(
         34.0,
         Color::new(0.05, 0.06, 0.10, 0.78),
     );
-    draw_text(
+    draw_ui_text(
         &title_case_text(&card.card_type),
         rect.x + 28.0,
         rect.y + 344.0,
@@ -368,13 +369,13 @@ pub fn draw_story_card_preview(
     );
     let mut effect_y = rect.y + 388.0;
     for line in effect_lines {
-        draw_text(&line, rect.x + 20.0, effect_y, 28.0, WHITE);
+        draw_ui_text(&line, rect.x + 20.0, effect_y, 28.0, WHITE);
         effect_y += 30.0;
     }
 
     let mut footer_y = rect.y + rect.h - 76.0;
     for line in footer_lines {
-        draw_text(line, rect.x + 20.0, footer_y, 20.0, TEXT_MUTED);
+        draw_ui_text(line, rect.x + 20.0, footer_y, 20.0, TEXT_MUTED);
         footer_y += 22.0;
     }
 }

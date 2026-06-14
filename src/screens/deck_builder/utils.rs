@@ -1,6 +1,5 @@
-use macroquad::prelude::measure_text;
-
 use crate::state::{AppState, DeckCodeError};
+use macroquad_toolkit::ui::measure_ui_text;
 
 pub(super) fn wrap_preview_text(
     text: &str,
@@ -21,7 +20,7 @@ pub(super) fn wrap_preview_text(
             format!("{current} {word}")
         };
 
-        if measure_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
+        if measure_ui_text(&candidate, None, font_size as u16, 1.0).width <= max_width {
             current = candidate;
             index += 1;
             continue;

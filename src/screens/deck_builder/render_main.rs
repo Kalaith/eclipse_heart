@@ -9,6 +9,7 @@ use super::controls::*;
 use super::layout::*;
 use super::types::*;
 use super::*;
+use macroquad_toolkit::ui::draw_ui_text;
 
 impl DeckBuilderScreen {
     pub fn draw(&self, state: &AppState) {
@@ -45,14 +46,14 @@ impl DeckBuilderScreen {
                     .to_owned()
             });
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_title"),
             ui.x(80.0),
             ui.y(96.0),
             ui.font(68.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_subtitle"),
             ui.x(80.0),
             ui.y(148.0),
@@ -103,8 +104,8 @@ impl DeckBuilderScreen {
         );
         self.draw_layer_tabs(state);
 
-        draw_text(deck_name, ui.x(570.0), ui.y(148.0), ui.font(34.0), WHITE);
-        draw_text(
+        draw_ui_text(deck_name, ui.x(570.0), ui.y(148.0), ui.font(34.0), WHITE);
+        draw_ui_text(
             &format!(
                 "{}: {}/{}",
                 state.ui_text.get("deck_builder_card_total_label"),
@@ -116,7 +117,7 @@ impl DeckBuilderScreen {
             ui.font(28.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &origin_text,
             ui.x(570.0),
             ui.y(176.0),
@@ -125,7 +126,7 @@ impl DeckBuilderScreen {
         );
         if let Some(deck) = active_deck {
             if !deck.archetype_tags.is_empty() {
-                draw_text(
+                draw_ui_text(
                     &format!(
                         "{}: {}",
                         state.ui_text.get("deck_builder_tags_label"),
@@ -178,7 +179,7 @@ impl DeckBuilderScreen {
                 rect.h,
                 if action.enabled { GOLD } else { DARKGRAY },
             );
-            draw_text(
+            draw_ui_text(
                 action.label,
                 rect.x + ui.w(12.0),
                 rect.y + ui.h(28.0),
@@ -195,7 +196,7 @@ impl DeckBuilderScreen {
                 rect.h,
                 if action.enabled { SKYBLUE } else { DARKGRAY },
             );
-            draw_text(
+            draw_ui_text(
                 action.label,
                 rect.x + ui.w(12.0),
                 rect.y + ui.h(28.0),
@@ -212,7 +213,7 @@ impl DeckBuilderScreen {
                 rect.h,
                 if action.enabled { PINK } else { DARKGRAY },
             );
-            draw_text(
+            draw_ui_text(
                 action.label,
                 rect.x + ui.w(10.0),
                 rect.y + ui.h(24.0),
@@ -222,7 +223,7 @@ impl DeckBuilderScreen {
         }
 
         if state.saves.decks.support_decks.is_empty() {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_no_saved_decks"),
                 ui.x(100.0),
                 ui.y(378.0),
@@ -266,14 +267,14 @@ impl DeckBuilderScreen {
                 row_rect.h,
                 if is_selected { SKYBLUE } else { DARKGRAY },
             );
-            draw_text(
+            draw_ui_text(
                 &deck.name,
                 row_rect.x + ui.w(16.0),
                 row_rect.y + ui.h(28.0),
                 ui.font(20.0),
                 WHITE,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{} {}/{}",
                     state.ui_text.get("deck_builder_card_total_label"),
@@ -285,7 +286,7 @@ impl DeckBuilderScreen {
                 ui.font(16.0),
                 TEXT_MUTED,
             );
-            draw_text(
+            draw_ui_text(
                 recent_label,
                 row_rect.x + ui.w(206.0),
                 row_rect.y + ui.h(50.0),
@@ -319,14 +320,14 @@ impl DeckBuilderScreen {
                     DARKGRAY
                 },
             );
-            draw_text(
+            draw_ui_text(
                 &starter.name,
                 row_rect.x + ui.w(16.0),
                 row_rect.y + ui.h(24.0),
                 ui.font(20.0),
                 WHITE,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     state.ui_text.get("deck_builder_template_playstyle_label"),
@@ -337,7 +338,7 @@ impl DeckBuilderScreen {
                 ui.font(16.0),
                 TEXT_MUTED,
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{} {}",
                     state.ui_text.get("deck_builder_template_decks_created"),
@@ -356,7 +357,7 @@ impl DeckBuilderScreen {
                 create_rect.h,
                 SKYBLUE,
             );
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("deck_builder_create_from_template"),
                 create_rect.x + ui.w(10.0),
                 create_rect.y + ui.h(36.0),
@@ -380,7 +381,7 @@ impl DeckBuilderScreen {
                 row_rect.h,
                 if row_hovered { PINK } else { DARKPURPLE },
             );
-            draw_text(
+            draw_ui_text(
                 &format!(
                     "{}: {}",
                     collection_kind_label(state, grant.kind),
@@ -426,7 +427,7 @@ impl DeckBuilderScreen {
                 DARKGRAY
             },
         );
-        draw_text(
+        draw_ui_text(
             if self.search_text.is_empty() {
                 state.ui_text.get("deck_builder_search_placeholder")
             } else {
@@ -449,7 +450,7 @@ impl DeckBuilderScreen {
                 PINK
             },
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_search_clear"),
             clear_rect.x + ui.w(12.0),
             clear_rect.y + ui.h(30.0),
@@ -457,7 +458,7 @@ impl DeckBuilderScreen {
             WHITE,
         );
 
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("deck_builder_search_results_label"),
@@ -485,7 +486,7 @@ impl DeckBuilderScreen {
                 rect.h,
                 if button.active { GOLD } else { DARKGRAY },
             );
-            draw_text(
+            draw_ui_text(
                 &button.label,
                 rect.x + ui.w(10.0),
                 rect.y + ui.h(24.0),
@@ -497,7 +498,7 @@ impl DeckBuilderScreen {
         for (index, chip) in self.active_filter_chips(state).into_iter().enumerate() {
             let rect = filter_chip_rect(index);
             draw_soft_panel(rect.x, rect.y, rect.w, rect.h, SKYBLUE);
-            draw_text(
+            draw_ui_text(
                 &format!("{} x", chip.label),
                 rect.x + ui.w(10.0),
                 rect.y + ui.h(22.0),
@@ -518,7 +519,7 @@ impl DeckBuilderScreen {
                 DARKGRAY
             },
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("deck_builder_filters_clear_all"),
             clear_rect.x + ui.w(10.0),
             clear_rect.y + ui.h(22.0),
@@ -551,7 +552,7 @@ impl DeckBuilderScreen {
             ),
         ] {
             draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-            draw_text(
+            draw_ui_text(
                 &format!("{label}: {value}"),
                 rect.x + ui.w(10.0),
                 rect.y + ui.h(22.0),

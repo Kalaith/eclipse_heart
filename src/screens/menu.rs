@@ -9,6 +9,7 @@ use crate::ui::core::{
     BADDIE_PINK, MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
 };
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub struct MenuScreen {
     settings_open: bool,
@@ -107,17 +108,17 @@ impl MenuScreen {
 
         let ui = UiLayout::current();
         let font_size = ui.font(32.0);
-        let text_metrics = measure_text(label, None, font_size as u16, 1.0);
+        let text_metrics = measure_ui_text(label, None, font_size as u16, 1.0);
         let text_x = rect.x + (rect.w - text_metrics.width) * 0.5;
         let text_y = rect.y + (rect.h + text_metrics.height) * 0.5 - ui.h(7.0);
-        draw_text(
+        draw_ui_text(
             label,
             text_x + 1.0,
             text_y + 2.0,
             font_size,
             Color::new(0.0, 0.0, 0.0, 0.58),
         );
-        draw_text(
+        draw_ui_text(
             label,
             text_x,
             text_y,
@@ -135,14 +136,14 @@ impl MenuScreen {
         draw_screen_scrim(0.78);
         draw_focus_panel(panel_rect, BADDIE_PINK);
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("menu_settings_label"),
             panel_rect.x + ui.w(64.0),
             panel_rect.y + ui.h(112.0),
             ui.font(60.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("menu_settings_display_label"),
             panel_rect.x + ui.w(70.0),
             panel_rect.y + ui.h(222.0),
@@ -181,14 +182,14 @@ impl MenuScreen {
             border,
             if fullscreen { MG_BLUE } else { BADDIE_PINK },
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("menu_fullscreen_mode"),
             rect.x + ui.w(28.0),
             rect.y + ui.h(48.0),
             ui.font(32.0),
             Color::new(0.94, 0.94, 1.0, 1.0),
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("menu_fullscreen_description"),
             rect.x + ui.w(28.0),
             rect.y + ui.h(84.0),
@@ -225,8 +226,8 @@ impl MenuScreen {
         } else {
             state.ui_text.get("menu_toggle_off")
         };
-        let state_metrics = measure_text(state_label, None, ui.font(18.0) as u16, 1.0);
-        draw_text(
+        let state_metrics = measure_ui_text(state_label, None, ui.font(18.0) as u16, 1.0);
+        draw_ui_text(
             state_label,
             track_x + (track_width - state_metrics.width) * 0.5,
             track_y + track_height + ui.h(26.0),

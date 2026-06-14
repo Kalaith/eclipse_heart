@@ -1,5 +1,6 @@
 //! Battle screen for the rules-engine shell.
 
+use macroquad_toolkit::ui::draw_ui_text;
 mod helpers;
 
 use macroquad::prelude::*;
@@ -151,7 +152,7 @@ impl BattleScreen {
     pub fn draw(&self, state: &AppState) {
         let ui = UiLayout::current();
         let Some(match_state) = state.match_state.as_ref() else {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("battle_missing_match"),
                 ui.x(56.0),
                 ui.y(84.0),
@@ -204,7 +205,7 @@ impl BattleScreen {
 
         let action_hint = battle_action_hint(state, match_state, PlayerId::PlayerA);
         draw_soft_panel(ui.x(540.0), ui.y(792.0), ui.w(820.0), ui.h(52.0), MG_BLUE);
-        draw_text(
+        draw_ui_text(
             action_hint,
             ui.x(562.0),
             ui.y(826.0),
@@ -225,7 +226,7 @@ impl BattleScreen {
             ui.font(24.0),
         );
         for line in wrapped_lines {
-            draw_text(&line, ui.x(68.0), line_y, ui.font(24.0), TEXT_MUTED);
+            draw_ui_text(&line, ui.x(68.0), line_y, ui.font(24.0), TEXT_MUTED);
             line_y += ui.h(34.0);
             if line_y > ui.y(740.0) {
                 break;
@@ -241,7 +242,7 @@ impl BattleScreen {
                 ui.h(52.0),
                 BADDIE_PINK,
             );
-            draw_text(
+            draw_ui_text(
                 &played_line,
                 ui.x(1730.0),
                 ui.y(826.0),
@@ -255,7 +256,7 @@ impl BattleScreen {
 
     fn draw_skirmish_battle(&self, state: &AppState, match_state: &MatchState) {
         let ui = UiLayout::current();
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("battle_title"),
             ui.x(540.0),
             ui.y(86.0),
@@ -269,7 +270,7 @@ impl BattleScreen {
             match_state.active_player,
             opposing(match_state.active_player)
         );
-        draw_text(&lane_line, ui.x(540.0), ui.y(128.0), ui.font(30.0), GOLD);
+        draw_ui_text(&lane_line, ui.x(540.0), ui.y(128.0), ui.font(30.0), GOLD);
 
         if match_state.phase == MatchPhase::Finished {
             let winner_line = format!(
@@ -277,7 +278,7 @@ impl BattleScreen {
                 state.ui_text.get("battle_winner_label"),
                 winner_label(state, match_state.winner)
             );
-            draw_text(
+            draw_ui_text(
                 &winner_line,
                 ui.x(540.0),
                 ui.y(170.0),
@@ -317,7 +318,7 @@ impl BattleScreen {
 
     fn draw_campaign_battle(&self, state: &AppState, match_state: &MatchState) {
         let ui = UiLayout::current();
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_battle_title"),
             ui.x(540.0),
             ui.y(88.0),
@@ -326,7 +327,7 @@ impl BattleScreen {
         );
 
         let encounter_name = campaign_encounter_name(state);
-        draw_text(
+        draw_ui_text(
             &encounter_name,
             ui.x(540.0),
             ui.y(128.0),
@@ -339,7 +340,7 @@ impl BattleScreen {
         } else {
             state.ui_text.get("campaign_battle_lane_enemy_attack")
         };
-        draw_text(lane_line, ui.x(540.0), ui.y(166.0), ui.font(24.0), ORANGE);
+        draw_ui_text(lane_line, ui.x(540.0), ui.y(166.0), ui.font(24.0), ORANGE);
 
         if match_state.phase == MatchPhase::Finished {
             let winner_line = format!(
@@ -347,7 +348,7 @@ impl BattleScreen {
                 state.ui_text.get("battle_winner_label"),
                 campaign_winner_label(state, match_state.winner)
             );
-            draw_text(
+            draw_ui_text(
                 &winner_line,
                 ui.x(540.0),
                 ui.y(198.0),
@@ -381,7 +382,7 @@ impl BattleScreen {
         self.draw_vs_marker(ui.x(1284.0), ui.y(340.0));
 
         draw_soft_panel(ui.x(540.0), ui.y(498.0), ui.w(1466.0), ui.h(58.0), GRAY);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("campaign_battle_focus_note"),
             ui.x(564.0),
             ui.y(534.0),
@@ -418,7 +419,7 @@ impl BattleScreen {
     fn draw_campaign_intel_rail(&self, state: &AppState) {
         let ui = UiLayout::current();
         let rail = ui.rect(2126.0, 190.0, 394.0, 1206.0);
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("battle_encounter_intel_label"),
             rail.x + ui.w(34.0),
             rail.y + ui.h(62.0),
@@ -467,7 +468,7 @@ impl BattleScreen {
         for (offset_y, height, title, body, accent) in cards {
             let rect = ui.rect(2160.0, 190.0 + offset_y, 328.0, height);
             draw_soft_panel(rect.x, rect.y, rect.w, rect.h, accent);
-            draw_text(
+            draw_ui_text(
                 title,
                 rect.x + ui.w(24.0),
                 rect.y + ui.h(48.0),
@@ -477,7 +478,7 @@ impl BattleScreen {
             let lines = wrap_event_lines(&[body.to_owned()], rect.w - ui.w(48.0), ui.font(21.0));
             let mut text_y = rect.y + ui.h(92.0);
             for line in lines.into_iter().take(4) {
-                draw_text(
+                draw_ui_text(
                     &line,
                     rect.x + ui.w(24.0),
                     text_y,
@@ -504,9 +505,9 @@ impl BattleScreen {
         prime_defeated: bool,
     ) {
         let ui = UiLayout::current();
-        draw_text(player_label, x, y, ui.font(30.0), WHITE);
-        draw_text(identity_label, x + ui.w(210.0), y, ui.font(24.0), GRAY);
-        draw_text(status_label, x + ui.w(500.0), y, ui.font(24.0), GOLD);
+        draw_ui_text(player_label, x, y, ui.font(30.0), WHITE);
+        draw_ui_text(identity_label, x + ui.w(210.0), y, ui.font(24.0), GRAY);
+        draw_ui_text(status_label, x + ui.w(500.0), y, ui.font(24.0), GOLD);
 
         self.draw_side_box(
             state,
@@ -530,7 +531,7 @@ impl BattleScreen {
             false,
             prime_defeated,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} {}  {} {}",
                 state.ui_text.get("battle_hand_count_label"),
@@ -550,7 +551,7 @@ impl BattleScreen {
             ui.h(70.0),
             LIGHTGRAY,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} {}",
                 state.ui_text.get("battle_draw_pile_label"),
@@ -585,7 +586,7 @@ impl BattleScreen {
         let ui = UiLayout::current();
         section_panel(Rect::new(x, y, width, height), label, outline);
         if prime_defeated {
-            draw_text(
+            draw_ui_text(
                 state.ui_text.get("battle_prime_defeated_label"),
                 x + ui.w(640.0),
                 y + ui.h(34.0),
@@ -611,7 +612,7 @@ impl BattleScreen {
         } else {
             side.main.dread
         };
-        draw_text(
+        draw_ui_text(
             &side.main.name,
             x + ui.w(170.0),
             y + ui.h(84.0),
@@ -649,7 +650,7 @@ impl BattleScreen {
             ui.h(42.0),
             outline,
         );
-        draw_text(
+        draw_ui_text(
             &format_supports(state, &side.supports),
             x + ui.w(186.0),
             y + ui.h(182.0),
@@ -722,7 +723,7 @@ impl BattleScreen {
             ui.w(2.0),
             BADDIE_PINK,
         );
-        draw_text("VS", x - ui.w(28.0), y + ui.h(16.0), ui.font(46.0), WHITE);
+        draw_ui_text("VS", x - ui.w(28.0), y + ui.h(16.0), ui.font(46.0), WHITE);
     }
 
     fn draw_hand_cards(&self, state: &AppState, match_state: &MatchState, player: PlayerId) {

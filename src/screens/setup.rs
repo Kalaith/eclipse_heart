@@ -11,6 +11,7 @@ use crate::ui::core::{
     PRIORITY_GOLD, TEXT_MUTED,
 };
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct SetupScreen;
 
@@ -109,14 +110,14 @@ impl SetupScreen {
         }
         draw_screen_scrim(0.62);
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_title"),
             ui.x(80.0),
             ui.y(96.0),
             ui.font(68.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_subtitle"),
             ui.x(80.0),
             ui.y(150.0),
@@ -128,7 +129,7 @@ impl SetupScreen {
             self.draw_panel(state, &target);
         }
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_hidden_support_note"),
             ui.x(80.0),
             ui.y(1252.0),
@@ -151,7 +152,7 @@ impl SetupScreen {
         let ui = UiLayout::current();
         section_panel(target.panel_rect, target.label, GRAY);
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_main_options_label"),
             target.panel_rect.x + ui.w(20.0),
             target.panel_rect.y + ui.h(74.0),
@@ -172,7 +173,7 @@ impl SetupScreen {
             );
         }
 
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_support_pair_options_label"),
             target.panel_rect.x + ui.w(20.0),
             target.panel_rect.y + ui.h(246.0),
@@ -220,14 +221,14 @@ impl SetupScreen {
             );
         }
         draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 3.0, outline);
-        draw_text(
+        draw_ui_text(
             &character.name,
             rect.x + ui.w(92.0),
             rect.y + ui.h(32.0),
             ui.font(22.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} / {} / {}",
                 character.base_power, character.transformed_power, character.final_power
@@ -237,7 +238,7 @@ impl SetupScreen {
             ui.font(18.0),
             TEXT_MUTED,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{} {} / {}",
                 state.ui_text.get("battle_growth_label"),
@@ -269,14 +270,14 @@ impl SetupScreen {
 
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
         draw_rectangle_lines(rect.x, rect.y, rect.w, rect.h, 2.0, outline);
-        draw_text(
+        draw_ui_text(
             &target.names.join(" + "),
             rect.x + ui.w(14.0),
             rect.y + ui.h(30.0),
             ui.font(20.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             state.ui_text.get("setup_hidden_supports_label"),
             rect.x + ui.w(14.0),
             rect.y + ui.h(56.0),
@@ -310,7 +311,7 @@ impl SetupScreen {
             .unwrap_or(state.ui_text.get("setup_default_support_deck"));
 
         draw_soft_panel(rect.x, rect.y, rect.w, rect.h, DARKGRAY);
-        draw_text(
+        draw_ui_text(
             match player {
                 PlayerId::PlayerA => state.ui_text.get("setup_player_a_assigned_deck"),
                 PlayerId::PlayerB => state.ui_text.get("setup_player_b_assigned_deck"),
@@ -320,14 +321,14 @@ impl SetupScreen {
             ui.font(18.0),
             WHITE,
         );
-        draw_text(
+        draw_ui_text(
             assigned_deck_name,
             rect.x + ui.w(14.0),
             rect.y + ui.h(54.0),
             ui.font(18.0),
             GOLD,
         );
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}",
                 state.ui_text.get("setup_current_selected_deck"),
