@@ -29,3 +29,10 @@ Playable card-battle foundation with campaign and skirmish flow, support decks, 
 ## Documentation
 
 Project notes, plans, rules references, and implementation records live in [`docs/`](docs/).
+# Practical Future Improvements
+
+- Add card-state tests for draw, discard, deck editing, battle setup, campaign reward, and roster-dialog side effects.
+- Introduce a combat replay fixture that can reproduce battle bugs from seed, deck, enemy, and starting hand data.
+- Move card, enemy, campaign, and reward tuning into validated data tables to reduce rule drift between screens.
+- Separate deck-builder preview and browser state from mutation commands so UI filtering cannot alter deck contents accidentally.
+
