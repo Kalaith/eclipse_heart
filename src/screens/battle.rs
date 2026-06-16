@@ -22,6 +22,12 @@ use crate::ui::layout::UiLayout;
 
 pub struct BattleScreen;
 
+impl Default for BattleScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BattleScreen {
     pub fn new() -> Self {
         Self

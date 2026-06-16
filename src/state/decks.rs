@@ -222,7 +222,7 @@ impl DecksSave {
             name: deck_name,
             source_template_id: Some(starter.id.clone()),
             notes: starter.description.clone(),
-            archetype_tags: normalized_tags(&[starter.playstyle.clone()]),
+            archetype_tags: normalized_tags(std::slice::from_ref(&starter.playstyle)),
             story_cards: starter.support_deck.clone(),
             magical_girl_roster,
             baddie_roster,

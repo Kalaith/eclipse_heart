@@ -24,6 +24,12 @@ enum MenuCommand {
     ExitGame,
 }
 
+impl Default for MenuScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MenuScreen {
     pub fn new() -> Self {
         Self {

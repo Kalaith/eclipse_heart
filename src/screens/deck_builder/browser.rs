@@ -280,7 +280,7 @@ impl DeckBuilderScreen {
                 }));
             }
 
-            let rows = (entry_count + columns - 1) / columns;
+            let rows = entry_count.div_ceil(columns);
             current_y += match self.view_mode {
                 DeckViewMode::Grid => rows as f32 * 134.0 + 10.0,
                 DeckViewMode::CompactList => rows as f32 * 82.0 + 10.0,

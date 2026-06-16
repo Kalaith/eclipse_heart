@@ -15,6 +15,12 @@ use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct SetupScreen;
 
+impl Default for SetupScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SetupScreen {
     pub fn new() -> Self {
         Self

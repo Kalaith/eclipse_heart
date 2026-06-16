@@ -32,6 +32,12 @@ pub struct DeckBuilderScreen {
     view_mode: DeckViewMode,
 }
 
+impl Default for DeckBuilderScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DeckBuilderScreen {
     pub fn new() -> Self {
         Self {

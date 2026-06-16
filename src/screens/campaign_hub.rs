@@ -15,6 +15,12 @@ use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct CampaignHubScreen;
 
+impl Default for CampaignHubScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CampaignHubScreen {
     pub fn new() -> Self {
         Self
@@ -426,7 +432,7 @@ fn support_targets<'a>(state: &'a AppState) -> Vec<SupportTarget<'a>> {
         .collect()
 }
 
-fn current_support_characters<'a>(state: &'a AppState) -> Vec<&'a CharacterDefinition> {
+fn current_support_characters(state: &AppState) -> Vec<&CharacterDefinition> {
     let Some(run) = state.saves.campaigns.selected_run() else {
         return Vec::new();
     };

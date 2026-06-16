@@ -67,7 +67,7 @@ pub(super) fn deck_utility_buttons<'a>(state: &'a AppState) -> [DeckUtilityButto
     ]
 }
 
-pub(super) fn collection_kind_label<'a>(state: &'a AppState, kind: CollectionCardKind) -> &'a str {
+pub(super) fn collection_kind_label(state: &AppState, kind: CollectionCardKind) -> &str {
     match kind {
         CollectionCardKind::MagicalGirl => state.ui_text.get("deck_builder_kind_magical_girl"),
         CollectionCardKind::Baddie => state.ui_text.get("deck_builder_kind_baddie"),

@@ -58,7 +58,7 @@ pub(super) fn player_status<'a>(
     }
 }
 
-pub(super) fn winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
+pub(super) fn winner_label(state: &AppState, winner: Option<PlayerId>) -> &str {
     match winner {
         Some(PlayerId::PlayerA) => state.ui_text.get("battle_result_player_a"),
         Some(PlayerId::PlayerB) => state.ui_text.get("battle_result_player_b"),
@@ -66,7 +66,7 @@ pub(super) fn winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) ->
     }
 }
 
-pub(super) fn campaign_winner_label<'a>(state: &'a AppState, winner: Option<PlayerId>) -> &'a str {
+pub(super) fn campaign_winner_label(state: &AppState, winner: Option<PlayerId>) -> &str {
     match winner {
         Some(PlayerId::PlayerA) => state.ui_text.get("campaign_battle_player_wins"),
         Some(PlayerId::PlayerB) => state.ui_text.get("campaign_battle_enemy_wins"),
@@ -74,7 +74,7 @@ pub(super) fn campaign_winner_label<'a>(state: &'a AppState, winner: Option<Play
     }
 }
 
-pub(super) fn hand_card_status_label<'a>(state: &'a AppState, enabled: bool) -> &'a str {
+pub(super) fn hand_card_status_label(state: &AppState, enabled: bool) -> &str {
     if enabled {
         state.ui_text.get("battle_card_ready")
     } else {

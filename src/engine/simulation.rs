@@ -445,10 +445,9 @@ fn first_round_with_magical_girl_stage(
     target_stage: &str,
 ) -> Option<u32> {
     encounters.iter().find_map(|encounter| {
-        if encounter.attacker == player && encounter.attacker_main_stage_before == target_stage {
-            Some(encounter.round)
-        } else if encounter.defender == player
-            && encounter.defender_main_magical_girl_stage_before == target_stage
+        if (encounter.attacker == player && encounter.attacker_main_stage_before == target_stage)
+            || (encounter.defender == player
+                && encounter.defender_main_magical_girl_stage_before == target_stage)
         {
             Some(encounter.round)
         } else {

@@ -14,6 +14,12 @@ use macroquad_toolkit::ui::draw_ui_text;
 
 pub struct CampaignMenuScreen;
 
+impl Default for CampaignMenuScreen {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CampaignMenuScreen {
     pub fn new() -> Self {
         Self
