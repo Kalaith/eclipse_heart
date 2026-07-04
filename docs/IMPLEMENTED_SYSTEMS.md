@@ -36,7 +36,7 @@
 - Campaign battles now use a separate presentation layer that frames the match as `you vs enemy`, and the visible combat panels only show the player's Magical Girls against the AI's Baddies.
 - Campaign battles now also hide player-facing Baddie-support reveal controls, so the visible actions stay aligned with the single-player Magical Girl framing.
 - Campaign battles now include a right-side encounter intel rail, top status chips, and a central versus marker to better match the angular neon HUD mockup.
-- Native screenshot capture can be driven through `ECLIPSE_HEART_CAPTURE_SCREEN` and `ECLIPSE_HEART_CAPTURE_PATH`, allowing current screenshots to be regenerated directly from the Rust renderer without browser automation.
+- Native screenshot capture can be driven through `ECLIPSE_HEART_CAPTURE_SCENE` and `ECLIPSE_HEART_CAPTURE_PATH`, allowing current screenshots to be regenerated directly from the Rust renderer without browser automation.
 
 ## Persistence
 

@@ -778,13 +778,5 @@ fn apply_window_settings(state: &AppState) {
 }
 
 fn capture_mode_enabled() -> bool {
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        std::env::var("ECLIPSE_HEART_CAPTURE_SCREEN").is_ok()
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        false
-    }
+    macroquad_toolkit::capture::capture_requested("ECLIPSE_HEART")
 }
