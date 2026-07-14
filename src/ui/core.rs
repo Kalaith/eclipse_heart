@@ -1,6 +1,7 @@
 //! Shared UI colors and primitive drawing helpers.
 
 use macroquad::prelude::*;
+use macroquad_toolkit::colors::with_alpha;
 
 pub const BACKGROUND: Color = Color::new(0.008, 0.012, 0.034, 1.0);
 pub const PANEL: Color = Color::new(0.015, 0.024, 0.064, 0.93);
@@ -70,10 +71,6 @@ pub fn draw_button_frame(rect: Rect, fill: Color, outline: Color, accent: Color)
         4.0,
         with_alpha(accent, 0.82),
     );
-}
-
-pub fn with_alpha(color: Color, alpha: f32) -> Color {
-    Color::new(color.r, color.g, color.b, alpha)
 }
 
 fn draw_hud_panel(rect: Rect, fill: Color, outline: Color, strong_rule: bool) {

@@ -3,8 +3,9 @@ use macroquad::prelude::*;
 use crate::state::{
     opposing, AppState, BattleContext, MatchPhase, MatchState, PlayerId, SupportState,
 };
-use crate::ui::core::{draw_button_frame, with_alpha, TEXT_MUTED};
+use crate::ui::core::{draw_button_frame, TEXT_MUTED};
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::colors::with_alpha;
 use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub(super) fn can_reveal_side(

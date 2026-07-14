@@ -5,10 +5,11 @@ use macroquad::prelude::*;
 use crate::screens::ScreenAction;
 use crate::state::AppState;
 use crate::ui::core::{
-    draw_background_texture, draw_button_frame, draw_focus_panel, draw_screen_scrim, with_alpha,
-    BADDIE_PINK, MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
+    draw_background_texture, draw_button_frame, draw_focus_panel, draw_screen_scrim, BADDIE_PINK,
+    MG_BLUE, PRIORITY_GOLD, TEXT_MUTED,
 };
 use crate::ui::layout::UiLayout;
+use macroquad_toolkit::colors::with_alpha;
 use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub struct MenuScreen {
@@ -158,7 +159,7 @@ impl MenuScreen {
         );
 
         self.draw_menu_button(back_rect, state.ui_text.get("menu_settings_back"));
-        self.draw_fullscreen_toggle(toggle_rect, state.saves.settings.fullscreen, state);
+        self.draw_fullscreen_toggle(toggle_rect, state.saves.settings.display.fullscreen, state);
     }
 
     fn draw_fullscreen_toggle(&self, rect: Rect, fullscreen: bool, state: &AppState) {

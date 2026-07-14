@@ -121,7 +121,7 @@ mod tests {
         assert!(bundle.decks.support_decks.is_empty());
         assert!(bundle.campaigns.runs.is_empty());
         assert_eq!(bundle.settings.window_width, 2560);
-        assert!(bundle.settings.fullscreen);
+        assert!(bundle.settings.display.fullscreen);
 
         std::fs::remove_dir_all(root).expect("cleanup temp dir");
     }
@@ -144,7 +144,7 @@ mod tests {
         );
         bundle.decks.roster_presets = vec!["starter_a".to_owned()];
         bundle.campaigns.runs = Vec::new();
-        bundle.settings.fullscreen = true;
+        bundle.settings.display.fullscreen = true;
 
         manager.save_all(&bundle).expect("save bundle");
         let loaded = manager.load_all().expect("reload bundle");
@@ -165,7 +165,7 @@ mod tests {
         );
         assert_eq!(loaded.decks.roster_presets, vec!["starter_a"]);
         assert!(loaded.campaigns.runs.is_empty());
-        assert!(loaded.settings.fullscreen);
+        assert!(loaded.settings.display.fullscreen);
 
         std::fs::remove_dir_all(root).expect("cleanup temp dir");
     }

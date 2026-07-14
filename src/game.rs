@@ -219,7 +219,8 @@ impl Game {
                 self.state.screen = AppScreen::Menu;
             }
             ScreenAction::ToggleFullscreenMode => {
-                self.state.saves.settings.fullscreen = !self.state.saves.settings.fullscreen;
+                self.state.saves.settings.display.fullscreen =
+                    !self.state.saves.settings.display.fullscreen;
                 apply_window_settings(&self.state);
                 let _ = self.state.persistence.save_all(&self.state.saves);
             }
@@ -771,8 +772,8 @@ fn apply_window_settings(state: &AppState) {
         return;
     }
     let settings = &state.saves.settings;
-    set_fullscreen(settings.fullscreen);
-    if !settings.fullscreen {
+    set_fullscreen(settings.display.fullscreen);
+    if !settings.display.fullscreen {
         request_new_screen_size(settings.window_width as f32, settings.window_height as f32);
     }
 }
