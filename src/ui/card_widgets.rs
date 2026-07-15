@@ -4,7 +4,7 @@ use std::cell::RefCell;
 
 use macroquad::prelude::*;
 use macroquad_toolkit::input::rect_contains_point;
-use macroquad_toolkit::ui::wrap_text;
+use macroquad_toolkit::ui::{display_name, wrap_text};
 
 use crate::data::{CardAlignment, CardEffect, CardSpeed, StoryCardDefinition};
 use crate::state::AppState;
@@ -258,7 +258,7 @@ pub fn draw_story_card_tile(
         Color::new(0.05, 0.06, 0.10, 0.82),
     );
     draw_ui_text(
-        &format!("{}  |  {}", title_case_text(&card.card_type), subtitle),
+        &format!("{}  |  {}", display_name(&card.card_type), subtitle),
         rect.x + ui.w(14.0),
         rect.y + rect.h - ui.h(18.0),
         ui.font(16.0),
@@ -348,7 +348,7 @@ pub fn draw_story_card_preview(
         Color::new(0.05, 0.06, 0.10, 0.78),
     );
     draw_ui_text(
-        &title_case_text(&card.card_type),
+        &display_name(&card.card_type),
         rect.x + 28.0,
         rect.y + 344.0,
         20.0,
@@ -454,18 +454,4 @@ fn wrap_text_lines(text: &str, max_width: f32, font_size: f32, max_lines: usize)
         .into_iter()
         .take(max_lines)
         .collect()
-}
-
-fn title_case_text(value: &str) -> String {
-    value
-        .split('_')
-        .map(|part| {
-            let mut chars = part.chars();
-            match chars.next() {
-                Some(first) => format!("{}{}", first.to_ascii_uppercase(), chars.as_str()),
-                None => String::new(),
-            }
-        })
-        .collect::<Vec<_>>()
-        .join(" ")
 }
