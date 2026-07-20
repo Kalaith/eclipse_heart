@@ -1,0 +1,23 @@
+{
+  "title": "Eclipse Heart",
+  "status": { "text": "Playable", "class": "playable" },
+  "canvas_rendering": "pixelated",
+  "about": [
+    "Build support decks, manage magical-girl and baddie rosters, and fight campaign or skirmish battles around hidden supports and Final Climax timing."
+  ],
+  "controls": [
+    { "key": "Mouse", "desc": "Select cards, menus, and battle actions" },
+    { "key": "Esc", "desc": "Pause, back, or close dialogs" },
+    { "key": "Enter", "desc": "Confirm text entry where available" }
+  ],
+  "details": [
+    { "label": "Genre", "value": "Card Battler / Deck Builder" },
+    { "label": "Engine", "value": "Macroquad" },
+    { "label": "Platform", "value": "Browser, Windows" }
+  ],
+  "download": {
+    "href": "eclipse_heart_windows.zip",
+    "label": "Windows Build"
+  },
+  "repository": "https://github.com/Kalaith/eclipse_heart"
+}
