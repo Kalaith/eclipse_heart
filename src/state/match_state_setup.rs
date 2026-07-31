@@ -515,7 +515,7 @@ fn support_pair_index_for_main(
     preferred_ids: [&str; 2],
 ) -> usize {
     let pairs = support_pairs(definitions.len(), main_index);
-    let preferred = preferred_ids
+    let mut preferred = preferred_ids
         .iter()
         .filter_map(|preferred_id| {
             definitions
@@ -523,6 +523,9 @@ fn support_pair_index_for_main(
                 .position(|character| character.id == *preferred_id)
         })
         .collect::<Vec<_>>();
+    // `support_pairs` emits each pair in ascending index order, so match on the
+    // set rather than the order the ids were written in.
+    preferred.sort_unstable();
 
     pairs
         .iter()
@@ -536,10 +539,15 @@ fn support_pair_index_for_ids(
     support_ids: &[String],
 ) -> usize {
     let main_index = required_index(definitions, main_id);
-    let required_pair = support_ids
+    let mut required_pair = support_ids
         .iter()
         .map(|support_id| required_index(definitions, support_id))
         .collect::<Vec<_>>();
+    // Supports arrive in selection order — the campaign hub appends them as the
+    // player clicks — but `support_pairs` only ever emits ascending pairs. Sort
+    // before matching so a pair chosen "backwards" resolves to the same index
+    // instead of failing to match.
+    required_pair.sort_unstable();
     let pairs = support_pairs(definitions.len(), main_index);
 
     pairs
@@ -665,7 +673,28 @@ fn default_player_b_deck() -> Vec<String> {
 mod tests {
     use crate::data::GameContent;
 
-    use super::{support_pairs, MatchSetup, MatchState, PlayerId};
+    use super::{support_pair_index_for_ids, support_pairs, MatchSetup, MatchState, PlayerId};
+
+    #[test]
+    fn support_pair_lookup_ignores_selection_order() {
+        let content = GameContent::load().unwrap_or_default();
+        let definitions = &content.magical_girls;
+        assert!(
+            definitions.len() >= 3,
+            "need a main plus two supports to exercise pair lookup"
+        );
+
+        let main_id = definitions[0].id.clone();
+        let ascending = vec![definitions[1].id.clone(), definitions[2].id.clone()];
+        let descending = vec![definitions[2].id.clone(), definitions[1].id.clone()];
+
+        // The campaign hub appends supports in click order, so the same pair can
+        // arrive either way round; both must resolve to the same pair index.
+        assert_eq!(
+            support_pair_index_for_ids(definitions, &main_id, &ascending),
+            support_pair_index_for_ids(definitions, &main_id, &descending),
+        );
+    }
 
     #[test]
     fn support_pairs_exclude_the_selected_main() {
